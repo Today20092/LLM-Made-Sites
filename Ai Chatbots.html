@@ -106,8 +106,7 @@
           },
           {
             name: "DuckDuckGo AI Chat",
-            urlTemplate:
-              "https://www.duckduckgo.com/?q={{{s}}}&ia=chat&bang=true ",
+            urlTemplate: "https://duckduckgo.com/?q={{{s}}}&ia=chat",
             className:
               "bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700",
           },
@@ -125,9 +124,8 @@
           },
         ];
 
-        // Function to create the button elements once on page load
         function createChatbotButtons() {
-          chatbotButtonsDiv.innerHTML = ""; // Clear existing buttons first
+          chatbotButtonsDiv.innerHTML = "";
           chatbots.forEach((bot) => {
             const buttonLink = document.createElement("a");
             buttonLink.id = `btn-${bot.name.replace(/\s+/g, "-")}`;
@@ -139,12 +137,8 @@
           });
         }
 
-        // Function to update the href of the buttons based on prompt text
         function updateButtonLinks(promptText) {
-          // DuckDuckGo prefers '+' for spaces, while others handle %20 well.
-          // Using a consistent encoding is best. encodeURIComponent is the standard.
           const encodedPrompt = encodeURIComponent(promptText);
-
           chatbots.forEach((bot) => {
             const buttonLink = document.getElementById(
               `btn-${bot.name.replace(/\s+/g, "-")}`
@@ -165,6 +159,24 @@
           return prompt ? decodeURIComponent(prompt.replace(/\+/g, " ")) : "";
         }
 
+        // --- NEW FUNCTION TO UPDATE THE BROWSER'S URL ---
+        function updateBrowserUrl(promptText) {
+          const baseUrl = window.location.pathname;
+          let newUrl;
+
+          if (promptText) {
+            // If there's text, create a URL with the query parameter
+            const encodedPrompt = encodeURIComponent(promptText);
+            newUrl = `${baseUrl}?prompt=${encodedPrompt}`;
+          } else {
+            // If the text is empty, clean the URL
+            newUrl = baseUrl;
+          }
+
+          // Use replaceState to update the URL without a page reload
+          window.history.replaceState({ path: newUrl }, "", newUrl);
+        }
+
         // --- Initialization ---
         createChatbotButtons();
         const initialPrompt = getPromptFromUrl();
@@ -173,7 +185,11 @@
 
         // --- Event Listeners ---
         mainPromptTextarea.addEventListener("input", () => {
-          updateButtonLinks(mainPromptTextarea.value);
+          const currentPrompt = mainPromptTextarea.value;
+          // Update the chatbot button links
+          updateButtonLinks(currentPrompt);
+          // NEW: Update the browser URL in real-time
+          updateBrowserUrl(currentPrompt);
         });
 
         copyPromptBtn.addEventListener("click", () => {
@@ -195,7 +211,6 @@
             })
             .catch((err) => {
               console.error("Failed to copy text: ", err);
-              // Fallback for older browsers
               mainPromptTextarea.select();
               document.execCommand("copy");
             });
@@ -204,3 +219,4 @@
     </script>
   </body>
 </html>
+Z
