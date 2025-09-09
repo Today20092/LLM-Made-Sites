@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Prompt Launcher</title>
+    <!-- Use the latest Tailwind CSS v3 via the Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Simple style for the copy feedback transition */
+      #copyFeedback {
+        transition:
+          opacity 0.3s ease-in-out,
+          transform 0.3s ease-in-out;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-gray-100 dark:bg-gray-900 flex items-center justify-center min-h-screen p-4 sm:p-6"
+  >
+    <div
+      class="bg-white dark:bg-gray-800/50 dark:backdrop-blur-sm rounded-2xl shadow-2xl p-6 sm:p-8 md:p-10 max-w-3xl w-full border border-gray-200 dark:border-gray-700"
+    >
+      <header class="text-center mb-8">
+        <h1
+          class="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white"
+        >
+          AI Prompt Launcher
+        </h1>
+        <p class="text-gray-600 dark:text-gray-300 mt-2 text-sm sm:text-base">
+          Craft your perfect prompt, then launch it across multiple AI chatbots.
+        </p>
+      </header>
+
+      <main>
+        <div class="mb-6">
+          <label
+            for="mainPrompt"
+            class="block text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2"
+            >Your Prompt</label
+          >
+          <textarea
+            id="mainPrompt"
+            class="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-800 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 resize-y min-h-[160px] transition-shadow duration-200 shadow-sm"
+            placeholder="No prompt found in URL. You can type or paste one here."
+          ></textarea>
+        </div>
+
+        <div class="flex items-center justify-center mb-8">
+          <button
+            id="copyPromptBtn"
+            class="w-full sm:w-auto flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform duration-200 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-900"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"></path>
+              <path
+                d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"
+              ></path>
+            </svg>
+            Copy Prompt
+          </button>
+          <span
+            id="copyFeedback"
+            class="ml-4 text-sm font-medium text-green-600 dark:text-green-400 opacity-0 transform translate-y-2"
+            >Copied!</span
+          >
+        </div>
+
+        <div class="border-t border-gray-200 dark:border-gray-700 pt-8">
+          <h2
+            class="text-2xl font-bold text-gray-800 dark:text-white mb-6 text-center"
+          >
+            Launch in AI Chatbots
+          </h2>
+          <div
+            id="chatbotButtons"
+            class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+          >
+            <!-- Chatbot buttons will be dynamically inserted here -->
+          </div>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-6 text-center">
+            *Links update automatically as you type.
+          </p>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const mainPromptTextarea = document.getElementById("mainPrompt");
+        const copyPromptBtn = document.getElementById("copyPromptBtn");
+        const copyFeedbackSpan = document.getElementById("copyFeedback");
+        const chatbotButtonsDiv = document.getElementById("chatbotButtons");
+
+        const chatbots = [
+          {
+            name: "Perplexity AI",
+            urlTemplate: "https://www.perplexity.ai/?q={{{s}}}",
+            className:
+              "bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-800",
+          },
+          {
+            name: "DuckDuckGo AI Chat",
+            urlTemplate:
+              "https://www.duckduckgo.com/?q={{{s}}}&ia=chat&bang=true ",
+            className:
+              "bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700",
+          },
+          {
+            name: "ChatGPT",
+            urlTemplate: "https://chatgpt.com/?q={{{s}}}",
+            className:
+              "bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800",
+          },
+          {
+            name: "T3 Chat",
+            urlTemplate: "https://www.t3.chat/new?q={{{s}}}",
+            className:
+              "bg-blue-700 hover:bg-blue-800 dark:bg-blue-800 dark:hover:bg-blue-900",
+          },
+        ];
+
+        // Function to create the button elements once on page load
+        function createChatbotButtons() {
+          chatbotButtonsDiv.innerHTML = ""; // Clear existing buttons first
+          chatbots.forEach((bot) => {
+            const buttonLink = document.createElement("a");
+            buttonLink.id = `btn-${bot.name.replace(/\s+/g, "-")}`;
+            buttonLink.target = "_blank";
+            buttonLink.rel = "noopener noreferrer";
+            buttonLink.className = `flex items-center justify-center p-4 rounded-lg shadow-lg font-bold text-white text-base ${bot.className} transition-transform duration-200 ease-in-out transform hover:-translate-y-1 text-center`;
+            buttonLink.textContent = bot.name;
+            chatbotButtonsDiv.appendChild(buttonLink);
+          });
+        }
+
+        // Function to update the href of the buttons based on prompt text
+        function updateButtonLinks(promptText) {
+          // DuckDuckGo prefers '+' for spaces, while others handle %20 well.
+          // Using a consistent encoding is best. encodeURIComponent is the standard.
+          const encodedPrompt = encodeURIComponent(promptText);
+
+          chatbots.forEach((bot) => {
+            const buttonLink = document.getElementById(
+              `btn-${bot.name.replace(/\s+/g, "-")}`
+            );
+            if (buttonLink) {
+              const targetUrl = bot.urlTemplate.replace(
+                "{{{s}}}",
+                encodedPrompt
+              );
+              buttonLink.href = targetUrl;
+            }
+          });
+        }
+
+        function getPromptFromUrl() {
+          const urlParams = new URLSearchParams(window.location.search);
+          const prompt = urlParams.get("prompt");
+          return prompt ? decodeURIComponent(prompt.replace(/\+/g, " ")) : "";
+        }
+
+        // --- Initialization ---
+        createChatbotButtons();
+        const initialPrompt = getPromptFromUrl();
+        mainPromptTextarea.value = initialPrompt;
+        updateButtonLinks(initialPrompt);
+
+        // --- Event Listeners ---
+        mainPromptTextarea.addEventListener("input", () => {
+          updateButtonLinks(mainPromptTextarea.value);
+        });
+
+        copyPromptBtn.addEventListener("click", () => {
+          const promptToCopy = mainPromptTextarea.value;
+          if (!promptToCopy) return;
+
+          navigator.clipboard
+            .writeText(promptToCopy)
+            .then(() => {
+              copyFeedbackSpan.classList.remove("opacity-0", "translate-y-2");
+              copyFeedbackSpan.classList.add("opacity-100", "translate-y-0");
+              setTimeout(() => {
+                copyFeedbackSpan.classList.remove(
+                  "opacity-100",
+                  "translate-y-0"
+                );
+                copyFeedbackSpan.classList.add("opacity-0", "translate-y-2");
+              }, 2000);
+            })
+            .catch((err) => {
+              console.error("Failed to copy text: ", err);
+              // Fallback for older browsers
+              mainPromptTextarea.select();
+              document.execCommand("copy");
+            });
+        });
+      });
+    </script>
+  </body>
+</html>
