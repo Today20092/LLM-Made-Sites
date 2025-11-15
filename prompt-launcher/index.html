@@ -3,24 +3,126 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Prompt Launcher</title>
-    <!-- Use the latest Tailwind CSS v3 via the Play CDN -->
+    <title>AI Prompt Launcher - Send Prompts to Multiple AI Chatbots</title>
+    <meta
+      name="description"
+      content="Craft your perfect AI prompt and launch it across ChatGPT, Claude, Perplexity, and more. Share prompts instantly."
+    />
+    <meta
+      property="og:title"
+      content="AI Prompt Launcher - Multi-AI Chatbot Tool"
+    />
+    <meta
+      property="og:description"
+      content="Send your AI prompts to multiple chatbots instantly. Save time with one-click launching."
+    />
+    <meta property="og:type" content="website" />
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      // Configure Tailwind to use class-based dark mode
+      tailwind.config = {
+        darkMode: 'class'
+      }
+    </script>
     <style>
-      /* Simple style for the copy feedback transition */
-      #copyFeedback {
+      #copyFeedback,
+      #shareFeedback {
         transition:
           opacity 0.3s ease-in-out,
           transform 0.3s ease-in-out;
       }
+
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .slide-down {
+        animation: slideDown 0.3s ease-out;
+      }
+
+      #historyDropdown {
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      #historyDropdown::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      #historyDropdown::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      #historyDropdown::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+      }
+
+      #historyDropdown::-webkit-scrollbar-thumb:hover {
+        background: #555;
+      }
+
+      .pulse-once {
+        animation: pulse 0.5s ease-in-out;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      .fade-in {
+        animation: fadeIn 0.5s ease-out;
+      }
     </style>
   </head>
   <body
-    class="bg-gray-100 dark:bg-gray-900 flex items-center justify-center min-h-screen p-4 sm:p-6"
+    class="bg-gray-100 dark:bg-gray-900 flex items-center justify-center min-h-screen p-4 sm:p-6 transition-colors duration-200"
   >
     <div
-      class="bg-white dark:bg-gray-800/50 dark:backdrop-blur-sm rounded-2xl shadow-2xl p-6 sm:p-8 md:p-10 max-w-3xl w-full border border-gray-200 dark:border-gray-700"
+      class="bg-white dark:bg-gray-800/50 dark:backdrop-blur-sm rounded-2xl shadow-2xl p-6 sm:p-8 md:p-10 max-w-3xl w-full border border-gray-200 dark:border-gray-700 relative fade-in"
     >
+      <!-- Dark Mode Toggle -->
+      <button
+        id="darkModeToggle"
+        class="absolute top-4 right-4 p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        aria-label="Toggle dark mode"
+      >
+        <svg
+          id="sunIcon"
+          class="h-6 w-6 hidden text-yellow-400"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        <svg
+          id="moonIcon"
+          class="h-6 w-6 text-gray-700"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+        </svg>
+      </button>
+
       <header class="text-center mb-8">
         <h1
           class="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white"
@@ -28,28 +130,92 @@
           AI Prompt Launcher
         </h1>
         <p class="text-gray-600 dark:text-gray-300 mt-2 text-sm sm:text-base">
-          Craft your perfect prompt, then launch it across multiple AI chatbots.
+          Craft your perfect prompt, then launch it across multiple AI
+          chatbots.
+        </p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          💡 Tip: Press <kbd
+            class="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs"
+            >Ctrl+Enter</kbd
+          >
+          to copy • <kbd
+            class="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs"
+            >Ctrl+K</kbd
+          >
+          to clear
         </p>
       </header>
 
       <main>
-        <div class="mb-6">
-          <label
-            for="mainPrompt"
-            class="block text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2"
-            >Your Prompt</label
-          >
+        <div class="mb-6 relative">
+          <div class="flex justify-between items-center mb-2">
+            <label
+              for="mainPrompt"
+              class="text-lg font-semibold text-gray-700 dark:text-gray-200"
+              >Your Prompt</label
+            >
+            <div class="flex items-center gap-3">
+              <span
+                id="charCount"
+                class="text-sm text-gray-500 dark:text-gray-400"
+                >0 characters</span
+              >
+              <button
+                id="historyToggle"
+                class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium focus:outline-none"
+                title="View prompt history"
+              >
+                📜 History
+              </button>
+            </div>
+          </div>
           <textarea
             id="mainPrompt"
+            autofocus
+            spellcheck="true"
             class="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-800 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 resize-y min-h-[160px] transition-shadow duration-200 shadow-sm"
-            placeholder="No prompt found in URL. You can type or paste one here."
+            placeholder="✨ Enter your AI prompt here...
+
+Examples:
+• Explain quantum computing in simple terms
+• Write a creative story about a robot chef
+• Debug this Python code: [paste code]
+• Summarize the latest developments in AI"
           ></textarea>
+
+          <!-- History Dropdown -->
+          <div
+            id="historyDropdown"
+            class="hidden absolute z-10 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg slide-down"
+          >
+            <div
+              class="p-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center"
+            >
+              <h3 class="font-semibold text-gray-800 dark:text-gray-200">
+                Recent Prompts
+              </h3>
+              <button
+                id="clearHistory"
+                class="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+              >
+                Clear All
+              </button>
+            </div>
+            <div id="historyList" class="p-2">
+              <p
+                class="text-sm text-gray-500 dark:text-gray-400 p-3 text-center"
+              >
+                No history yet. Start typing!
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div class="flex items-center justify-center mb-8">
+        <div class="flex flex-wrap gap-3 items-center justify-center mb-8">
           <button
             id="copyPromptBtn"
-            class="w-full sm:w-auto flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform duration-200 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-900"
+            disabled
+            class="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-all duration-200 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -64,10 +230,53 @@
             </svg>
             Copy Prompt
           </button>
+
+          <button
+            id="sharePromptBtn"
+            disabled
+            class="flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-all duration-200 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z"
+              />
+            </svg>
+            Share Link
+          </button>
+
+          <button
+            id="clearPromptBtn"
+            class="flex items-center justify-center gap-2 bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-all duration-200 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-900"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            Clear
+          </button>
+
           <span
             id="copyFeedback"
-            class="ml-4 text-sm font-medium text-green-600 dark:text-green-400 opacity-0 transform translate-y-2"
-            >Copied!</span
+            class="text-sm font-medium text-green-600 dark:text-green-400 opacity-0 transform translate-y-2"
+            >✓ Copied!</span
+          >
+          <span
+            id="shareFeedback"
+            class="text-sm font-medium text-teal-600 dark:text-teal-400 opacity-0 transform translate-y-2"
+            >✓ Link Copied!</span
           >
         </div>
 
@@ -79,50 +288,203 @@
           </h2>
           <div
             id="chatbotButtons"
-            class="grid grid-cols-1 sm:grid-cols-2 gap-4 field-sizing-content"
+            class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4"
           >
             <!-- Chatbot buttons will be dynamically inserted here -->
           </div>
           <p class="text-xs text-gray-500 dark:text-gray-400 mt-6 text-center">
-            *Links update automatically as you type.
+            *Links update automatically as you type • 🚀 Launched
+            <span id="launchCount" class="font-semibold">0</span> times
           </p>
         </div>
       </main>
     </div>
 
     <script>
+      // Initialize dark mode BEFORE DOMContentLoaded
+      (function initDarkMode() {
+        const isDark =
+          localStorage.getItem("darkMode") === "true" ||
+          (!localStorage.getItem("darkMode") &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches);
+        if (isDark) {
+          document.documentElement.classList.add("dark");
+        }
+      })();
+
       document.addEventListener("DOMContentLoaded", () => {
         const mainPromptTextarea = document.getElementById("mainPrompt");
         const copyPromptBtn = document.getElementById("copyPromptBtn");
+        const sharePromptBtn = document.getElementById("sharePromptBtn");
+        const clearPromptBtn = document.getElementById("clearPromptBtn");
         const copyFeedbackSpan = document.getElementById("copyFeedback");
+        const shareFeedbackSpan = document.getElementById("shareFeedback");
         const chatbotButtonsDiv = document.getElementById("chatbotButtons");
+        const charCountSpan = document.getElementById("charCount");
+        const launchCountSpan = document.getElementById("launchCount");
+        const darkModeToggle = document.getElementById("darkModeToggle");
+        const sunIcon = document.getElementById("sunIcon");
+        const moonIcon = document.getElementById("moonIcon");
+        const historyToggle = document.getElementById("historyToggle");
+        const historyDropdown = document.getElementById("historyDropdown");
+        const historyList = document.getElementById("historyList");
+        const clearHistory = document.getElementById("clearHistory");
 
         const chatbots = [
           {
             name: "Perplexity AI",
             urlTemplate: "https://www.perplexity.ai/?q={{{s}}}",
             className:
-              "bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-800",
+              "bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 dark:from-purple-700 dark:to-purple-800 dark:hover:from-purple-800 dark:hover:to-purple-900",
+            icon: "🔍",
           },
           {
             name: "DuckDuckGo AI Chat",
             urlTemplate: "https://duckduckgo.com/?q={{{s}}}&ia=chat",
             className:
-              "bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700",
+              "bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:from-orange-600 dark:to-orange-700 dark:hover:from-orange-700 dark:hover:to-orange-800",
+            icon: "🦆",
           },
           {
             name: "ChatGPT",
             urlTemplate: "https://chatgpt.com/?q={{{s}}}",
             className:
-              "bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800",
+              "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 dark:from-green-700 dark:to-green-800 dark:hover:from-green-800 dark:hover:to-green-900",
+            icon: "💬",
           },
           {
             name: "T3 Chat",
             urlTemplate: "https://www.t3.chat/new?q={{{s}}}",
             className:
-              "bg-blue-700 hover:bg-blue-800 dark:bg-blue-800 dark:hover:bg-blue-900",
+              "bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-800 hover:to-blue-900 dark:from-blue-800 dark:to-blue-900 dark:hover:from-blue-900 dark:hover:to-blue-950",
+            icon: "🤖",
           },
         ];
+
+        // Update dark mode icons
+        function updateDarkModeIcons() {
+          const isDark = document.documentElement.classList.contains("dark");
+          if (isDark) {
+            sunIcon.classList.remove("hidden");
+            moonIcon.classList.add("hidden");
+          } else {
+            sunIcon.classList.add("hidden");
+            moonIcon.classList.remove("hidden");
+          }
+        }
+
+        // Dark Mode Toggle
+        darkModeToggle.addEventListener("click", () => {
+          const isDark = document.documentElement.classList.toggle("dark");
+          localStorage.setItem("darkMode", isDark);
+          updateDarkModeIcons();
+        });
+
+        // Initialize icons
+        updateDarkModeIcons();
+
+        // History Management
+        function saveToHistory(prompt) {
+          if (!prompt.trim() || prompt.length < 10) return;
+          let history = JSON.parse(
+            localStorage.getItem("promptHistory") || "[]"
+          );
+          // Remove duplicate if exists
+          history = history.filter((p) => p !== prompt);
+          history.unshift(prompt);
+          localStorage.setItem(
+            "promptHistory",
+            JSON.stringify(history.slice(0, 10))
+          );
+        }
+
+        function renderHistory() {
+          const history = JSON.parse(
+            localStorage.getItem("promptHistory") || "[]"
+          );
+          if (history.length === 0) {
+            historyList.innerHTML = `
+              <p class="text-sm text-gray-500 dark:text-gray-400 p-3 text-center">
+                No history yet. Start typing!
+              </p>
+            `;
+            return;
+          }
+
+          historyList.innerHTML = history
+            .map(
+              (prompt, index) => `
+            <button
+              class="w-full text-left p-3 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-150 text-sm text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+              data-history-index="${index}"
+            >
+              <div class="line-clamp-2">${escapeHtml(prompt)}</div>
+              <div class="text-xs text-gray-400 dark:text-gray-500 mt-1">${prompt.length} chars</div>
+            </button>
+          `
+            )
+            .join("");
+
+          // Add click listeners to history items
+          historyList.querySelectorAll("[data-history-index]").forEach((btn) => {
+            btn.addEventListener("click", () => {
+              const history = JSON.parse(
+                localStorage.getItem("promptHistory") || "[]"
+              );
+              const index = parseInt(btn.dataset.historyIndex);
+              mainPromptTextarea.value = history[index];
+              mainPromptTextarea.dispatchEvent(new Event("input"));
+              historyDropdown.classList.add("hidden");
+            });
+          });
+        }
+
+        historyToggle.addEventListener("click", () => {
+          historyDropdown.classList.toggle("hidden");
+          if (!historyDropdown.classList.contains("hidden")) {
+            renderHistory();
+          }
+        });
+
+        clearHistory.addEventListener("click", () => {
+          if (
+            confirm("Are you sure you want to clear all prompt history?")
+          ) {
+            localStorage.removeItem("promptHistory");
+            renderHistory();
+          }
+        });
+
+        // Close history dropdown when clicking outside
+        document.addEventListener("click", (e) => {
+          if (
+            !historyDropdown.contains(e.target) &&
+            !historyToggle.contains(e.target)
+          ) {
+            historyDropdown.classList.add("hidden");
+          }
+        });
+
+        function escapeHtml(text) {
+          const div = document.createElement("div");
+          div.textContent = text;
+          return div.innerHTML;
+        }
+
+        // Launch Counter
+        function incrementLaunchCount() {
+          let count = parseInt(localStorage.getItem("launchCount") || "0");
+          count++;
+          localStorage.setItem("launchCount", count);
+          launchCountSpan.textContent = count;
+          launchCountSpan.classList.add("pulse-once");
+          setTimeout(() => launchCountSpan.classList.remove("pulse-once"), 500);
+        }
+
+        function initLaunchCount() {
+          const count = parseInt(localStorage.getItem("launchCount") || "0");
+          launchCountSpan.textContent = count;
+        }
 
         function createChatbotButtons() {
           chatbotButtonsDiv.innerHTML = "";
@@ -131,8 +493,20 @@
             buttonLink.id = `btn-${bot.name.replace(/\s+/g, "-")}`;
             buttonLink.target = "_blank";
             buttonLink.rel = "noopener noreferrer";
-            buttonLink.className = `flex items-center justify-center p-4 rounded-lg shadow-lg font-bold text-white text-base ${bot.className} transition-transform duration-200 ease-in-out transform hover:-translate-y-1 text-center`;
-            buttonLink.textContent = bot.name;
+            buttonLink.className = `flex items-center justify-center p-4 rounded-lg shadow-lg font-bold text-white text-base ${bot.className} transition-all duration-200 ease-in-out transform hover:-translate-y-1 text-center`;
+            buttonLink.innerHTML = `<span class="text-2xl mr-2">${bot.icon}</span>${bot.name}`;
+
+            // Add click listener for launch counter and animation
+            buttonLink.addEventListener("click", () => {
+              incrementLaunchCount();
+              buttonLink.classList.add("pulse-once");
+              setTimeout(
+                () => buttonLink.classList.remove("pulse-once"),
+                500
+              );
+              saveToHistory(mainPromptTextarea.value);
+            });
+
             chatbotButtonsDiv.appendChild(buttonLink);
           });
         }
@@ -153,43 +527,52 @@
           });
         }
 
+        function updateButtonStates(promptText) {
+          const isEmpty = !promptText.trim();
+          copyPromptBtn.disabled = isEmpty;
+          sharePromptBtn.disabled = isEmpty;
+        }
+
         function getPromptFromUrl() {
           const urlParams = new URLSearchParams(window.location.search);
           const prompt = urlParams.get("prompt");
           return prompt ? decodeURIComponent(prompt.replace(/\+/g, " ")) : "";
         }
 
-        // --- NEW FUNCTION TO UPDATE THE BROWSER'S URL ---
         function updateBrowserUrl(promptText) {
           const baseUrl = window.location.pathname;
           let newUrl;
 
           if (promptText) {
-            // If there's text, create a URL with the query parameter
             const encodedPrompt = encodeURIComponent(promptText);
             newUrl = `${baseUrl}?prompt=${encodedPrompt}`;
           } else {
-            // If the text is empty, clean the URL
             newUrl = baseUrl;
           }
 
-          // Use replaceState to update the URL without a page reload
           window.history.replaceState({ path: newUrl }, "", newUrl);
         }
 
-        // --- Initialization ---
+        function updateCharCount(text) {
+          charCountSpan.textContent = `${text.length} character${text.length !== 1 ? "s" : ""}`;
+        }
+
+        // Initialization
         createChatbotButtons();
+        initLaunchCount();
         const initialPrompt = getPromptFromUrl();
         mainPromptTextarea.value = initialPrompt;
         updateButtonLinks(initialPrompt);
+        updateCharCount(initialPrompt);
+        updateButtonStates(initialPrompt);
 
-        // --- Event Listeners ---
+        // Event Listeners
         mainPromptTextarea.addEventListener("input", () => {
           const currentPrompt = mainPromptTextarea.value;
-          // Update the chatbot button links
           updateButtonLinks(currentPrompt);
-          // NEW: Update the browser URL in real-time
           updateBrowserUrl(currentPrompt);
+          updateCharCount(currentPrompt);
+          updateButtonStates(currentPrompt);
         });
 
         copyPromptBtn.addEventListener("click", () => {
@@ -215,8 +598,53 @@
               document.execCommand("copy");
             });
         });
+
+        sharePromptBtn.addEventListener("click", () => {
+          const currentUrl = window.location.href;
+          navigator.clipboard
+            .writeText(currentUrl)
+            .then(() => {
+              shareFeedbackSpan.classList.remove(
+                "opacity-0",
+                "translate-y-2"
+              );
+              shareFeedbackSpan.classList.add("opacity-100", "translate-y-0");
+              setTimeout(() => {
+                shareFeedbackSpan.classList.remove(
+                  "opacity-100",
+                  "translate-y-0"
+                );
+                shareFeedbackSpan.classList.add("opacity-0", "translate-y-2");
+              }, 2000);
+            })
+            .catch((err) => {
+              console.error("Failed to copy URL: ", err);
+              alert("Failed to copy link. Please copy manually: " + currentUrl);
+            });
+        });
+
+        clearPromptBtn.addEventListener("click", () => {
+          mainPromptTextarea.value = "";
+          mainPromptTextarea.dispatchEvent(new Event("input"));
+          mainPromptTextarea.focus();
+        });
+
+        // Keyboard Shortcuts
+        document.addEventListener("keydown", (e) => {
+          // Ctrl/Cmd + Enter to copy
+          if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+            e.preventDefault();
+            if (!copyPromptBtn.disabled) {
+              copyPromptBtn.click();
+            }
+          }
+          // Ctrl/Cmd + K to clear
+          if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+            e.preventDefault();
+            clearPromptBtn.click();
+          }
+        });
       });
     </script>
   </body>
 </html>
-Z
