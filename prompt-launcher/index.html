@@ -19,17 +19,13 @@
     <meta property="og:type" content="website" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-      // Configure Tailwind to use class-based dark mode
-      tailwind.config = {
-        darkMode: "class",
-      };
+      tailwind.config = { darkMode: "class" };
     </script>
     <style>
       #copyFeedback,
-      #shareFeedback {
-        transition:
-          opacity 0.3s ease-in-out,
-          transform 0.3s ease-in-out;
+      #shareFeedback,
+      #launchCopyFeedback {
+        transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
       }
 
       @keyframes slideDown {
@@ -87,6 +83,14 @@
       .fade-in {
         animation: fadeIn 0.5s ease-out;
       }
+
+      /* Optional: better clamping even without Tailwind plugin */
+      .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
     </style>
   </head>
   <body
@@ -135,7 +139,7 @@
           Craft your perfect prompt, then launch it across multiple AI chatbots.
         </p>
         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          💡 Tip: Press
+          Tip: Press
           <kbd
             class="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs"
             >Ctrl+Enter</kbd
@@ -145,7 +149,16 @@
             class="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs"
             >Ctrl+K</kbd
           >
-          to clear
+          to clear •
+          <kbd
+            class="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs"
+            >Esc</kbd
+          >
+          to close History
+        </p>
+        <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-2">
+          Note: Sharing via URL can expose sensitive prompts in browser history
+          and logs. Avoid secrets.
         </p>
       </header>
 
@@ -168,7 +181,7 @@
                 class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium focus:outline-none"
                 title="View prompt history"
               >
-                📜 History
+                History
               </button>
             </div>
           </div>
@@ -177,7 +190,7 @@
             autofocus
             spellcheck="true"
             class="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-800 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 resize-y min-h-[160px] transition-shadow duration-200 shadow-sm"
-            placeholder="✨ Enter your AI prompt here...
+            placeholder="Enter your AI prompt here...
 
 Examples:
 • Explain quantum computing in simple terms
@@ -249,7 +262,7 @@ Examples:
                 d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z"
               />
             </svg>
-            Share Link
+            Copy Share Link
           </button>
 
           <button
@@ -274,12 +287,17 @@ Examples:
           <span
             id="copyFeedback"
             class="text-sm font-medium text-green-600 dark:text-green-400 opacity-0 transform translate-y-2"
-            >✓ Copied!</span
+            >Copied!</span
           >
           <span
             id="shareFeedback"
             class="text-sm font-medium text-teal-600 dark:text-teal-400 opacity-0 transform translate-y-2"
-            >✓ Link Copied!</span
+            >Link Copied!</span
+          >
+          <span
+            id="launchCopyFeedback"
+            class="text-sm font-medium text-amber-600 dark:text-amber-400 opacity-0 transform translate-y-2"
+            >Copied — paste into the chatbot</span
           >
         </div>
 
@@ -292,11 +310,9 @@ Examples:
           <div
             id="chatbotButtons"
             class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4"
-          >
-            <!-- Chatbot buttons will be dynamically inserted here -->
-          </div>
+          ></div>
           <p class="text-xs text-gray-500 dark:text-gray-400 mt-6 text-center">
-            *Links update automatically as you type • 🚀 Launched
+            Links update automatically (debounced) • Launched
             <span id="launchCount" class="font-semibold">0</span> times
           </p>
         </div>
@@ -310,9 +326,7 @@ Examples:
           localStorage.getItem("darkMode") === "true" ||
           (!localStorage.getItem("darkMode") &&
             window.matchMedia("(prefers-color-scheme: dark)").matches);
-        if (isDark) {
-          document.documentElement.classList.add("dark");
-        }
+        if (isDark) document.documentElement.classList.add("dark");
       })();
 
       document.addEventListener("DOMContentLoaded", () => {
@@ -322,6 +336,8 @@ Examples:
         const clearPromptBtn = document.getElementById("clearPromptBtn");
         const copyFeedbackSpan = document.getElementById("copyFeedback");
         const shareFeedbackSpan = document.getElementById("shareFeedback");
+        const launchCopyFeedbackSpan =
+          document.getElementById("launchCopyFeedback");
         const chatbotButtonsDiv = document.getElementById("chatbotButtons");
         const charCountSpan = document.getElementById("charCount");
         const launchCountSpan = document.getElementById("launchCount");
@@ -333,13 +349,16 @@ Examples:
         const historyList = document.getElementById("historyList");
         const clearHistory = document.getElementById("clearHistory");
 
+        // Some chat apps do NOT support prompt injection via URL.
+        // For those, we open the site and copy the prompt automatically.
         const chatbots = [
           {
             name: "ChatGPT",
-            urlTemplate: "https://chatgpt.com/?q={{{s}}}",
+            urlTemplate: "https://chatgpt.com/?q={{{s}}}&hints=search&temporary-chat=true",
             className:
               "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 dark:from-green-700 dark:to-green-800 dark:hover:from-green-800 dark:hover:to-green-900",
             icon: "💬",
+            supportsQueryParam: true,
           },
           {
             name: "Claude",
@@ -347,6 +366,7 @@ Examples:
             className:
               "bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 dark:from-amber-700 dark:to-amber-800 dark:hover:from-amber-800 dark:hover:to-amber-900",
             icon: "🧠",
+            supportsQueryParam: true,
           },
           {
             name: "Perplexity AI",
@@ -354,6 +374,7 @@ Examples:
             className:
               "bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 dark:from-purple-700 dark:to-purple-800 dark:hover:from-purple-800 dark:hover:to-purple-900",
             icon: "🔍",
+            supportsQueryParam: true,
           },
           {
             name: "T3 Chat",
@@ -361,17 +382,43 @@ Examples:
             className:
               "bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-800 hover:to-blue-900 dark:from-blue-800 dark:to-blue-900 dark:hover:from-blue-900 dark:hover:to-blue-950",
             icon: "🤖",
+            supportsQueryParam: true,
           },
           {
             name: "Google Gemini",
-            urlTemplate: "https://gemini.google.com/app?q={{{s}}}",
+            urlTemplate: "https://gemini.google.com/app",
             className:
               "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800",
             icon: "✨",
+            supportsQueryParam: false,
           },
         ];
 
-        // Update dark mode icons
+        function showFeedback(el) {
+          el.classList.remove("opacity-0", "translate-y-2");
+          el.classList.add("opacity-100", "translate-y-0");
+          window.setTimeout(() => {
+            el.classList.remove("opacity-100", "translate-y-0");
+            el.classList.add("opacity-0", "translate-y-2");
+          }, 2000);
+        }
+
+        async function copyToClipboardWithFallback(text) {
+          try {
+            await navigator.clipboard.writeText(text);
+            return true;
+          } catch (err) {
+            try {
+              mainPromptTextarea.focus();
+              mainPromptTextarea.select();
+              document.execCommand("copy");
+              return true;
+            } catch {
+              return false;
+            }
+          }
+        }
+
         function updateDarkModeIcons() {
           const isDark = document.documentElement.classList.contains("dark");
           if (isDark) {
@@ -383,14 +430,12 @@ Examples:
           }
         }
 
-        // Dark Mode Toggle
         darkModeToggle.addEventListener("click", () => {
           const isDark = document.documentElement.classList.toggle("dark");
           localStorage.setItem("darkMode", isDark);
           updateDarkModeIcons();
         });
 
-        // Initialize icons
         updateDarkModeIcons();
 
         // History Management
@@ -399,7 +444,6 @@ Examples:
           let history = JSON.parse(
             localStorage.getItem("promptHistory") || "[]"
           );
-          // Remove duplicate if exists
           history = history.filter((p) => p !== prompt);
           history.unshift(prompt);
           localStorage.setItem(
@@ -408,16 +452,23 @@ Examples:
           );
         }
 
+        function escapeHtml(text) {
+          const div = document.createElement("div");
+          div.textContent = text;
+          return div.innerHTML;
+        }
+
         function renderHistory() {
           const history = JSON.parse(
             localStorage.getItem("promptHistory") || "[]"
           );
+
           if (history.length === 0) {
             historyList.innerHTML = `
-                  <p class="text-sm text-gray-500 dark:text-gray-400 p-3 text-center">
-                    No history yet. Start typing!
-                  </p>
-                `;
+              <p class="text-sm text-gray-500 dark:text-gray-400 p-3 text-center">
+                No history yet. Start typing!
+              </p>
+            `;
             return;
           }
 
@@ -429,15 +480,14 @@ Examples:
                   data-history-index="${index}"
                 >
                   <div class="line-clamp-2">${escapeHtml(prompt)}</div>
-                  <div class="text-xs text-gray-400 dark:text-gray-500 mt-1">${
-                    prompt.length
-                  } chars</div>
+                  <div class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                    ${prompt.length} chars
+                  </div>
                 </button>
               `
             )
             .join("");
 
-          // Add click listeners to history items
           historyList
             .querySelectorAll("[data-history-index]")
             .forEach((btn) => {
@@ -445,7 +495,7 @@ Examples:
                 const history = JSON.parse(
                   localStorage.getItem("promptHistory") || "[]"
                 );
-                const index = parseInt(btn.dataset.historyIndex);
+                const index = parseInt(btn.dataset.historyIndex, 10);
                 mainPromptTextarea.value = history[index];
                 mainPromptTextarea.dispatchEvent(new Event("input"));
                 historyDropdown.classList.add("hidden");
@@ -455,9 +505,7 @@ Examples:
 
         historyToggle.addEventListener("click", () => {
           historyDropdown.classList.toggle("hidden");
-          if (!historyDropdown.classList.contains("hidden")) {
-            renderHistory();
-          }
+          if (!historyDropdown.classList.contains("hidden")) renderHistory();
         });
 
         clearHistory.addEventListener("click", () => {
@@ -467,7 +515,6 @@ Examples:
           }
         });
 
-        // Close history dropdown when clicking outside
         document.addEventListener("click", (e) => {
           if (
             !historyDropdown.contains(e.target) &&
@@ -477,25 +524,19 @@ Examples:
           }
         });
 
-        function escapeHtml(text) {
-          const div = document.createElement("div");
-          div.textContent = text;
-          return div.innerHTML;
-        }
-
         // Launch Counter
         function incrementLaunchCount() {
-          let count = parseInt(localStorage.getItem("launchCount") || "0");
+          let count = parseInt(localStorage.getItem("launchCount") || "0", 10);
           count++;
-          localStorage.setItem("launchCount", count);
-          launchCountSpan.textContent = count;
+          localStorage.setItem("launchCount", String(count));
+          launchCountSpan.textContent = String(count);
           launchCountSpan.classList.add("pulse-once");
           setTimeout(() => launchCountSpan.classList.remove("pulse-once"), 500);
         }
 
         function initLaunchCount() {
-          const count = parseInt(localStorage.getItem("launchCount") || "0");
-          launchCountSpan.textContent = count;
+          const count = parseInt(localStorage.getItem("launchCount") || "0", 10);
+          launchCountSpan.textContent = String(count);
         }
 
         function createChatbotButtons() {
@@ -508,12 +549,24 @@ Examples:
             buttonLink.className = `flex items-center justify-center p-4 rounded-lg shadow-lg font-bold text-white text-base ${bot.className} transition-all duration-200 ease-in-out transform hover:-translate-y-1 text-center`;
             buttonLink.innerHTML = `<span class="text-2xl mr-2">${bot.icon}</span>${bot.name}`;
 
-            // Add click listener for launch counter and animation
-            buttonLink.addEventListener("click", () => {
+            buttonLink.addEventListener("click", async (e) => {
+              const prompt = mainPromptTextarea.value;
+
               incrementLaunchCount();
               buttonLink.classList.add("pulse-once");
               setTimeout(() => buttonLink.classList.remove("pulse-once"), 500);
-              saveToHistory(mainPromptTextarea.value);
+              saveToHistory(prompt);
+
+              if (!bot.supportsQueryParam) {
+                // Prevent navigation to an unusable q= link and instead:
+                // copy prompt then open the app.
+                e.preventDefault();
+
+                await copyToClipboardWithFallback(prompt);
+                showFeedback(launchCopyFeedbackSpan);
+
+                window.open(bot.urlTemplate, "_blank", "noopener,noreferrer");
+              }
             });
 
             chatbotButtonsDiv.appendChild(buttonLink);
@@ -522,17 +575,19 @@ Examples:
 
         function updateButtonLinks(promptText) {
           const encodedPrompt = encodeURIComponent(promptText);
+
           chatbots.forEach((bot) => {
             const buttonLink = document.getElementById(
               `btn-${bot.name.replace(/\s+/g, "-")}`
             );
-            if (buttonLink) {
-              const targetUrl = bot.urlTemplate.replace(
-                "{{{s}}}",
-                encodedPrompt
-              );
-              buttonLink.href = targetUrl;
+            if (!buttonLink) return;
+
+            if (!bot.supportsQueryParam) {
+              buttonLink.href = bot.urlTemplate;
+              return;
             }
+
+            buttonLink.href = bot.urlTemplate.replace("{{{s}}}", encodedPrompt);
           });
         }
 
@@ -548,6 +603,7 @@ Examples:
           return prompt ? decodeURIComponent(prompt.replace(/\+/g, " ")) : "";
         }
 
+        // Debounced URL updates (avoid rewriting URL on every keystroke)
         function updateBrowserUrl(promptText) {
           const baseUrl = window.location.pathname;
           let newUrl;
@@ -562,6 +618,16 @@ Examples:
           window.history.replaceState({ path: newUrl }, "", newUrl);
         }
 
+        function debounce(fn, waitMs) {
+          let t = null;
+          return (...args) => {
+            if (t) window.clearTimeout(t);
+            t = window.setTimeout(() => fn(...args), waitMs);
+          };
+        }
+
+        const updateBrowserUrlDebounced = debounce(updateBrowserUrl, 400);
+
         function updateCharCount(text) {
           charCountSpan.textContent = `${text.length} character${
             text.length !== 1 ? "s" : ""
@@ -571,6 +637,7 @@ Examples:
         // Initialization
         createChatbotButtons();
         initLaunchCount();
+
         const initialPrompt = getPromptFromUrl();
         mainPromptTextarea.value = initialPrompt;
         updateButtonLinks(initialPrompt);
@@ -581,54 +648,37 @@ Examples:
         mainPromptTextarea.addEventListener("input", () => {
           const currentPrompt = mainPromptTextarea.value;
           updateButtonLinks(currentPrompt);
-          updateBrowserUrl(currentPrompt);
           updateCharCount(currentPrompt);
           updateButtonStates(currentPrompt);
+          updateBrowserUrlDebounced(currentPrompt);
         });
 
-        copyPromptBtn.addEventListener("click", () => {
+        copyPromptBtn.addEventListener("click", async () => {
           const promptToCopy = mainPromptTextarea.value;
           if (!promptToCopy) return;
 
-          navigator.clipboard
-            .writeText(promptToCopy)
-            .then(() => {
-              copyFeedbackSpan.classList.remove("opacity-0", "translate-y-2");
-              copyFeedbackSpan.classList.add("opacity-100", "translate-y-0");
-              setTimeout(() => {
-                copyFeedbackSpan.classList.remove(
-                  "opacity-100",
-                  "translate-y-0"
-                );
-                copyFeedbackSpan.classList.add("opacity-0", "translate-y-2");
-              }, 2000);
-            })
-            .catch((err) => {
-              console.error("Failed to copy text: ", err);
-              mainPromptTextarea.select();
-              document.execCommand("copy");
-            });
+          const ok = await copyToClipboardWithFallback(promptToCopy);
+          if (ok) {
+            showFeedback(copyFeedbackSpan);
+            saveToHistory(promptToCopy);
+          }
         });
 
-        sharePromptBtn.addEventListener("click", () => {
+        sharePromptBtn.addEventListener("click", async () => {
+          const currentPrompt = mainPromptTextarea.value;
+          if (!currentPrompt.trim()) return;
+
+          // Ensure URL is up-to-date before copying
+          updateBrowserUrl(currentPrompt);
+
           const currentUrl = window.location.href;
-          navigator.clipboard
-            .writeText(currentUrl)
-            .then(() => {
-              shareFeedbackSpan.classList.remove("opacity-0", "translate-y-2");
-              shareFeedbackSpan.classList.add("opacity-100", "translate-y-0");
-              setTimeout(() => {
-                shareFeedbackSpan.classList.remove(
-                  "opacity-100",
-                  "translate-y-0"
-                );
-                shareFeedbackSpan.classList.add("opacity-0", "translate-y-2");
-              }, 2000);
-            })
-            .catch((err) => {
-              console.error("Failed to copy URL: ", err);
-              alert("Failed to copy link. Please copy manually: " + currentUrl);
-            });
+          const ok = await copyToClipboardWithFallback(currentUrl);
+          if (ok) {
+            showFeedback(shareFeedbackSpan);
+            saveToHistory(currentPrompt);
+          } else {
+            alert("Failed to copy link. Please copy manually: " + currentUrl);
+          }
         });
 
         clearPromptBtn.addEventListener("click", () => {
@@ -639,15 +689,18 @@ Examples:
 
         // Keyboard Shortcuts
         document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") {
+            historyDropdown.classList.add("hidden");
+          }
+
           // Ctrl/Cmd + Enter to copy
           if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
             e.preventDefault();
-            if (!copyPromptBtn.disabled) {
-              copyPromptBtn.click();
-            }
+            if (!copyPromptBtn.disabled) copyPromptBtn.click();
           }
+
           // Ctrl/Cmd + K to clear
-          if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
             e.preventDefault();
             clearPromptBtn.click();
           }
