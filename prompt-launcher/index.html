@@ -21,7 +21,11 @@
       tailwind.config = { darkMode: "class" };
     </script>
 
-    <!-- LZ-String for URL-safe compression (static-friendly, no backend needed) -->
+    <!--
+      Compression changes:
+      - Prefer Brotli via WASM (lazy-loaded) for better ratio on short JSON.
+      - Fallback to LZ-String if Brotli fails to load.
+    -->
     <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 
     <style>
@@ -112,7 +116,7 @@
           </p>
         </header>
 
-        <!-- Metadata (Recommendation #2) -->
+        <!-- Metadata -->
         <section class="mb-6">
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div class="sm:col-span-2">
@@ -198,7 +202,7 @@ Use variables like:
           </p>
         </section>
 
-        <!-- Variables (Recommendation #6) -->
+        <!-- Variables -->
         <section
           id="varsSection"
           class="hidden mb-6 border border-gray-200 dark:border-gray-700 rounded-xl p-4 bg-white/50 dark:bg-gray-800/40"
@@ -296,7 +300,7 @@ Use variables like:
       </div>
     </div>
 
-    <!-- Share Modal (Recommendation #1 + #4) -->
+    <!-- Share Modal -->
     <div
       id="shareModal"
       class="fixed inset-0 hidden items-center justify-center p-4 bg-black/50"
@@ -363,38 +367,56 @@ Use variables like:
 
           <!-- Tab: Link -->
           <div id="tab-link" class="sharePanel mt-4">
-            <div
-              class="flex flex-wrap items-center justify-between gap-3 mb-2"
-            >
-              <div class="flex items-center gap-3">
-                <label class="inline-flex items-center gap-2 text-sm">
-                  <input
-                    id="includeVarsInLink"
-                    type="checkbox"
-                    class="accent-indigo-600"
-                    checked
-                  />
-                  <span class="text-gray-700 dark:text-gray-200"
-                    >Include filled variable values</span
-                  >
-                </label>
+            <div class="flex flex-col gap-3 mb-2">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                  <label class="inline-flex items-center gap-2 text-sm">
+                    <input
+                      id="includeVarsInLink"
+                      type="checkbox"
+                      class="accent-indigo-600"
+                      checked
+                    />
+                    <span class="text-gray-700 dark:text-gray-200"
+                      >Include filled variable values</span
+                    >
+                  </label>
 
-                <label class="inline-flex items-center gap-2 text-sm">
-                  <input
-                    id="includeMetaInLink"
-                    type="checkbox"
-                    class="accent-indigo-600"
-                    checked
-                  />
-                  <span class="text-gray-700 dark:text-gray-200"
-                    >Include title/notes/tags</span
-                  >
-                </label>
+                  <label class="inline-flex items-center gap-2 text-sm">
+                    <input
+                      id="includeMetaInLink"
+                      type="checkbox"
+                      class="accent-indigo-600"
+                      checked
+                    />
+                    <span class="text-gray-700 dark:text-gray-200"
+                      >Include title/notes/tags</span
+                    >
+                  </label>
+                </div>
+
+                <span class="text-xs text-gray-500 dark:text-gray-400">
+                  Uses Brotli (WASM) + Base64URL when available.
+                </span>
               </div>
 
-              <span class="text-xs text-gray-500 dark:text-gray-400">
-                Uses compressed URL (static-friendly).
-              </span>
+              <!-- C3: Canonicalize/minify toggle -->
+              <div class="flex flex-wrap items-center gap-4">
+                <label class="inline-flex items-center gap-2 text-sm">
+                  <input
+                    id="canonicalizeInLink"
+                    type="checkbox"
+                    class="accent-indigo-600"
+                    checked
+                  />
+                  <span class="text-gray-700 dark:text-gray-200"
+                    >Minify whitespace in template & vars (smaller link)</span
+                  >
+                </label>
+                <span class="text-xs text-gray-500 dark:text-gray-400">
+                  Trims trailing spaces and collapses 3+ blank lines to 2.
+                </span>
+              </div>
             </div>
 
             <div class="flex gap-2">
@@ -494,6 +516,130 @@ Use variables like:
         if (saved === "dark") document.documentElement.classList.add("dark");
       })();
 
+      /**
+       * C1) Better codec (Brotli WASM) + denser encoding (Base64URL)
+       * - Lazy loads Brotli encoder/decoder. Falls back to LZ-String.
+       *
+       * Note: this uses a CDN package that provides brotli compress/decompress
+       * with an internal WASM module. If it fails to load, links still work via
+       * LZ-String ("p=") and legacy "?prompt=".
+       */
+      const Codec = (() => {
+        let brotliApiPromise = null;
+
+        async function loadBrotliApi() {
+          if (brotliApiPromise) return brotliApiPromise;
+          brotliApiPromise = (async () => {
+            // Try multiple likely entry points to keep it robust.
+            // If none load, we throw and caller will fallback.
+            const urls = [
+              "https://cdn.jsdelivr.net/npm/brotli-wasm@3.0.1/index.min.js",
+              "https://cdn.jsdelivr.net/npm/brotli-wasm@3.0.1/esm/index.min.js",
+            ];
+
+            let lastErr = null;
+            for (const url of urls) {
+              try {
+                const mod = await import(url);
+                // Different builds expose different names; normalize:
+                // - compress/decompress as Uint8Array <-> Uint8Array
+                const api =
+                  mod?.default ||
+                  mod ||
+                  (mod?.brotli && mod) ||
+                  mod?.brotli;
+                const compress =
+                  api?.compress ||
+                  api?.brotliCompress ||
+                  api?.encode ||
+                  api?.brotliEncode;
+                const decompress =
+                  api?.decompress ||
+                  api?.brotliDecompress ||
+                  api?.decode ||
+                  api?.brotliDecode;
+
+                if (typeof compress !== "function") continue;
+                if (typeof decompress !== "function") continue;
+
+                return { compress, decompress };
+              } catch (e) {
+                lastErr = e;
+              }
+            }
+            throw lastErr || new Error("Failed to load brotli-wasm");
+          })();
+
+          return brotliApiPromise;
+        }
+
+        function bytesToBase64Url(bytes) {
+          let binary = "";
+          const chunkSize = 0x8000;
+          for (let i = 0; i < bytes.length; i += chunkSize) {
+            const chunk = bytes.subarray(i, i + chunkSize);
+            binary += String.fromCharCode(...chunk);
+          }
+          const b64 = btoa(binary);
+          return b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+        }
+
+        function base64UrlToBytes(b64url) {
+          let b64 = b64url.replace(/-/g, "+").replace(/_/g, "/");
+          const pad = b64.length % 4;
+          if (pad) b64 += "=".repeat(4 - pad);
+          const binary = atob(b64);
+          const bytes = new Uint8Array(binary.length);
+          for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+          }
+          return bytes;
+        }
+
+        function utf8ToBytes(str) {
+          return new TextEncoder().encode(str);
+        }
+
+        function bytesToUtf8(bytes) {
+          return new TextDecoder().decode(bytes);
+        }
+
+        async function brotliCompressToB64Url(str) {
+          const api = await loadBrotliApi();
+          const input = utf8ToBytes(str);
+
+          // Some implementations accept (data, options); others only (data).
+          let out;
+          try {
+            out = api.compress(input, { quality: 11 });
+          } catch {
+            out = api.compress(input);
+          }
+          if (!(out instanceof Uint8Array)) out = new Uint8Array(out);
+          return bytesToBase64Url(out);
+        }
+
+        async function brotliDecompressFromB64Url(b64url) {
+          const api = await loadBrotliApi();
+          const input = base64UrlToBytes(b64url);
+
+          let out;
+          try {
+            out = api.decompress(input);
+          } catch (e) {
+            // Some APIs expect ArrayBuffer.
+            out = api.decompress(input.buffer);
+          }
+          if (!(out instanceof Uint8Array)) out = new Uint8Array(out);
+          return bytesToUtf8(out);
+        }
+
+        return {
+          brotliCompressToB64Url,
+          brotliDecompressFromB64Url,
+        };
+      })();
+
       document.addEventListener("DOMContentLoaded", () => {
         // --- Elements
         const themeToggle = document.getElementById("themeToggle");
@@ -531,6 +677,8 @@ Use variables like:
         const sharePanels = Array.from(document.querySelectorAll(".sharePanel"));
         const includeVarsInLink = document.getElementById("includeVarsInLink");
         const includeMetaInLink = document.getElementById("includeMetaInLink");
+        const canonicalizeInLink =
+          document.getElementById("canonicalizeInLink");
         const shareLinkInput = document.getElementById("shareLinkInput");
         const copyLinkBtn = document.getElementById("copyLinkBtn");
         const shareFilledPreview = document.getElementById("shareFilledPreview");
@@ -547,15 +695,13 @@ Use variables like:
         const copyMessageBtn = document.getElementById("copyMessageBtn");
 
         // --- Chatbots config
-        // supportsQueryParam:
-        // - true  => we can put prompt in the URL (best-effort)
-        // - false => we auto-copy prompt, then open the site
         const chatbotsConfig = [
           {
             name: "ChatGPT",
             icon: "💬",
             supportsQueryParam: true,
-            urlTemplate: "https://chatgpt.com/?q={{{s}}}&hints=search&temporary-chat=true",
+            urlTemplate:
+              "https://chatgpt.com/?q={{{s}}}&hints=search&temporary-chat=true",
             className:
               "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 dark:from-green-700 dark:to-green-800 dark:hover:from-green-800 dark:hover:to-green-900",
           },
@@ -593,7 +739,7 @@ Use variables like:
           },
         ];
 
-        // --- App state (kept simple)
+        // --- App state
         const state = {
           title: "",
           tags: "",
@@ -631,7 +777,6 @@ Use variables like:
             await navigator.clipboard.writeText(text);
             return true;
           } catch {
-            // Fallback for older browsers
             try {
               const temp = document.createElement("textarea");
               temp.value = text;
@@ -654,7 +799,31 @@ Use variables like:
         }
 
         /**
-         * Variables: detect {{var}} tokens and maintain a small "fill form"
+         * C3) Canonicalize/minify template & vars
+         * - Conservative: trim trailing spaces; collapse 3+ blank lines to 2;
+         *   normalize CRLF -> LF; trim outer whitespace.
+         * - This is optional via toggle in share modal.
+         */
+        function canonicalizeText(s) {
+          if (!s) return "";
+          let out = String(s);
+          out = out.replace(/\r\n/g, "\n");
+          out = out.replace(/[ \t]+\n/g, "\n");
+          out = out.replace(/\n{3,}/g, "\n\n");
+          out = out.trim();
+          return out;
+        }
+
+        function canonicalizeVarsObject(varsObj) {
+          const entries = Object.entries(varsObj || {})
+            .map(([k, v]) => [String(k), canonicalizeText(String(v || ""))])
+            // Keep empties (they matter for UI), but share serializer can drop them.
+            .sort((a, b) => a[0].localeCompare(b[0]));
+          return entries;
+        }
+
+        /**
+         * Variables: detect {{var}} tokens
          */
         function extractVariables(template) {
           const re = /\{\{\s*([^{}]+?)\s*\}\}/g;
@@ -674,8 +843,6 @@ Use variables like:
         }
 
         function resolveTemplate(template, vars) {
-          // Replace only when the user provided a non-empty value.
-          // Otherwise, keep the {{token}} as a visible placeholder.
           const keys = Object.keys(vars);
 
           let result = template;
@@ -698,7 +865,6 @@ Use variables like:
         }
 
         function renderVariables(varKeys) {
-          // Remove values for variables that no longer exist
           Object.keys(state.vars).forEach((k) => {
             if (!varKeys.includes(k)) delete state.vars[k];
           });
@@ -748,71 +914,171 @@ Use variables like:
         }
 
         /**
-         * Share link (Recommendation #4)
-         * - New format: #p=<compressed json> (hash keeps it static + avoids server logs)
-         * - Backward compatible with previous links: ?prompt=...
+         * C2) Shrink JSON before compressing
+         * - Use short keys.
+         * - Omit defaults/empties.
+         * - Store vars as array of pairs (sorted) rather than object.
+         *
+         * New payload format:
+         *  {
+         *    v: 2,
+         *    t?: title,
+         *    g?: tags,
+         *    n?: notes,
+         *    p: template,
+         *    r?: [[key,value], ...]   // only non-empty values if includeVars
+         *    c?: 1                   // canonicalize flag
+         *  }
+         *
+         * Encoding:
+         * - Preferred: #b=<brotli+base64url>
+         * - Fallback:  #p=<lz-string encodedURIComponent>  (v:1 compatible)
          */
-        function serializeShareState(options) {
+        function serializeShareStateV2(options) {
           const includeVars = options.includeVars;
           const includeMeta = options.includeMeta;
+          const canonicalize = options.canonicalize;
 
-          return {
-            v: 1,
-            title: includeMeta ? state.title : "",
-            tags: includeMeta ? state.tags : "",
-            notes: includeMeta ? state.notes : "",
-            template: state.template,
-            vars: includeVars ? state.vars : {},
-          };
+          const payload = { v: 2 };
+
+          const title = includeMeta ? state.title : "";
+          const tags = includeMeta ? state.tags : "";
+          const notes = includeMeta ? state.notes : "";
+          const template = state.template;
+
+          const tpl = canonicalize ? canonicalizeText(template) : template;
+
+          if (tpl && tpl.trim()) payload.p = tpl;
+          if (title && title.trim()) payload.t = title.trim();
+          if (tags && tags.trim()) payload.g = tags.trim();
+          if (notes && notes.trim()) payload.n = notes.trim();
+          if (canonicalize) payload.c = 1;
+
+          if (includeVars) {
+            const pairs = canonicalize
+              ? canonicalizeVarsObject(state.vars)
+              : Object.entries(state.vars || {})
+                  .map(([k, v]) => [String(k), String(v || "")])
+                  .sort((a, b) => a[0].localeCompare(b[0]));
+
+            const nonEmpty = pairs.filter(([, v]) => String(v).trim().length > 0);
+            if (nonEmpty.length > 0) payload.r = nonEmpty;
+          }
+
+          return payload;
         }
 
-        function buildShareLink(options) {
-          const payload = serializeShareState(options);
+        function buildBaseUrl() {
+          return `${window.location.origin}${window.location.pathname}`;
+        }
+
+        async function buildShareLink(options) {
+          const payload = serializeShareStateV2(options);
           const json = JSON.stringify(payload);
 
-          // URL-safe compressed string
-          const compressed = LZString.compressToEncodedURIComponent(json);
-
-          const base = `${window.location.origin}${window.location.pathname}`;
-          return `${base}#p=${compressed}`;
+          // Preferred: Brotli + Base64URL in hash
+          try {
+            const b64url = await Codec.brotliCompressToB64Url(json);
+            return `${buildBaseUrl()}#b=${b64url}`;
+          } catch {
+            // Fallback: LZ-string (URL-safe), still smaller than raw
+            const compressed = LZString.compressToEncodedURIComponent(json);
+            return `${buildBaseUrl()}#p=${compressed}`;
+          }
         }
 
-        function tryLoadFromUrl() {
+        async function tryLoadFromUrl() {
           const params = new URLSearchParams(window.location.search);
           const hash = window.location.hash.startsWith("#")
             ? window.location.hash.slice(1)
             : "";
-
-          // Helper: parse key=value pairs in hash (like query string)
           const hashParams = new URLSearchParams(hash);
 
-          // 1) New compressed format
-          const compressed = hashParams.get("p") || params.get("p");
-          if (compressed) {
+          // 1) New brotli format: #b=...
+          const b = hashParams.get("b") || params.get("b");
+          if (b) {
             try {
-              const json = LZString.decompressFromEncodedURIComponent(
-                compressed
-              );
-              if (!json) return false;
-
+              const json = await Codec.brotliDecompressFromB64Url(b);
               const data = JSON.parse(json);
+
               if (!data || typeof data !== "object") return false;
 
+              // v2 preferred
+              if (data.v === 2) {
+                state.title = String(data.t || "");
+                state.tags = String(data.g || "");
+                state.notes = String(data.n || "");
+                state.template = String(data.p || "");
+                state.vars = {};
+
+                if (Array.isArray(data.r)) {
+                  data.r.forEach((pair) => {
+                    if (!Array.isArray(pair) || pair.length < 2) return;
+                    const k = String(pair[0] || "");
+                    const v = String(pair[1] || "");
+                    if (!k) return;
+                    state.vars[k] = v;
+                  });
+                }
+                return true;
+              }
+
+              // If some other structure: attempt to map common fields
               state.title = String(data.title || "");
               state.tags = String(data.tags || "");
               state.notes = String(data.notes || "");
               state.template = String(data.template || "");
               state.vars =
                 data.vars && typeof data.vars === "object" ? data.vars : {};
+              return true;
+            } catch {
+              // Fall through to other formats
+            }
+          }
 
+          // 2) LZ-string format: #p=... or ?p=...
+          const compressed = hashParams.get("p") || params.get("p");
+          if (compressed) {
+            try {
+              const json =
+                LZString.decompressFromEncodedURIComponent(compressed);
+              if (!json) return false;
+
+              const data = JSON.parse(json);
+              if (!data || typeof data !== "object") return false;
+
+              if (data.v === 2) {
+                state.title = String(data.t || "");
+                state.tags = String(data.g || "");
+                state.notes = String(data.n || "");
+                state.template = String(data.p || "");
+                state.vars = {};
+                if (Array.isArray(data.r)) {
+                  data.r.forEach((pair) => {
+                    if (!Array.isArray(pair) || pair.length < 2) return;
+                    const k = String(pair[0] || "");
+                    const v = String(pair[1] || "");
+                    if (!k) return;
+                    state.vars[k] = v;
+                  });
+                }
+                return true;
+              }
+
+              // v1 legacy object keys
+              state.title = String(data.title || "");
+              state.tags = String(data.tags || "");
+              state.notes = String(data.notes || "");
+              state.template = String(data.template || "");
+              state.vars =
+                data.vars && typeof data.vars === "object" ? data.vars : {};
               return true;
             } catch {
               return false;
             }
           }
 
-          // 2) Backward compatible format (your previous links)
-          //    Example: ?prompt=... (optionally plus title/notes/tags if you ever used them)
+          // 3) Backward compatible format: ?prompt=...
           const legacyPrompt = params.get("prompt");
           if (legacyPrompt) {
             const decoded = decodeURIComponent(
@@ -839,10 +1105,6 @@ Use variables like:
 
         /**
          * Derived views:
-         * - Filled prompt preview
-         * - Missing vars hint
-         * - Enable/disable buttons
-         * - Update chatbot links
          */
         function getFilledPrompt() {
           return resolveTemplate(state.template, state.vars);
@@ -867,17 +1129,14 @@ Use variables like:
         }
 
         function updateDerivedViews() {
-          // Char count
           charCount.textContent = `${state.template.length} character${
             state.template.length === 1 ? "" : "s"
           }`;
 
-          // Filled preview
           const varKeys = extractVariables(state.template);
           const filled = getFilledPrompt();
           filledPreview.value = filled;
 
-          // Missing vars hint
           if (varKeys.length > 0) {
             const missing = countMissingVars(varKeys);
             if (missing > 0) {
@@ -892,12 +1151,10 @@ Use variables like:
             missingVarsHint.classList.add("hidden");
           }
 
-          // Enable/disable actions
           const hasPrompt = !!state.template.trim();
           copyFilledBtn.disabled = !hasPrompt;
           shareBtn.disabled = !hasPrompt;
 
-          // Keep chatbot links up-to-date with filled prompt
           updateChatbotButtons();
         }
 
@@ -917,10 +1174,11 @@ Use variables like:
           if (active) active.classList.remove("hidden");
         }
 
-        function refreshShareModalPreviews() {
-          const link = buildShareLink({
+        async function refreshShareModalPreviews() {
+          const link = await buildShareLink({
             includeVars: includeVarsInLink.checked,
             includeMeta: includeMetaInLink.checked,
+            canonicalize: canonicalizeInLink.checked,
           });
           shareLinkInput.value = link;
 
@@ -962,8 +1220,6 @@ Use variables like:
             a.addEventListener("click", async (e) => {
               if (bot.supportsQueryParam) return;
 
-              // For bots that don't accept URL prompt injection:
-              // copy filled prompt first, then open the site.
               e.preventDefault();
               const ok = await copyToClipboard(getFilledPrompt());
               if (ok) showToast("Copied — paste into the chatbot");
@@ -1044,8 +1300,8 @@ Use variables like:
         });
 
         // Share modal open/close
-        shareBtn.addEventListener("click", () => {
-          refreshShareModalPreviews();
+        shareBtn.addEventListener("click", async () => {
+          await refreshShareModalPreviews();
           setShareTab("link");
           shareModal.classList.remove("hidden");
           shareModal.classList.add("flex");
@@ -1057,7 +1313,6 @@ Use variables like:
         });
 
         shareModal.addEventListener("click", (e) => {
-          // Close when clicking backdrop
           if (e.target === shareModal) {
             shareModal.classList.add("hidden");
             shareModal.classList.remove("flex");
@@ -1072,9 +1327,10 @@ Use variables like:
 
         includeVarsInLink.addEventListener("change", refreshShareModalPreviews);
         includeMetaInLink.addEventListener("change", refreshShareModalPreviews);
+        canonicalizeInLink.addEventListener("change", refreshShareModalPreviews);
 
         copyLinkBtn.addEventListener("click", async () => {
-          refreshShareModalPreviews();
+          await refreshShareModalPreviews();
           const ok = await copyToClipboard(shareLinkInput.value);
           if (ok) showToast("Share link copied");
         });
@@ -1090,7 +1346,7 @@ Use variables like:
         });
 
         copyMessageBtn.addEventListener("click", async () => {
-          refreshShareModalPreviews();
+          await refreshShareModalPreviews();
           const ok = await copyToClipboard(shareMessagePreview.value);
           if (ok) showToast("Message copied");
         });
@@ -1116,37 +1372,35 @@ Use variables like:
         });
 
         /**
-         * Initial load:
-         * - Create buttons
-         * - Load from URL (new compressed format or legacy ?prompt=...)
-         * - Render variables + derived views
+         * Initial load
          */
-        updateThemeIcons();
-        createChatbotButtons();
+        (async function init() {
+          updateThemeIcons();
+          createChatbotButtons();
 
-        const loaded = tryLoadFromUrl();
-        if (loaded) {
-          titleInput.value = state.title;
-          tagsInput.value = state.tags;
+          const loaded = await tryLoadFromUrl();
+          if (loaded) {
+            titleInput.value = state.title;
+            tagsInput.value = state.tags;
 
-          if (state.notes.trim()) {
-            notesWrap.classList.remove("hidden");
-            toggleNotes.textContent = "− Hide notes";
+            if (state.notes.trim()) {
+              notesWrap.classList.remove("hidden");
+              toggleNotes.textContent = "− Hide notes";
+            }
+            notesInput.value = state.notes;
+
+            promptInput.value = state.template;
+
+            const varKeys = extractVariables(state.template);
+            renderVariables(varKeys);
+            updateDerivedViews();
+
+            showToast("Loaded from link");
+          } else {
+            updateDerivedViews();
+            promptInput.focus();
           }
-          notesInput.value = state.notes;
-
-          promptInput.value = state.template;
-
-          const varKeys = extractVariables(state.template);
-          renderVariables(varKeys);
-          updateDerivedViews();
-
-          showToast("Loaded from link");
-        } else {
-          // Default initial state
-          updateDerivedViews();
-          promptInput.focus();
-        }
+        })();
       });
     </script>
   </body>
