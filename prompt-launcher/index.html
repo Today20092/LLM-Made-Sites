@@ -94,11 +94,12 @@
             AI Prompt Launcher
           </h1>
           <p class="text-gray-600 dark:text-gray-300 mt-2 text-sm sm:text-base">
-            Write a prompt once, fill variables like <code>{{name}}</code>, share
-            it, and launch it across multiple chatbots.
+            Write a prompt once, fill variables like <code>{{name}}</code>,
+            share it, and launch it across multiple chatbots.
           </p>
           <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
-            Shortcuts: <kbd
+            Shortcuts:
+            <kbd
               class="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs"
               >Ctrl+Enter</kbd
             >
@@ -226,7 +227,9 @@ Use variables like:
 
           <div class="mt-4">
             <div class="flex items-center justify-between gap-3 mb-2">
-              <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200">
+              <h3
+                class="text-sm font-semibold text-gray-700 dark:text-gray-200"
+              >
                 Filled Prompt Preview
               </h3>
               <span
@@ -276,8 +279,8 @@ Use variables like:
             Launch in AI Chatbots
           </h2>
           <p class="text-sm text-gray-600 dark:text-gray-300 mb-6 text-center">
-            For chatbots that don’t support URL autofill, this tool will copy the
-            filled prompt first—then open the site.
+            For chatbots that don’t support URL autofill, this tool will copy
+            the filled prompt first—then open the site.
           </p>
 
           <div
@@ -435,8 +438,8 @@ Use variables like:
             </div>
 
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
-              Backward compatible: old links using <code>?prompt=...</code> still
-              load correctly.
+              Backward compatible: old links using
+              <code>?prompt=...</code> still load correctly.
             </p>
           </div>
 
@@ -544,10 +547,7 @@ Use variables like:
                 // Different builds expose different names; normalize:
                 // - compress/decompress as Uint8Array <-> Uint8Array
                 const api =
-                  mod?.default ||
-                  mod ||
-                  (mod?.brotli && mod) ||
-                  mod?.brotli;
+                  mod?.default || mod || (mod?.brotli && mod) || mod?.brotli;
                 const compress =
                   api?.compress ||
                   api?.brotliCompress ||
@@ -581,7 +581,10 @@ Use variables like:
             binary += String.fromCharCode(...chunk);
           }
           const b64 = btoa(binary);
-          return b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+          return b64
+            .replace(/\+/g, "-")
+            .replace(/\//g, "_")
+            .replace(/=+$/g, "");
         }
 
         function base64UrlToBytes(b64url) {
@@ -674,14 +677,17 @@ Use variables like:
         const shareModal = document.getElementById("shareModal");
         const closeShareModal = document.getElementById("closeShareModal");
         const shareTabs = Array.from(document.querySelectorAll(".shareTab"));
-        const sharePanels = Array.from(document.querySelectorAll(".sharePanel"));
+        const sharePanels = Array.from(
+          document.querySelectorAll(".sharePanel")
+        );
         const includeVarsInLink = document.getElementById("includeVarsInLink");
         const includeMetaInLink = document.getElementById("includeMetaInLink");
         const canonicalizeInLink =
           document.getElementById("canonicalizeInLink");
         const shareLinkInput = document.getElementById("shareLinkInput");
         const copyLinkBtn = document.getElementById("copyLinkBtn");
-        const shareFilledPreview = document.getElementById("shareFilledPreview");
+        const shareFilledPreview =
+          document.getElementById("shareFilledPreview");
         const shareTemplatePreview = document.getElementById(
           "shareTemplatePreview"
         );
@@ -891,12 +897,12 @@ Use variables like:
               <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">
                 ${key}
               </label>
-              <input
-                data-var-key="${key}"
-                type="text"
-                class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
-                placeholder="Enter value for {{${key}}}"
-              />
+             <textarea
+              data-var-key="${key}"
+              rows="2"
+              class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 resize-y overflow-hidden"
+              placeholder="Enter value for {{${key}}}"
+              ></textarea>
             `;
 
             varsList.appendChild(wrap);
@@ -961,7 +967,9 @@ Use variables like:
                   .map(([k, v]) => [String(k), String(v || "")])
                   .sort((a, b) => a[0].localeCompare(b[0]));
 
-            const nonEmpty = pairs.filter(([, v]) => String(v).trim().length > 0);
+            const nonEmpty = pairs.filter(
+              ([, v]) => String(v).trim().length > 0
+            );
             if (nonEmpty.length > 0) payload.r = nonEmpty;
           }
 
@@ -1327,7 +1335,10 @@ Use variables like:
 
         includeVarsInLink.addEventListener("change", refreshShareModalPreviews);
         includeMetaInLink.addEventListener("change", refreshShareModalPreviews);
-        canonicalizeInLink.addEventListener("change", refreshShareModalPreviews);
+        canonicalizeInLink.addEventListener(
+          "change",
+          refreshShareModalPreviews
+        );
 
         copyLinkBtn.addEventListener("click", async () => {
           await refreshShareModalPreviews();
