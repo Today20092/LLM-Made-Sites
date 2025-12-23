@@ -21,11 +21,7 @@
       tailwind.config = { darkMode: "class" };
     </script>
 
-    <!--
-      Compression changes:
-      - Prefer Brotli via WASM (lazy-loaded) for better ratio on short JSON.
-      - Fallback to LZ-String if Brotli fails to load.
-    -->
+    <!-- Simple compression: LZ-String -->
     <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 
     <style>
@@ -57,7 +53,7 @@
       <div
         class="bg-white dark:bg-gray-800/60 dark:backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 p-6 sm:p-8 relative fade-in"
       >
-        <!-- Theme Toggle (manual only: ignores browser preference) -->
+        <!-- Theme Toggle -->
         <button
           id="themeToggle"
           class="absolute top-4 right-4 p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -399,11 +395,11 @@ Use variables like:
                 </div>
 
                 <span class="text-xs text-gray-500 dark:text-gray-400">
-                  Uses Brotli (WASM) + Base64URL when available.
+                  Uses LZ-String compression.
                 </span>
               </div>
 
-              <!-- C3: Canonicalize/minify toggle -->
+              <!-- Minify toggle -->
               <div class="flex flex-wrap items-center gap-4">
                 <label class="inline-flex items-center gap-2 text-sm">
                   <input
@@ -511,136 +507,10 @@ Use variables like:
     <script>
       /**
        * THEME (manual toggle only)
-       * - Defaults to light
-       * - Remembers user preference in localStorage
        */
       (function initTheme() {
         const saved = localStorage.getItem("theme"); // "dark" | "light" | null
         if (saved === "dark") document.documentElement.classList.add("dark");
-      })();
-
-      /**
-       * C1) Better codec (Brotli WASM) + denser encoding (Base64URL)
-       * - Lazy loads Brotli encoder/decoder. Falls back to LZ-String.
-       *
-       * Note: this uses a CDN package that provides brotli compress/decompress
-       * with an internal WASM module. If it fails to load, links still work via
-       * LZ-String ("p=") and legacy "?prompt=".
-       */
-      const Codec = (() => {
-        let brotliApiPromise = null;
-
-        async function loadBrotliApi() {
-          if (brotliApiPromise) return brotliApiPromise;
-          brotliApiPromise = (async () => {
-            // Try multiple likely entry points to keep it robust.
-            // If none load, we throw and caller will fallback.
-            const urls = [
-              "https://cdn.jsdelivr.net/npm/brotli-wasm@3.0.1/index.min.js",
-              "https://cdn.jsdelivr.net/npm/brotli-wasm@3.0.1/esm/index.min.js",
-            ];
-
-            let lastErr = null;
-            for (const url of urls) {
-              try {
-                const mod = await import(url);
-                // Different builds expose different names; normalize:
-                // - compress/decompress as Uint8Array <-> Uint8Array
-                const api =
-                  mod?.default || mod || (mod?.brotli && mod) || mod?.brotli;
-                const compress =
-                  api?.compress ||
-                  api?.brotliCompress ||
-                  api?.encode ||
-                  api?.brotliEncode;
-                const decompress =
-                  api?.decompress ||
-                  api?.brotliDecompress ||
-                  api?.decode ||
-                  api?.brotliDecode;
-
-                if (typeof compress !== "function") continue;
-                if (typeof decompress !== "function") continue;
-
-                return { compress, decompress };
-              } catch (e) {
-                lastErr = e;
-              }
-            }
-            throw lastErr || new Error("Failed to load brotli-wasm");
-          })();
-
-          return brotliApiPromise;
-        }
-
-        function bytesToBase64Url(bytes) {
-          let binary = "";
-          const chunkSize = 0x8000;
-          for (let i = 0; i < bytes.length; i += chunkSize) {
-            const chunk = bytes.subarray(i, i + chunkSize);
-            binary += String.fromCharCode(...chunk);
-          }
-          const b64 = btoa(binary);
-          return b64
-            .replace(/\+/g, "-")
-            .replace(/\//g, "_")
-            .replace(/=+$/g, "");
-        }
-
-        function base64UrlToBytes(b64url) {
-          let b64 = b64url.replace(/-/g, "+").replace(/_/g, "/");
-          const pad = b64.length % 4;
-          if (pad) b64 += "=".repeat(4 - pad);
-          const binary = atob(b64);
-          const bytes = new Uint8Array(binary.length);
-          for (let i = 0; i < binary.length; i++) {
-            bytes[i] = binary.charCodeAt(i);
-          }
-          return bytes;
-        }
-
-        function utf8ToBytes(str) {
-          return new TextEncoder().encode(str);
-        }
-
-        function bytesToUtf8(bytes) {
-          return new TextDecoder().decode(bytes);
-        }
-
-        async function brotliCompressToB64Url(str) {
-          const api = await loadBrotliApi();
-          const input = utf8ToBytes(str);
-
-          // Some implementations accept (data, options); others only (data).
-          let out;
-          try {
-            out = api.compress(input, { quality: 11 });
-          } catch {
-            out = api.compress(input);
-          }
-          if (!(out instanceof Uint8Array)) out = new Uint8Array(out);
-          return bytesToBase64Url(out);
-        }
-
-        async function brotliDecompressFromB64Url(b64url) {
-          const api = await loadBrotliApi();
-          const input = base64UrlToBytes(b64url);
-
-          let out;
-          try {
-            out = api.decompress(input);
-          } catch (e) {
-            // Some APIs expect ArrayBuffer.
-            out = api.decompress(input.buffer);
-          }
-          if (!(out instanceof Uint8Array)) out = new Uint8Array(out);
-          return bytesToUtf8(out);
-        }
-
-        return {
-          brotliCompressToB64Url,
-          brotliDecompressFromB64Url,
-        };
       })();
 
       document.addEventListener("DOMContentLoaded", () => {
@@ -764,7 +634,7 @@ Use variables like:
           tags: "",
           notes: "",
           template: "",
-          vars: {}, // { [varName]: value }
+          vars: {},
         };
 
         /**
@@ -834,15 +704,11 @@ Use variables like:
           if (!el) return;
           el.style.overflow = "hidden";
           el.addEventListener("input", () => autoResizeTextarea(el));
-          // also resize on initialization
           autoResizeTextarea(el);
         }
 
         /**
-         * C3) Canonicalize/minify template & vars
-         * - Conservative: trim trailing spaces; collapse 3+ blank lines to 2;
-         *   normalize CRLF -> LF; trim outer whitespace.
-         * - This is optional via toggle in share modal.
+         * Canonicalize/minify template & vars
          */
         function canonicalizeText(s) {
           if (!s) return "";
@@ -857,7 +723,6 @@ Use variables like:
         function canonicalizeVarsObject(varsObj) {
           const entries = Object.entries(varsObj || {})
             .map(([k, v]) => [String(k), canonicalizeText(String(v || ""))])
-            // Keep empties (they matter for UI), but share serializer can drop them.
             .sort((a, b) => a[0].localeCompare(b[0]));
           return entries;
         }
@@ -950,7 +815,6 @@ Use variables like:
               updateDerivedViews();
             });
 
-            // auto-resize dynamic variable textarea
             wireAutoResize(input);
           });
 
@@ -958,27 +822,10 @@ Use variables like:
         }
 
         /**
-         * C2) Shrink JSON before compressing
-         * - Use short keys.
-         * - Omit defaults/empties.
-         * - Store vars as array of pairs (sorted) rather than object.
-         *
-         * New payload format:
-         *  {
-         *    v: 2,
-         *    t?: title,
-         *    g?: tags,
-         *    n?: notes,
-         *    p: template,
-         *    r?: [[key,value], ...]   // only non-empty values if includeVars
-         *    c?: 1                   // canonicalize flag
-         *  }
-         *
-         * Encoding:
-         * - Preferred: #b=<brotli+base64url>
-         * - Fallback:  #p=<lz-string encodedURIComponent>  (v:1 compatible)
+         * Serialize state to compressed string
+         * - Uses LZ-String for simplicity and reliability.
          */
-        function serializeShareStateV2(options) {
+        function serializeShareState(options) {
           const includeVars = options.includeVars;
           const includeMeta = options.includeMeta;
           const canonicalize = options.canonicalize;
@@ -1018,71 +865,23 @@ Use variables like:
           return `${window.location.origin}${window.location.pathname}`;
         }
 
-        async function buildShareLink(options) {
-          const payload = serializeShareStateV2(options);
+        function buildShareLink(options) {
+          const payload = serializeShareState(options);
           const json = JSON.stringify(payload);
 
-          // Preferred: Brotli + Base64URL in hash
-          try {
-            const b64url = await Codec.brotliCompressToB64Url(json);
-            return `${buildBaseUrl()}#b=${b64url}`;
-          } catch {
-            // Fallback: LZ-string (URL-safe), still smaller than raw
-            const compressed = LZString.compressToEncodedURIComponent(json);
-            return `${buildBaseUrl()}#p=${compressed}`;
-          }
+          // Use LZ-String compression (URL-safe)
+          const compressed = LZString.compressToEncodedURIComponent(json);
+          return `${buildBaseUrl()}#p=${compressed}`;
         }
 
-        async function tryLoadFromUrl() {
+        function tryLoadFromUrl() {
           const params = new URLSearchParams(window.location.search);
           const hash = window.location.hash.startsWith("#")
             ? window.location.hash.slice(1)
             : "";
           const hashParams = new URLSearchParams(hash);
 
-          // 1) New brotli format: #b=...
-          const b = hashParams.get("b") || params.get("b");
-          if (b) {
-            try {
-              const json = await Codec.brotliDecompressFromB64Url(b);
-              const data = JSON.parse(json);
-
-              if (!data || typeof data !== "object") return false;
-
-              // v2 preferred
-              if (data.v === 2) {
-                state.title = String(data.t || "");
-                state.tags = String(data.g || "");
-                state.notes = String(data.n || "");
-                state.template = String(data.p || "");
-                state.vars = {};
-
-                if (Array.isArray(data.r)) {
-                  data.r.forEach((pair) => {
-                    if (!Array.isArray(pair) || pair.length < 2) return;
-                    const k = String(pair[0] || "");
-                    const v = String(pair[1] || "");
-                    if (!k) return;
-                    state.vars[k] = v;
-                  });
-                }
-                return true;
-              }
-
-              // If some other structure: attempt to map common fields
-              state.title = String(data.title || "");
-              state.tags = String(data.tags || "");
-              state.notes = String(data.notes || "");
-              state.template = String(data.template || "");
-              state.vars =
-                data.vars && typeof data.vars === "object" ? data.vars : {};
-              return true;
-            } catch {
-              // Fall through to other formats
-            }
-          }
-
-          // 2) LZ-string format: #p=... or ?p=...
+          // 1) LZ-string format: #p=... or ?p=...
           const compressed = hashParams.get("p") || params.get("p");
           if (compressed) {
             try {
@@ -1124,7 +923,7 @@ Use variables like:
             }
           }
 
-          // 3) Backward compatible format: ?prompt=...
+          // 2) Backward compatible format: ?prompt=...
           const legacyPrompt = params.get("prompt");
           if (legacyPrompt) {
             const decoded = decodeURIComponent(
@@ -1221,8 +1020,8 @@ Use variables like:
           if (active) active.classList.remove("hidden");
         }
 
-        async function refreshShareModalPreviews() {
-          const link = await buildShareLink({
+        function refreshShareModalPreviews() {
+          const link = buildShareLink({
             includeVars: includeVarsInLink.checked,
             includeMeta: includeMetaInLink.checked,
             canonicalize: canonicalizeInLink.checked,
@@ -1347,8 +1146,8 @@ Use variables like:
         });
 
         // Share modal open/close
-        shareBtn.addEventListener("click", async () => {
-          await refreshShareModalPreviews();
+        shareBtn.addEventListener("click", () => {
+          refreshShareModalPreviews();
           setShareTab("link");
           shareModal.classList.remove("hidden");
           shareModal.classList.add("flex");
@@ -1380,7 +1179,7 @@ Use variables like:
         );
 
         copyLinkBtn.addEventListener("click", async () => {
-          await refreshShareModalPreviews();
+          refreshShareModalPreviews();
           const ok = await copyToClipboard(shareLinkInput.value);
           if (ok) showToast("Share link copied");
         });
@@ -1396,7 +1195,7 @@ Use variables like:
         });
 
         copyMessageBtn.addEventListener("click", async () => {
-          await refreshShareModalPreviews();
+          refreshShareModalPreviews();
           const ok = await copyToClipboard(shareMessagePreview.value);
           if (ok) showToast("Message copied");
         });
@@ -1424,11 +1223,11 @@ Use variables like:
         /**
          * Initial load
          */
-        (async function init() {
+        function init() {
           updateThemeIcons();
           createChatbotButtons();
 
-          const loaded = await tryLoadFromUrl();
+          const loaded = tryLoadFromUrl();
           if (loaded) {
             titleInput.value = state.title;
             tagsInput.value = state.tags;
@@ -1450,7 +1249,9 @@ Use variables like:
             updateDerivedViews();
             promptInput.focus();
           }
-        })();
+        }
+
+        init();
       });
     </script>
   </body>
