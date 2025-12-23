@@ -700,6 +700,19 @@ Use variables like:
         const copyTemplateBtn = document.getElementById("copyTemplateBtn");
         const copyMessageBtn = document.getElementById("copyMessageBtn");
 
+        // Wire auto-resize for primary textareas
+        const _autoResizeTargets = [
+          promptInput,
+          notesInput,
+          filledPreview,
+          shareFilledPreview,
+          shareTemplatePreview,
+          shareMessagePreview,
+        ];
+        _autoResizeTargets.forEach((el) => {
+          if (el) wireAutoResize(el);
+        });
+
         // --- Chatbots config
         const chatbotsConfig = [
           {
@@ -805,6 +818,27 @@ Use variables like:
         }
 
         /**
+         * Auto-resize helpers for textareas
+         */
+        function autoResizeTextarea(el) {
+          if (!el) return;
+          try {
+            el.style.height = "auto";
+            el.style.height = el.scrollHeight + "px";
+          } catch (e) {
+            // ignore
+          }
+        }
+
+        function wireAutoResize(el) {
+          if (!el) return;
+          el.style.overflow = "hidden";
+          el.addEventListener("input", () => autoResizeTextarea(el));
+          // also resize on initialization
+          autoResizeTextarea(el);
+        }
+
+        /**
          * C3) Canonicalize/minify template & vars
          * - Conservative: trim trailing spaces; collapse 3+ blank lines to 2;
          *   normalize CRLF -> LF; trim outer whitespace.
@@ -879,6 +913,7 @@ Use variables like:
             varsSection.classList.add("hidden");
             varsList.innerHTML = "";
             filledPreview.value = resolveTemplate(state.template, state.vars);
+            autoResizeTextarea(filledPreview);
             missingVarsHint.classList.add("hidden");
             return;
           }
@@ -914,6 +949,9 @@ Use variables like:
               state.vars[key] = input.value;
               updateDerivedViews();
             });
+
+            // auto-resize dynamic variable textarea
+            wireAutoResize(input);
           });
 
           updateDerivedViews();
@@ -1144,6 +1182,7 @@ Use variables like:
           const varKeys = extractVariables(state.template);
           const filled = getFilledPrompt();
           filledPreview.value = filled;
+          autoResizeTextarea(filledPreview);
 
           if (varKeys.length > 0) {
             const missing = countMissingVars(varKeys);
