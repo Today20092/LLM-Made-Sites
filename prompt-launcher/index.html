@@ -224,6 +224,7 @@ Use variables like:
               id="resetVarsBtn"
               class="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
               type="button"
+              aria-label="Reset all variables"
             >
               Reset
             </button>
@@ -238,6 +239,7 @@ Use variables like:
               id="toggleFilledPreview"
               type="button"
               class="flex items-center justify-between w-full text-left group focus:outline-none"
+              aria-label="Toggle filled prompt preview"
             >
               <div class="flex items-center justify-between w-full">
                 <h3
@@ -256,6 +258,7 @@ Use variables like:
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
+                    aria-hidden="true"
                   >
                     <path
                       stroke-linecap="round"
@@ -311,7 +314,7 @@ Use variables like:
             Launch in AI Chatbots
           </h2>
           <p class="text-sm text-gray-600 dark:text-gray-300 mb-6 text-center">
-            For chatbots that don’t support URL autofill, this tool will copy
+            For chatbots that don't support URL autofill, this tool will copy
             the filled prompt first—then open the site.
           </p>
 
@@ -469,6 +472,34 @@ Use variables like:
               </button>
             </div>
 
+            <!-- Native Share Button -->
+            <div id="nativeShareWrapper" class="mt-3 hidden">
+              <button
+                id="nativeShareBtn"
+                class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-colors"
+                type="button"
+              >
+                <svg
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                  />
+                </svg>
+                Share via…
+              </button>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">
+                Opens your device's share menu
+              </p>
+            </div>
+
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
               Backward compatible: old links using
               <code>?prompt=...</code> still load correctly.
@@ -550,6 +581,10 @@ Use variables like:
       })();
 
       document.addEventListener("DOMContentLoaded", () => {
+        // --- Constants
+        const STORAGE_KEY = "promptLauncher_state";
+        const SAVE_DEBOUNCE_MS = 500;
+
         // --- Elements
         const themeToggle = document.getElementById("themeToggle");
         const sunIcon = document.getElementById("sunIcon");
@@ -569,8 +604,11 @@ Use variables like:
         const resetVarsBtn = document.getElementById("resetVarsBtn");
         const filledPreview = document.getElementById("filledPreview");
         const missingVarsHint = document.getElementById("missingVarsHint");
-        const toggleFilledPreview = document.getElementById("toggleFilledPreview");
-        const filledPreviewWrapper = document.getElementById("filledPreviewWrapper");
+        const toggleFilledPreview =
+          document.getElementById("toggleFilledPreview");
+        const filledPreviewWrapper = document.getElementById(
+          "filledPreviewWrapper"
+        );
         const previewChevron = document.getElementById("previewChevron");
 
         const copyFilledBtn = document.getElementById("copyFilledBtn");
@@ -595,6 +633,10 @@ Use variables like:
           document.getElementById("canonicalizeInLink");
         const shareLinkInput = document.getElementById("shareLinkInput");
         const copyLinkBtn = document.getElementById("copyLinkBtn");
+        const nativeShareWrapper = document.getElementById(
+          "nativeShareWrapper"
+        );
+        const nativeShareBtn = document.getElementById("nativeShareBtn");
         const shareFilledPreview =
           document.getElementById("shareFilledPreview");
         const shareTemplatePreview = document.getElementById(
@@ -675,6 +717,96 @@ Use variables like:
           template: "",
           vars: {},
         };
+
+        // --- Debounce timer for localStorage saves
+        let saveTimeout = null;
+
+        /**
+         * LocalStorage persistence
+         */
+        function saveStateToStorage() {
+          try {
+            const data = {
+              title: state.title,
+              tags: state.tags,
+              notes: state.notes,
+              template: state.template,
+              vars: state.vars,
+              _savedAt: Date.now(),
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+          } catch (e) {
+            // Storage full or unavailable - ignore
+          }
+        }
+
+        function debouncedSave() {
+          if (saveTimeout) clearTimeout(saveTimeout);
+          saveTimeout = setTimeout(saveStateToStorage, SAVE_DEBOUNCE_MS);
+        }
+
+        function loadStateFromStorage() {
+          try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return false;
+
+            const data = JSON.parse(raw);
+            if (!data || typeof data !== "object") return false;
+
+            state.title = String(data.title || "");
+            state.tags = String(data.tags || "");
+            state.notes = String(data.notes || "");
+            state.template = String(data.template || "");
+            state.vars =
+              data.vars && typeof data.vars === "object" ? data.vars : {};
+
+            return true;
+          } catch {
+            return false;
+          }
+        }
+
+        function clearStorage() {
+          try {
+            localStorage.removeItem(STORAGE_KEY);
+          } catch {
+            // Ignore
+          }
+        }
+
+        /**
+         * Native Share API support detection
+         */
+        function supportsNativeShare() {
+          return (
+            typeof navigator !== "undefined" &&
+            typeof navigator.share === "function" &&
+            typeof navigator.canShare === "function"
+          );
+        }
+
+        async function triggerNativeShare(url, title, text) {
+          const shareData = { url };
+          if (title) shareData.title = title;
+          if (text) shareData.text = text;
+
+          try {
+            if (navigator.canShare && navigator.canShare(shareData)) {
+              await navigator.share(shareData);
+              return true;
+            } else {
+              // Fallback: try sharing anyway
+              await navigator.share(shareData);
+              return true;
+            }
+          } catch (err) {
+            // User cancelled or share failed
+            if (err.name !== "AbortError") {
+              console.warn("Native share failed:", err);
+            }
+            return false;
+          }
+        }
 
         /**
          * UI helpers
@@ -852,6 +984,7 @@ Use variables like:
             input.addEventListener("input", () => {
               state.vars[key] = input.value;
               updateDerivedViews();
+              debouncedSave();
             });
 
             wireAutoResize(input);
@@ -1136,18 +1269,22 @@ Use variables like:
           const varKeys = extractVariables(state.template);
           renderVariables(varKeys);
           updateDerivedViews();
+          debouncedSave();
         });
 
         titleInput.addEventListener("input", () => {
           state.title = titleInput.value;
+          debouncedSave();
         });
 
         tagsInput.addEventListener("input", () => {
           state.tags = tagsInput.value;
+          debouncedSave();
         });
 
         notesInput.addEventListener("input", () => {
           state.notes = notesInput.value;
+          debouncedSave();
         });
 
         resetVarsBtn.addEventListener("click", () => {
@@ -1155,9 +1292,10 @@ Use variables like:
           const varKeys = extractVariables(state.template);
           renderVariables(varKeys);
           updateDerivedViews();
+          debouncedSave();
           showToast("Variables reset");
         });
-        
+
         toggleFilledPreview.addEventListener("click", () => {
           const isHidden = filledPreviewWrapper.classList.toggle("hidden");
           if (!isHidden) {
@@ -1193,6 +1331,9 @@ Use variables like:
           filledPreview.value = "";
           updateDerivedViews();
 
+          // Clear localStorage as well
+          clearStorage();
+
           showToast("Cleared");
           promptInput.focus();
         });
@@ -1201,6 +1342,14 @@ Use variables like:
         shareBtn.addEventListener("click", () => {
           refreshShareModalPreviews();
           setShareTab("link");
+
+          // Show/hide native share button based on support
+          if (supportsNativeShare()) {
+            nativeShareWrapper.classList.remove("hidden");
+          } else {
+            nativeShareWrapper.classList.add("hidden");
+          }
+
           shareModal.classList.remove("hidden");
           shareModal.classList.add("flex");
         });
@@ -1234,6 +1383,22 @@ Use variables like:
           refreshShareModalPreviews();
           const ok = await copyToClipboard(shareLinkInput.value);
           if (ok) showToast("Share link copied");
+        });
+
+        // Native Share API button
+        nativeShareBtn.addEventListener("click", async () => {
+          refreshShareModalPreviews();
+          const url = shareLinkInput.value;
+          const title = state.title.trim() || "AI Prompt";
+          const text = state.notes.trim()
+            ? `${title}\n\n${state.notes.trim()}`
+            : title;
+
+          const shared = await triggerNativeShare(url, title, text);
+          if (shared) {
+            showToast("Shared successfully");
+          }
+          // If user cancelled, do nothing (no error toast)
         });
 
         copyFilledFromModalBtn.addEventListener("click", async () => {
@@ -1279,8 +1444,11 @@ Use variables like:
           updateThemeIcons();
           createChatbotButtons();
 
-          const loaded = tryLoadFromUrl();
-          if (loaded) {
+          // Priority: URL payload > localStorage
+          const loadedFromUrl = tryLoadFromUrl();
+
+          if (loadedFromUrl) {
+            // Loaded from URL - populate UI
             titleInput.value = state.title;
             tagsInput.value = state.tags;
 
@@ -1296,10 +1464,37 @@ Use variables like:
             renderVariables(varKeys);
             updateDerivedViews();
 
+            // Save URL state to localStorage for persistence
+            debouncedSave();
+
             showToast("Loaded from link");
           } else {
-            updateDerivedViews();
-            promptInput.focus();
+            // Try loading from localStorage
+            const loadedFromStorage = loadStateFromStorage();
+
+            if (loadedFromStorage && state.template.trim()) {
+              // Loaded from localStorage - populate UI
+              titleInput.value = state.title;
+              tagsInput.value = state.tags;
+
+              if (state.notes.trim()) {
+                notesWrap.classList.remove("hidden");
+                toggleNotes.textContent = "− Hide notes";
+              }
+              notesInput.value = state.notes;
+
+              promptInput.value = state.template;
+
+              const varKeys = extractVariables(state.template);
+              renderVariables(varKeys);
+              updateDerivedViews();
+
+              showToast("Restored from last session");
+            } else {
+              // Fresh start
+              updateDerivedViews();
+              promptInput.focus();
+            }
           }
         }
 
