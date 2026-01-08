@@ -35,3 +35,6 @@ yarn-error.log*
 .idea/
 *.swp
 *.swo
+
+#claude ai
+claude.md
