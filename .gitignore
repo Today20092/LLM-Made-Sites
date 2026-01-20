@@ -36,5 +36,8 @@ yarn-error.log*
 *.swp
 *.swo
 
-#claude ai
+# Claude AI context files
 claude.md
+CLAUDE.MD
+CLAUDE.md
+Claude.md
