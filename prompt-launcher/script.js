@@ -40,6 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const copyFilledBtn = document.getElementById("copyFilledBtn");
   const shareBtn = document.getElementById("shareBtn");
   const clearBtn = document.getElementById("clearBtn");
+  const fabButton = document.getElementById("fabButton");
 
   const chatbotButtons = document.getElementById("chatbotButtons");
 
@@ -98,40 +99,30 @@ document.addEventListener("DOMContentLoaded", () => {
       supportsQueryParam: true,
       urlTemplate:
         "https://chatgpt.com/?q={{{s}}}&hints=search&temporary-chat=true",
-      className:
-        "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 dark:from-green-700 dark:to-green-800 dark:hover:from-green-800 dark:hover:to-green-900",
     },
     {
       name: "Claude",
       icon: "🧠",
       supportsQueryParam: false,
       urlTemplate: "https://claude.ai/new",
-      className:
-        "bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 dark:from-amber-700 dark:to-amber-800 dark:hover:from-amber-800 dark:hover:to-amber-900",
     },
     {
       name: "Perplexity",
       icon: "🔍",
       supportsQueryParam: true,
       urlTemplate: "https://perplexity.ai/?q={{{s}}}",
-      className:
-        "bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 dark:from-purple-700 dark:to-purple-800 dark:hover:from-purple-800 dark:hover:to-purple-900",
     },
     {
       name: "T3 Chat",
       icon: "🤖",
       supportsQueryParam: true,
       urlTemplate: "https://t3.chat/new?q={{{s}}}",
-      className:
-        "bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-800 hover:to-blue-900 dark:from-blue-800 dark:to-blue-900 dark:hover:from-blue-900 dark:hover:to-blue-950",
     },
     {
       name: "Google Gemini",
       icon: "✨",
       supportsQueryParam: false,
       urlTemplate: "https://gemini.google.com/app",
-      className:
-        "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800",
     },
   ];
 
@@ -388,16 +379,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const wrap = document.createElement("div");
       wrap.className =
-        "bg-gray-50 dark:bg-gray-700/60 border border-gray-200 dark:border-gray-600 rounded-lg p-3";
+        "bg-md-surface-container-high dark:bg-gray-700/60 border border-md-outline-variant dark:border-gray-600 rounded-sm-md p-3";
 
       wrap.innerHTML = `
-        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">
+        <label class="block text-label-lg font-medium text-md-surface-on dark:text-gray-200 mb-1">
           ${key}
         </label>
        <textarea
         data-var-key="${key}"
         rows="2"
-        class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 resize-none overflow-hidden"
+        class="w-full px-3 py-2 rounded-sm-md border-b-2 border-md-outline dark:border-gray-600 bg-md-surface-container-highest dark:bg-gray-700 text-md-surface-on dark:text-gray-100 focus:outline-none focus:border-md-primary dark:focus:border-indigo-400 resize-none overflow-hidden transition-colors duration-short-4"
         placeholder="Enter value for {{${key}}}"
         ></textarea>
       `;
@@ -599,6 +590,13 @@ document.addEventListener("DOMContentLoaded", () => {
     copyFilledBtn.disabled = !hasPrompt;
     shareBtn.disabled = !hasPrompt;
 
+    // Show/hide FAB based on prompt
+    if (hasPrompt) {
+      fabButton.classList.remove("hidden");
+    } else {
+      fabButton.classList.add("hidden");
+    }
+
     updateChatbotButtons();
   }
 
@@ -609,8 +607,8 @@ document.addEventListener("DOMContentLoaded", () => {
     shareTabs.forEach((t) => {
       const isActive = t.dataset.tab === tabName;
       t.className = isActive
-        ? "shareTab px-3 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white"
-        : "shareTab px-3 py-2 rounded-lg text-sm font-semibold bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100";
+        ? "shareTab px-3 py-2 rounded-sm-md text-label-lg font-medium bg-md-secondary-container text-md-secondary-on-container"
+        : "shareTab px-3 py-2 rounded-sm-md text-label-lg font-medium bg-md-surface-container-highest dark:bg-gray-700 text-md-surface-on dark:text-gray-100";
     });
 
     sharePanels.forEach((p) => p.classList.add("hidden"));
@@ -658,7 +656,7 @@ document.addEventListener("DOMContentLoaded", () => {
       a.setAttribute("data-bot-name", bot.name);
       a.target = "_blank";
       a.rel = "noopener noreferrer";
-      a.className = `flex items-center justify-center p-4 rounded-lg shadow-lg font-bold text-white text-base ${bot.className} transition-all duration-200 ease-in-out transform hover:-translate-y-1 text-center`;
+      a.className = `flex items-center justify-center p-4 rounded-md-md shadow-elevation-1 hover:shadow-elevation-2 font-medium text-md-primary-on text-base bg-md-primary hover:bg-md-primary/90 transition-all duration-short-4 ease-standard text-center`;
       a.innerHTML = `<span class="text-2xl mr-2">${bot.icon}</span>${bot.name}`;
 
       a.addEventListener("click", async (e) => {
@@ -738,6 +736,12 @@ document.addEventListener("DOMContentLoaded", () => {
   copyFilledBtn.addEventListener("click", async () => {
     const ok = await copyToClipboard(getFilledPrompt());
     if (ok) showToast("Filled prompt copied");
+  });
+
+  // FAB click handler
+  fabButton.addEventListener("click", async () => {
+    const ok = await copyToClipboard(getFilledPrompt());
+    if (ok) showToast("Copied to clipboard");
   });
 
   clearBtn.addEventListener("click", () => {

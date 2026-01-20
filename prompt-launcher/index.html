@@ -29,7 +29,84 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-      tailwind.config = { darkMode: "class" };
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              // Material 3 Light Theme
+              md: {
+                primary: { DEFAULT: '#6750A4', on: '#FFFFFF', container: '#EADDFF', 'on-container': '#21005D' },
+                secondary: { DEFAULT: '#625B71', on: '#FFFFFF', container: '#E8DEF8', 'on-container': '#1D192B' },
+                tertiary: { DEFAULT: '#7D5260', on: '#FFFFFF', container: '#FFD8E4', 'on-container': '#31111D' },
+                error: { DEFAULT: '#B3261E', on: '#FFFFFF', container: '#F9DEDC', 'on-container': '#410E0B' },
+                surface: { DEFAULT: '#FEF7FF', on: '#1D1B20', variant: '#E7E0EC', 'on-variant': '#49454F', dim: '#DED8E1', bright: '#FEF7FF', 'container-lowest': '#FFFFFF', 'container-low': '#F7F2FA', 'container': '#F3EDF7', 'container-high': '#ECE6F0', 'container-highest': '#E6E0E9' },
+                outline: { DEFAULT: '#79747E', variant: '#CAC4D0' },
+                inverse: { surface: '#322F35', 'on-surface': '#F5EFF7', primary: '#D0BCFF' },
+                shadow: '#000000',
+                scrim: '#000000',
+              },
+            },
+            fontFamily: {
+              sans: ['Roboto', 'system-ui', 'sans-serif'],
+            },
+            fontSize: {
+              // Material 3 Type Scale
+              'display-lg': ['57px', { lineHeight: '64px', letterSpacing: '-0.25px', fontWeight: '400' }],
+              'display-md': ['45px', { lineHeight: '52px', letterSpacing: '0px', fontWeight: '400' }],
+              'display-sm': ['36px', { lineHeight: '44px', letterSpacing: '0px', fontWeight: '400' }],
+              'headline-lg': ['32px', { lineHeight: '40px', letterSpacing: '0px', fontWeight: '400' }],
+              'headline-md': ['28px', { lineHeight: '36px', letterSpacing: '0px', fontWeight: '400' }],
+              'headline-sm': ['24px', { lineHeight: '32px', letterSpacing: '0px', fontWeight: '400' }],
+              'title-lg': ['22px', { lineHeight: '28px', letterSpacing: '0px', fontWeight: '500' }],
+              'title-md': ['16px', { lineHeight: '24px', letterSpacing: '0.15px', fontWeight: '500' }],
+              'title-sm': ['14px', { lineHeight: '20px', letterSpacing: '0.1px', fontWeight: '500' }],
+              'label-lg': ['14px', { lineHeight: '20px', letterSpacing: '0.1px', fontWeight: '500' }],
+              'label-md': ['12px', { lineHeight: '16px', letterSpacing: '0.5px', fontWeight: '500' }],
+              'label-sm': ['11px', { lineHeight: '16px', letterSpacing: '0.5px', fontWeight: '500' }],
+              'body-lg': ['16px', { lineHeight: '24px', letterSpacing: '0.5px', fontWeight: '400' }],
+              'body-md': ['14px', { lineHeight: '20px', letterSpacing: '0.25px', fontWeight: '400' }],
+              'body-sm': ['12px', { lineHeight: '16px', letterSpacing: '0.4px', fontWeight: '400' }],
+            },
+            boxShadow: {
+              // Material 3 Elevation
+              'elevation-1': '0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15)',
+              'elevation-2': '0px 1px 2px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15)',
+              'elevation-3': '0px 1px 3px rgba(0, 0, 0, 0.3), 0px 4px 8px 3px rgba(0, 0, 0, 0.15)',
+              'elevation-4': '0px 2px 3px rgba(0, 0, 0, 0.3), 0px 6px 10px 4px rgba(0, 0, 0, 0.15)',
+              'elevation-5': '0px 4px 4px rgba(0, 0, 0, 0.3), 0px 8px 12px 6px rgba(0, 0, 0, 0.15)',
+            },
+            borderRadius: {
+              // Material 3 Shape
+              'xs-md': '4px',
+              'sm-md': '8px',
+              'md-md': '12px',
+              'lg-md': '16px',
+              'xl-md': '28px',
+            },
+            transitionDuration: {
+              // Material 3 Motion
+              'short-1': '50ms',
+              'short-2': '100ms',
+              'short-3': '150ms',
+              'short-4': '200ms',
+              'medium-1': '250ms',
+              'medium-2': '300ms',
+              'medium-3': '350ms',
+              'medium-4': '400ms',
+              'long-1': '450ms',
+              'long-2': '500ms',
+              'long-3': '550ms',
+              'long-4': '600ms',
+            },
+            transitionTimingFunction: {
+              'standard': 'cubic-bezier(0.2, 0, 0, 1)',
+              'emphasized-decelerate': 'cubic-bezier(0.05, 0.7, 0.1, 1)',
+              'emphasized-accelerate': 'cubic-bezier(0.3, 0, 0.8, 0.15)',
+            },
+          },
+        },
+      };
     </script>
 
     <!-- Simple compression: LZ-String -->
@@ -39,16 +116,16 @@
   </head>
 
   <body
-    class="bg-gray-100 dark:bg-gray-900 min-h-screen p-4 sm:p-6 transition-colors duration-200"
+    class="bg-md-surface dark:bg-gray-900 min-h-screen p-4 sm:p-6 transition-colors duration-medium-1"
   >
     <div class="max-w-4xl mx-auto">
       <div
-        class="bg-white dark:bg-gray-800/60 dark:backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 p-6 sm:p-8 relative fade-in"
+        class="bg-md-surface-container-low dark:bg-gray-800/60 dark:backdrop-blur-sm rounded-xl-md shadow-elevation-2 border border-md-outline-variant dark:border-gray-700 p-6 sm:p-8 relative fade-in"
       >
         <!-- Theme Toggle -->
         <button
           id="themeToggle"
-          class="absolute top-4 right-4 p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          class="absolute top-4 right-4 p-2 rounded-full bg-md-surface-container-highest dark:bg-gray-700 hover:bg-md-surface-container-high dark:hover:bg-gray-600 transition-colors duration-short-4 focus:outline-none focus:ring-2 focus:ring-md-primary"
           aria-label="Toggle dark mode"
         >
           <svg
@@ -77,28 +154,28 @@
 
         <header class="text-center mb-8">
           <h1
-            class="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white"
+            class="text-display-sm sm:text-headline-lg font-bold text-md-surface-on dark:text-white"
           >
             AI Prompt Launcher
           </h1>
-          <p class="text-gray-600 dark:text-gray-300 mt-2 text-sm sm:text-base">
+          <p class="text-md-surface-on-variant dark:text-gray-300 mt-2 text-body-md sm:text-body-lg">
             Write a prompt once, fill variables like <code>{{name}}</code>,
             share it, and launch it across multiple chatbots.
           </p>
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+          <p class="text-body-sm text-md-surface-on-variant dark:text-gray-400 mt-2">
             Shortcuts:
             <kbd
-              class="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs"
+              class="px-1.5 py-0.5 bg-md-surface-container-highest dark:bg-gray-700 rounded text-label-sm"
               >Ctrl+Enter</kbd
             >
             copy filled prompt •
             <kbd
-              class="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs"
+              class="px-1.5 py-0.5 bg-md-surface-container-highest dark:bg-gray-700 rounded text-label-sm"
               >Ctrl+K</kbd
             >
             clear •
             <kbd
-              class="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs"
+              class="px-1.5 py-0.5 bg-md-surface-container-highest dark:bg-gray-700 rounded text-label-sm"
               >Esc</kbd
             >
             close modal
@@ -111,13 +188,13 @@
             <div class="sm:col-span-2">
               <label
                 for="titleInput"
-                class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1"
+                class="block text-label-lg font-medium text-md-surface-on dark:text-gray-200 mb-1"
                 >Title (optional)</label
               >
               <input
                 id="titleInput"
                 type="text"
-                class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
+                class="w-full px-3 py-2 rounded-sm-md border-b-2 border-md-outline dark:border-gray-600 bg-md-surface-container-highest dark:bg-gray-700 text-md-surface-on dark:text-gray-100 focus:outline-none focus:border-md-primary dark:focus:border-indigo-400 transition-colors duration-short-4"
                 placeholder="e.g., Cold email prompt for recruiters"
               />
             </div>
@@ -125,13 +202,13 @@
             <div class="sm:col-span-1">
               <label
                 for="tagsInput"
-                class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1"
+                class="block text-label-lg font-medium text-md-surface-on dark:text-gray-200 mb-1"
                 >Tags (optional)</label
               >
               <input
                 id="tagsInput"
                 type="text"
-                class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
+                class="w-full px-3 py-2 rounded-sm-md border-b-2 border-md-outline dark:border-gray-600 bg-md-surface-container-highest dark:bg-gray-700 text-md-surface-on dark:text-gray-100 focus:outline-none focus:border-md-primary dark:focus:border-indigo-400 transition-colors duration-short-4"
                 placeholder="job, email, tone"
               />
             </div>
@@ -140,7 +217,7 @@
           <div class="mt-3">
             <button
               id="toggleNotes"
-              class="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300"
+              class="text-label-lg font-medium text-md-primary dark:text-indigo-400 hover:text-md-primary/80 dark:hover:text-indigo-300 transition-colors duration-short-2"
               type="button"
             >
               + Add notes
@@ -149,12 +226,12 @@
             <div id="notesWrap" class="hidden mt-2">
               <label
                 for="notesInput"
-                class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1"
+                class="block text-label-lg font-medium text-md-surface-on dark:text-gray-200 mb-1"
                 >Notes (optional)</label
               >
               <textarea
                 id="notesInput"
-                class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 resize-none min-h-[90px]"
+                class="w-full p-3 rounded-sm-md border-b-2 border-md-outline dark:border-gray-600 bg-md-surface-container-highest dark:bg-gray-700 text-md-surface-on dark:text-gray-100 focus:outline-none focus:border-md-primary dark:focus:border-indigo-400 resize-none min-h-[90px] transition-colors duration-short-4"
                 placeholder="Add context for the recipient (who, why, constraints, tone, etc.)"
               ></textarea>
             </div>
@@ -166,17 +243,17 @@
           <div class="flex items-center justify-between mb-2">
             <label
               for="promptInput"
-              class="text-lg font-semibold text-gray-700 dark:text-gray-200"
+              class="text-title-lg font-medium text-md-surface-on dark:text-gray-200"
               >Prompt Template</label
             >
-            <div class="text-sm text-gray-500 dark:text-gray-400">
+            <div class="text-body-sm text-md-surface-on-variant dark:text-gray-400">
               <span id="charCount">0 characters</span>
             </div>
           </div>
 
           <textarea
             id="promptInput"
-            class="w-full p-4 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 resize-none min-h-[180px]"
+            class="w-full p-4 rounded-sm-md border-b-2 border-md-outline dark:border-gray-600 bg-md-surface-container-highest dark:bg-gray-700 text-md-surface-on dark:text-gray-100 focus:outline-none focus:border-md-primary dark:focus:border-indigo-400 resize-none min-h-[180px] transition-colors duration-short-4"
             placeholder="Write your prompt here...
 
 Use variables like:
@@ -185,7 +262,7 @@ Use variables like:
 - Goal: {{goal}}"
           ></textarea>
 
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+          <p class="text-body-sm text-md-surface-on-variant dark:text-gray-400 mt-2">
             Tip: Variables are detected automatically from <code>{{...}}</code>
             patterns.
           </p>
@@ -194,15 +271,15 @@ Use variables like:
         <!-- Variables -->
         <section
           id="varsSection"
-          class="hidden mb-6 border border-gray-200 dark:border-gray-700 rounded-xl p-4 bg-white/50 dark:bg-gray-800/40"
+          class="hidden mb-6 border border-md-outline-variant dark:border-gray-700 rounded-md-md p-4 bg-md-surface-container dark:bg-gray-800/40"
         >
           <div class="flex items-center justify-between gap-3">
-            <h2 class="text-base font-bold text-gray-800 dark:text-white">
+            <h2 class="text-title-md font-medium text-md-surface-on dark:text-white">
               Fill Variables
             </h2>
             <button
               id="resetVarsBtn"
-              class="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
+              class="text-label-lg text-md-surface-on-variant dark:text-gray-300 hover:text-md-surface-on dark:hover:text-white transition-colors duration-short-2"
               type="button"
               aria-label="Reset all variables"
             >
@@ -214,7 +291,7 @@ Use variables like:
             <!-- Variable inputs inserted here -->
           </div>
 
-          <div class="mt-4 border-t border-gray-200 dark:border-gray-700 pt-3">
+          <div class="mt-4 border-t border-md-outline-variant dark:border-gray-700 pt-3">
             <button
               id="toggleFilledPreview"
               type="button"
@@ -223,18 +300,18 @@ Use variables like:
             >
               <div class="flex items-center justify-between w-full">
                 <h3
-                  class="text-sm font-semibold text-gray-700 dark:text-gray-200"
+                  class="text-label-lg font-medium text-md-surface-on dark:text-gray-200"
                 >
                   Filled Prompt Preview
                 </h3>
                 <div class="flex items-center gap-2">
                   <span
                     id="missingVarsHint"
-                    class="text-xs text-amber-700 dark:text-amber-300 hidden"
+                    class="text-label-sm text-md-error dark:text-amber-300 hidden"
                   ></span>
                   <svg
                     id="previewChevron"
-                    class="w-4 h-4 text-gray-500 transition-transform duration-200"
+                    class="w-4 h-4 text-md-surface-on-variant transition-transform duration-short-4"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -253,7 +330,7 @@ Use variables like:
             <div id="filledPreviewWrapper" class="mt-2 hidden">
               <textarea
                 id="filledPreview"
-                class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 resize-none min-h-[110px]"
+                class="w-full p-3 rounded-sm-md border-b-2 border-md-outline dark:border-gray-600 bg-md-surface-container-highest dark:bg-gray-700 text-md-surface-on dark:text-gray-100 resize-none min-h-[110px]"
                 readonly
               ></textarea>
             </div>
@@ -265,7 +342,7 @@ Use variables like:
           <button
             id="copyFilledBtn"
             disabled
-            class="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-all duration-200 ease-in-out transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            class="flex items-center justify-center gap-2 bg-md-primary hover:bg-md-primary/90 text-md-primary-on font-medium py-3 px-6 rounded-full shadow-elevation-1 hover:shadow-elevation-2 transition-all duration-short-4 ease-standard focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-md-primary disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
           >
             Copy Filled Prompt
           </button>
@@ -273,27 +350,27 @@ Use variables like:
           <button
             id="shareBtn"
             disabled
-            class="flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-all duration-200 ease-in-out transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            class="flex items-center justify-center gap-2 bg-md-secondary hover:bg-md-secondary/90 text-md-secondary-on font-medium py-3 px-6 rounded-full shadow-elevation-1 hover:shadow-elevation-2 transition-all duration-short-4 ease-standard focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-md-secondary disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
           >
             Share
           </button>
 
           <button
             id="clearBtn"
-            class="flex items-center justify-center gap-2 bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-all duration-200 ease-in-out transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-900"
+            class="flex items-center justify-center gap-2 bg-md-tertiary hover:bg-md-tertiary/90 text-md-tertiary-on font-medium py-3 px-6 rounded-full shadow-elevation-1 hover:shadow-elevation-2 transition-all duration-short-4 ease-standard focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-md-tertiary"
           >
             Clear
           </button>
         </section>
 
         <!-- Launch -->
-        <section class="border-t border-gray-200 dark:border-gray-700 pt-8">
+        <section class="border-t border-md-outline-variant dark:border-gray-700 pt-8">
           <h2
-            class="text-2xl font-bold text-gray-800 dark:text-white mb-2 text-center"
+            class="text-headline-sm font-normal text-md-surface-on dark:text-white mb-2 text-center"
           >
             Launch in AI Chatbots
           </h2>
-          <p class="text-sm text-gray-600 dark:text-gray-300 mb-6 text-center">
+          <p class="text-body-md text-md-surface-on-variant dark:text-gray-300 mb-6 text-center">
             For chatbots that don't support URL autofill, this tool will copy
             the filled prompt first—then open the site.
           </p>
@@ -306,13 +383,13 @@ Use variables like:
       </div>
     </div>
 
-    <!-- Toast -->
+    <!-- Toast/Snackbar -->
     <div
       id="toast"
-      class="fixed bottom-5 left-1/2 -translate-x-1/2 opacity-0 translate-y-2 pointer-events-none"
+      class="fixed bottom-5 left-1/2 -translate-x-1/2 opacity-0 translate-y-2 pointer-events-none z-50"
     >
       <div
-        class="px-4 py-2 rounded-lg shadow-lg bg-gray-900 text-white text-sm"
+        class="px-4 py-3 rounded-xs-md shadow-elevation-3 bg-md-inverse-surface text-md-inverse-on-surface text-body-md"
       >
         <span id="toastText">Copied</span>
       </div>
@@ -321,30 +398,30 @@ Use variables like:
     <!-- Share Modal -->
     <div
       id="shareModal"
-      class="fixed inset-0 hidden items-center justify-center p-4 bg-black/50"
+      class="fixed inset-0 hidden items-center justify-center p-4 bg-md-scrim/32 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-labelledby="shareTitle"
     >
       <div
-        class="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 p-5"
+        class="w-full max-w-2xl bg-md-surface-container-high dark:bg-gray-800 rounded-xl-md shadow-elevation-3 border border-md-outline-variant dark:border-gray-700 p-6"
       >
         <div class="flex items-start justify-between gap-4">
           <div>
             <h3
               id="shareTitle"
-              class="text-xl font-bold text-gray-900 dark:text-white"
+              class="text-headline-sm font-normal text-md-surface-on dark:text-white"
             >
               Share
             </h3>
-            <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
+            <p class="text-body-md text-md-surface-on-variant dark:text-gray-300 mt-1">
               Choose the simplest format for the recipient.
             </p>
           </div>
 
           <button
             id="closeShareModal"
-            class="px-3 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100"
+            class="px-3 py-2 rounded-full bg-md-surface-container-highest dark:bg-gray-700 hover:bg-md-surface-container-high dark:hover:bg-gray-600 text-md-surface-on dark:text-gray-100 transition-colors duration-short-4"
             type="button"
           >
             Close
@@ -354,28 +431,28 @@ Use variables like:
         <div class="mt-4">
           <div class="flex flex-wrap gap-2">
             <button
-              class="shareTab px-3 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white"
+              class="shareTab px-3 py-2 rounded-sm-md text-label-lg font-medium bg-md-secondary-container text-md-secondary-on-container"
               data-tab="link"
               type="button"
             >
               Share Link (Recommended)
             </button>
             <button
-              class="shareTab px-3 py-2 rounded-lg text-sm font-semibold bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+              class="shareTab px-3 py-2 rounded-sm-md text-label-lg font-medium bg-md-surface-container-highest dark:bg-gray-700 text-md-surface-on dark:text-gray-100"
               data-tab="filled"
               type="button"
             >
               Copy Filled Prompt
             </button>
             <button
-              class="shareTab px-3 py-2 rounded-lg text-sm font-semibold bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+              class="shareTab px-3 py-2 rounded-sm-md text-label-lg font-medium bg-md-surface-container-highest dark:bg-gray-700 text-md-surface-on dark:text-gray-100"
               data-tab="template"
               type="button"
             >
               Copy Template
             </button>
             <button
-              class="shareTab px-3 py-2 rounded-lg text-sm font-semibold bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+              class="shareTab px-3 py-2 rounded-sm-md text-label-lg font-medium bg-md-surface-container-highest dark:bg-gray-700 text-md-surface-on dark:text-gray-100"
               data-tab="message"
               type="button"
             >
@@ -388,50 +465,50 @@ Use variables like:
             <div class="flex flex-col gap-3 mb-2">
               <div class="flex flex-wrap items-center justify-between gap-3">
                 <div class="flex items-center gap-3">
-                  <label class="inline-flex items-center gap-2 text-sm">
+                  <label class="inline-flex items-center gap-2 text-body-md">
                     <input
                       id="includeVarsInLink"
                       type="checkbox"
-                      class="accent-indigo-600"
+                      class="accent-md-primary"
                       checked
                     />
-                    <span class="text-gray-700 dark:text-gray-200"
+                    <span class="text-md-surface-on dark:text-gray-200"
                       >Include filled variable values</span
                     >
                   </label>
 
-                  <label class="inline-flex items-center gap-2 text-sm">
+                  <label class="inline-flex items-center gap-2 text-body-md">
                     <input
                       id="includeMetaInLink"
                       type="checkbox"
-                      class="accent-indigo-600"
+                      class="accent-md-primary"
                       checked
                     />
-                    <span class="text-gray-700 dark:text-gray-200"
+                    <span class="text-md-surface-on dark:text-gray-200"
                       >Include title/notes/tags</span
                     >
                   </label>
                 </div>
 
-                <span class="text-xs text-gray-500 dark:text-gray-400">
+                <span class="text-body-sm text-md-surface-on-variant dark:text-gray-400">
                   Uses LZ-String compression.
                 </span>
               </div>
 
               <!-- Minify toggle -->
               <div class="flex flex-wrap items-center gap-4">
-                <label class="inline-flex items-center gap-2 text-sm">
+                <label class="inline-flex items-center gap-2 text-body-md">
                   <input
                     id="canonicalizeInLink"
                     type="checkbox"
-                    class="accent-indigo-600"
+                    class="accent-md-primary"
                     checked
                   />
-                  <span class="text-gray-700 dark:text-gray-200"
+                  <span class="text-md-surface-on dark:text-gray-200"
                     >Minify whitespace in template & vars (smaller link)</span
                   >
                 </label>
-                <span class="text-xs text-gray-500 dark:text-gray-400">
+                <span class="text-body-sm text-md-surface-on-variant dark:text-gray-400">
                   Trims trailing spaces and collapses 3+ blank lines to 2.
                 </span>
               </div>
@@ -440,12 +517,12 @@ Use variables like:
             <div class="flex gap-2">
               <input
                 id="shareLinkInput"
-                class="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+                class="flex-1 px-3 py-2 rounded-sm-md border border-md-outline dark:border-gray-600 bg-md-surface-container-highest dark:bg-gray-700 text-md-surface-on dark:text-gray-100"
                 readonly
               />
               <button
                 id="copyLinkBtn"
-                class="px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-semibold"
+                class="px-4 py-2 rounded-full bg-md-secondary hover:bg-md-secondary/90 text-md-secondary-on font-medium shadow-elevation-1 hover:shadow-elevation-2 transition-all duration-short-4"
                 type="button"
               >
                 Copy
@@ -456,7 +533,7 @@ Use variables like:
             <div id="nativeShareWrapper" class="mt-3 hidden">
               <button
                 id="nativeShareBtn"
-                class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-colors"
+                class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-full bg-md-primary hover:bg-md-primary/90 text-md-primary-on font-medium shadow-elevation-1 hover:shadow-elevation-2 transition-all duration-short-4"
                 type="button"
               >
                 <svg
@@ -490,14 +567,14 @@ Use variables like:
           <div id="tab-filled" class="sharePanel mt-4 hidden">
             <textarea
               id="shareFilledPreview"
-              class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 resize-none min-h-[160px]"
+              class="w-full p-3 rounded-sm-md border-b-2 border-md-outline dark:border-gray-600 bg-md-surface-container-highest dark:bg-gray-700 text-md-surface-on dark:text-gray-100 resize-none min-h-[160px]"
               readonly
             ></textarea>
 
             <div class="flex gap-2 mt-3">
               <button
                 id="copyFilledFromModalBtn"
-                class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold"
+                class="px-4 py-2 rounded-full bg-md-primary hover:bg-md-primary/90 text-md-primary-on font-medium shadow-elevation-1 hover:shadow-elevation-2 transition-all duration-short-4"
                 type="button"
               >
                 Copy Filled Prompt
@@ -509,14 +586,14 @@ Use variables like:
           <div id="tab-template" class="sharePanel mt-4 hidden">
             <textarea
               id="shareTemplatePreview"
-              class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 resize-none min-h-[160px]"
+              class="w-full p-3 rounded-sm-md border-b-2 border-md-outline dark:border-gray-600 bg-md-surface-container-highest dark:bg-gray-700 text-md-surface-on dark:text-gray-100 resize-none min-h-[160px]"
               readonly
             ></textarea>
 
             <div class="flex gap-2 mt-3">
               <button
                 id="copyTemplateBtn"
-                class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold"
+                class="px-4 py-2 rounded-full bg-md-primary hover:bg-md-primary/90 text-md-primary-on font-medium shadow-elevation-1 hover:shadow-elevation-2 transition-all duration-short-4"
                 type="button"
               >
                 Copy Template
@@ -528,14 +605,14 @@ Use variables like:
           <div id="tab-message" class="sharePanel mt-4 hidden">
             <textarea
               id="shareMessagePreview"
-              class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 resize-none min-h-[180px]"
+              class="w-full p-3 rounded-sm-md border-b-2 border-md-outline dark:border-gray-600 bg-md-surface-container-highest dark:bg-gray-700 text-md-surface-on dark:text-gray-100 resize-none min-h-[180px]"
               readonly
             ></textarea>
 
             <div class="flex gap-2 mt-3">
               <button
                 id="copyMessageBtn"
-                class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold"
+                class="px-4 py-2 rounded-full bg-md-primary hover:bg-md-primary/90 text-md-primary-on font-medium shadow-elevation-1 hover:shadow-elevation-2 transition-all duration-short-4"
                 type="button"
               >
                 Copy Message
@@ -550,6 +627,28 @@ Use variables like:
         </div>
       </div>
     </div>
+
+    <!-- Floating Action Button (FAB) -->
+    <button
+      id="fabButton"
+      class="fixed bottom-6 right-6 w-14 h-14 rounded-lg-md bg-md-primary-container text-md-primary-on-container shadow-elevation-3 hover:shadow-elevation-4 flex items-center justify-center transition-all duration-short-4 hover:scale-105 active:scale-95 z-40 hidden"
+      aria-label="Quick copy filled prompt"
+    >
+      <svg
+        class="w-6 h-6"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+        />
+      </svg>
+    </button>
 
     <script src="script.js" defer></script>
   </body>
