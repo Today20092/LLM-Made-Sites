@@ -45,12 +45,23 @@
       <div
         class="bg-white dark:bg-gray-800/60 dark:backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 p-6 sm:p-8 relative fade-in"
       >
-        <!-- Theme Toggle -->
-        <button
-          id="themeToggle"
-          class="absolute top-4 right-4 p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          aria-label="Toggle dark mode"
-        >
+        <!-- Top Controls -->
+        <div class="absolute top-4 right-4 flex items-center gap-2">
+          <button
+            id="templateLibraryBtn"
+            class="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 hover:bg-indigo-200 dark:hover:bg-indigo-800/50 text-indigo-600 dark:text-indigo-400 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            aria-label="Template library"
+            title="Template Library"
+          >
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+          </button>
+          <button
+            id="themeToggle"
+            class="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            aria-label="Toggle dark mode"
+          >
           <svg
             id="sunIcon"
             class="h-6 w-6 hidden text-yellow-400"
@@ -73,7 +84,8 @@
               d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"
             />
           </svg>
-        </button>
+          </button>
+        </div>
 
         <header class="text-center mb-8">
           <h1
@@ -91,7 +103,7 @@
               class="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs"
               >Ctrl+Enter</kbd
             >
-            copy filled prompt •
+            copy •
             <kbd
               class="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs"
               >Ctrl+K</kbd
@@ -99,9 +111,14 @@
             clear •
             <kbd
               class="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs"
+              >Ctrl+L</kbd
+            >
+            library •
+            <kbd
+              class="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs"
               >Esc</kbd
             >
-            close modal
+            close
           </p>
         </header>
 
@@ -547,6 +564,184 @@ Use variables like:
               your share link.
             </p>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Template Library Modal -->
+    <div
+      id="templateLibraryModal"
+      class="fixed inset-0 hidden items-center justify-center p-4 bg-black/50"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="templateLibraryTitle"
+    >
+      <div
+        class="w-full max-w-2xl max-h-[85vh] bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col"
+      >
+        <div class="flex items-start justify-between gap-4 p-5 border-b border-gray-200 dark:border-gray-700">
+          <div>
+            <h3
+              id="templateLibraryTitle"
+              class="text-xl font-bold text-gray-900 dark:text-white"
+            >
+              Template Library
+            </h3>
+            <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
+              Save, manage, and load your prompt templates.
+            </p>
+          </div>
+          <button
+            id="closeTemplateLibrary"
+            class="px-3 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100"
+            type="button"
+          >
+            Close
+          </button>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-wrap items-center gap-2 p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+          <button
+            id="saveCurrentTemplateBtn"
+            class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm transition-colors"
+            type="button"
+          >
+            Save Current
+          </button>
+          <button
+            id="exportTemplatesBtn"
+            class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-semibold text-sm transition-colors"
+            type="button"
+          >
+            Export All
+          </button>
+          <button
+            id="importTemplatesBtn"
+            class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-semibold text-sm transition-colors"
+            type="button"
+          >
+            Import
+          </button>
+          <input
+            id="importTemplatesInput"
+            type="file"
+            accept=".json"
+            class="hidden"
+          />
+        </div>
+
+        <!-- Template List -->
+        <div id="templateList" class="flex-1 overflow-y-auto p-4 space-y-3">
+          <!-- Templates will be rendered here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Chatbot Modal -->
+    <div
+      id="customChatbotModal"
+      class="fixed inset-0 hidden items-center justify-center p-4 bg-black/50"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="customBotTitle"
+    >
+      <div
+        class="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 p-5"
+      >
+        <div class="flex items-start justify-between gap-4 mb-4">
+          <div>
+            <h3
+              id="customBotTitle"
+              class="text-xl font-bold text-gray-900 dark:text-white"
+            >
+              Add Custom Chatbot
+            </h3>
+            <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
+              Add your own AI chatbot to the launcher.
+            </p>
+          </div>
+          <button
+            id="closeCustomChatbotModal"
+            class="px-3 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100"
+            type="button"
+          >
+            Close
+          </button>
+        </div>
+
+        <div class="space-y-4">
+          <div>
+            <label
+              for="customBotNameInput"
+              class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1"
+              >Name</label
+            >
+            <input
+              id="customBotNameInput"
+              type="text"
+              class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="e.g., My Custom AI"
+            />
+          </div>
+
+          <div>
+            <label
+              for="customBotIconInput"
+              class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1"
+              >Icon (emoji, optional)</label
+            >
+            <input
+              id="customBotIconInput"
+              type="text"
+              class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="e.g., 🤖 (defaults to 🔗)"
+            />
+          </div>
+
+          <div>
+            <label
+              for="customBotUrlInput"
+              class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1"
+              >URL</label
+            >
+            <input
+              id="customBotUrlInput"
+              type="text"
+              class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="e.g., https://example.com/chat"
+            />
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Use <code>{{{s}}}</code> as placeholder for the prompt (e.g.,
+              <code>https://chat.example.com/?q={{{s}}}</code>)
+            </p>
+          </div>
+
+          <div>
+            <label class="inline-flex items-center gap-2 text-sm">
+              <input
+                id="customBotQueryParamCheck"
+                type="checkbox"
+                class="accent-indigo-600"
+                checked
+              />
+              <span class="text-gray-700 dark:text-gray-200"
+                >Supports URL autofill (prompt in URL)</span
+              >
+            </label>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              If unchecked, the prompt will be copied to clipboard before
+              opening.
+            </p>
+          </div>
+
+          <button
+            id="addCustomBotBtn"
+            class="w-full px-4 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-colors"
+            type="button"
+          >
+            Add Chatbot
+          </button>
         </div>
       </div>
     </div>
