@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(start index.html)"
+      "Bash(start index.html)",
+      "Bash(git -C \"C:\\\\Users\\\\User\\\\.claude-worktrees\\\\LLM-Made-Sites\\\\pedantic-kalam\" log --oneline --all -20)",
+      "Bash(git -C \"C:\\\\Users\\\\User\\\\.claude-worktrees\\\\LLM-Made-Sites\\\\pedantic-kalam\" remote -v)",
+      "Bash(git -C \"C:\\\\Users\\\\User\\\\.claude-worktrees\\\\LLM-Made-Sites\\\\pedantic-kalam\" show b2c5b10 --stat)",
+      "Bash(git -C \"C:\\\\Users\\\\User\\\\.claude-worktrees\\\\LLM-Made-Sites\\\\pedantic-kalam\" log -1 --oneline)",
+      "Bash(git -C \"C:\\\\Users\\\\User\\\\.claude-worktrees\\\\LLM-Made-Sites\\\\pedantic-kalam\" diff b2c5b10~1 b2c5b10 -- prompt-launcher/script.js)",
+      "Bash(git -C \"C:\\\\Users\\\\User\\\\.claude-worktrees\\\\LLM-Made-Sites\\\\pedantic-kalam\" diff b2c5b10~1 b2c5b10 -- prompt-launcher/index.html)"
     ]
   }
 }

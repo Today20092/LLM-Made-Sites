@@ -168,7 +168,12 @@
               class="px-1.5 py-0.5 bg-md-surface-container-highest dark:bg-gray-700 rounded text-label-sm"
               >Ctrl+Enter</kbd
             >
-            copy filled prompt •
+            copy •
+            <kbd
+              class="px-1.5 py-0.5 bg-md-surface-container-highest dark:bg-gray-700 rounded text-label-sm"
+              >Ctrl+L</kbd
+            >
+            library •
             <kbd
               class="px-1.5 py-0.5 bg-md-surface-container-highest dark:bg-gray-700 rounded text-label-sm"
               >Ctrl+K</kbd
@@ -178,7 +183,7 @@
               class="px-1.5 py-0.5 bg-md-surface-container-highest dark:bg-gray-700 rounded text-label-sm"
               >Esc</kbd
             >
-            close modal
+            close
           </p>
         </header>
 
@@ -353,6 +358,16 @@ Use variables like:
             class="flex items-center justify-center gap-2 bg-md-secondary hover:bg-md-secondary/90 text-md-secondary-on font-medium py-3 px-6 rounded-full shadow-elevation-1 hover:shadow-elevation-2 transition-all duration-short-4 ease-standard focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-md-secondary disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
           >
             Share
+          </button>
+
+          <button
+            id="templateLibraryBtn"
+            class="flex items-center justify-center gap-2 bg-md-surface-container-highest dark:bg-gray-700 hover:bg-md-surface-container-high dark:hover:bg-gray-600 text-md-surface-on dark:text-gray-100 font-medium py-3 px-6 rounded-full shadow-elevation-1 hover:shadow-elevation-2 transition-all duration-short-4 ease-standard focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-md-outline"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+            </svg>
+            Library
           </button>
 
           <button
@@ -649,6 +664,200 @@ Use variables like:
         />
       </svg>
     </button>
+
+    <!-- Custom Chatbot Modal -->
+    <div
+      id="customChatbotModal"
+      class="fixed inset-0 hidden items-center justify-center p-4 bg-md-scrim/32 backdrop-blur-sm z-50"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="customChatbotTitle"
+    >
+      <div
+        class="w-full max-w-md bg-md-surface-container-high dark:bg-gray-800 rounded-xl-md shadow-elevation-3 border border-md-outline-variant dark:border-gray-700 p-6"
+      >
+        <div class="flex items-start justify-between gap-4 mb-4">
+          <div>
+            <h3
+              id="customChatbotTitle"
+              class="text-headline-sm font-normal text-md-surface-on dark:text-white"
+            >
+              Add Custom Chatbot
+            </h3>
+            <p class="text-body-md text-md-surface-on-variant dark:text-gray-300 mt-1">
+              Add your own AI chatbot service
+            </p>
+          </div>
+          <button
+            id="closeCustomChatbotModal"
+            class="px-3 py-2 rounded-full bg-md-surface-container-highest dark:bg-gray-700 hover:bg-md-surface-container-high dark:hover:bg-gray-600 text-md-surface-on dark:text-gray-100 transition-colors duration-short-4"
+            type="button"
+          >
+            Close
+          </button>
+        </div>
+
+        <div class="space-y-4">
+          <div>
+            <label
+              for="customBotName"
+              class="block text-label-lg font-medium text-md-surface-on dark:text-gray-200 mb-1"
+            >
+              Name
+            </label>
+            <input
+              id="customBotName"
+              type="text"
+              class="w-full px-3 py-2 rounded-sm-md border-b-2 border-md-outline dark:border-gray-600 bg-md-surface-container-highest dark:bg-gray-700 text-md-surface-on dark:text-gray-100 focus:outline-none focus:border-md-primary dark:focus:border-indigo-400 transition-colors duration-short-4"
+              placeholder="e.g., My Custom AI"
+            />
+          </div>
+
+          <div>
+            <label
+              for="customBotIcon"
+              class="block text-label-lg font-medium text-md-surface-on dark:text-gray-200 mb-1"
+            >
+              Icon (emoji)
+            </label>
+            <input
+              id="customBotIcon"
+              type="text"
+              class="w-full px-3 py-2 rounded-sm-md border-b-2 border-md-outline dark:border-gray-600 bg-md-surface-container-highest dark:bg-gray-700 text-md-surface-on dark:text-gray-100 focus:outline-none focus:border-md-primary dark:focus:border-indigo-400 transition-colors duration-short-4"
+              placeholder="🤖"
+              value="🤖"
+            />
+          </div>
+
+          <div>
+            <label
+              for="customBotUrl"
+              class="block text-label-lg font-medium text-md-surface-on dark:text-gray-200 mb-1"
+            >
+              URL
+            </label>
+            <input
+              id="customBotUrl"
+              type="text"
+              class="w-full px-3 py-2 rounded-sm-md border-b-2 border-md-outline dark:border-gray-600 bg-md-surface-container-highest dark:bg-gray-700 text-md-surface-on dark:text-gray-100 focus:outline-none focus:border-md-primary dark:focus:border-indigo-400 transition-colors duration-short-4"
+              placeholder="https://example.com/chat"
+            />
+            <p class="text-body-sm text-md-surface-on-variant dark:text-gray-400 mt-1">
+              Use <code>{{{s}}}</code> as placeholder for the prompt (e.g., <code>?q={{{s}}}</code>)
+            </p>
+          </div>
+
+          <div>
+            <label class="inline-flex items-center gap-2 text-body-md cursor-pointer">
+              <input
+                id="customBotSupportsQuery"
+                type="checkbox"
+                class="accent-md-primary w-4 h-4"
+              />
+              <span class="text-md-surface-on dark:text-gray-200">
+                Supports URL query parameter autofill
+              </span>
+            </label>
+            <p class="text-body-sm text-md-surface-on-variant dark:text-gray-400 mt-1 ml-6">
+              If checked, the prompt will be added to the URL. Otherwise, it will be copied to clipboard first.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-6">
+          <button
+            id="saveCustomChatbotBtn"
+            class="px-6 py-2 rounded-full bg-md-primary hover:bg-md-primary/90 text-md-primary-on font-medium shadow-elevation-1 hover:shadow-elevation-2 transition-all duration-short-4"
+            type="button"
+          >
+            Add Chatbot
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Template Library Modal -->
+    <div
+      id="templateLibraryModal"
+      class="fixed inset-0 hidden items-center justify-center p-4 bg-md-scrim/32 backdrop-blur-sm z-50"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="templateLibraryTitle"
+    >
+      <div
+        class="w-full max-w-2xl max-h-[90vh] bg-md-surface-container-high dark:bg-gray-800 rounded-xl-md shadow-elevation-3 border border-md-outline-variant dark:border-gray-700 p-6 flex flex-col"
+      >
+        <div class="flex items-start justify-between gap-4 mb-4">
+          <div>
+            <h3
+              id="templateLibraryTitle"
+              class="text-headline-sm font-normal text-md-surface-on dark:text-white"
+            >
+              Template Library
+            </h3>
+            <p class="text-body-md text-md-surface-on-variant dark:text-gray-300 mt-1">
+              Save and manage your prompt templates
+            </p>
+          </div>
+          <button
+            id="closeTemplateLibrary"
+            class="px-3 py-2 rounded-full bg-md-surface-container-highest dark:bg-gray-700 hover:bg-md-surface-container-high dark:hover:bg-gray-600 text-md-surface-on dark:text-gray-100 transition-colors duration-short-4"
+            type="button"
+          >
+            Close
+          </button>
+        </div>
+
+        <!-- Library Actions -->
+        <div class="flex flex-wrap gap-3 mb-4 pb-4 border-b border-md-outline-variant dark:border-gray-700">
+          <button
+            id="saveToLibraryBtn"
+            class="flex items-center gap-2 px-4 py-2 rounded-full bg-md-primary hover:bg-md-primary/90 text-md-primary-on font-medium shadow-elevation-1 hover:shadow-elevation-2 transition-all duration-short-4"
+            type="button"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Save Current
+          </button>
+          <button
+            id="exportTemplatesBtn"
+            class="flex items-center gap-2 px-4 py-2 rounded-full bg-md-surface-container-highest dark:bg-gray-700 hover:bg-md-surface-container-high dark:hover:bg-gray-600 text-md-surface-on dark:text-gray-100 font-medium transition-all duration-short-4"
+            type="button"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Export
+          </button>
+          <button
+            id="importTemplatesBtn"
+            class="flex items-center gap-2 px-4 py-2 rounded-full bg-md-surface-container-highest dark:bg-gray-700 hover:bg-md-surface-container-high dark:hover:bg-gray-600 text-md-surface-on dark:text-gray-100 font-medium transition-all duration-short-4"
+            type="button"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            Import
+          </button>
+          <input
+            id="importTemplatesInput"
+            type="file"
+            accept=".json"
+            class="hidden"
+          />
+        </div>
+
+        <!-- Template List -->
+        <div id="templateList" class="flex-1 overflow-y-auto space-y-3 min-h-[200px]">
+          <!-- Templates will be rendered here -->
+        </div>
+
+        <p class="text-body-sm text-md-surface-on-variant dark:text-gray-400 mt-4 pt-4 border-t border-md-outline-variant dark:border-gray-700">
+          Tip: Press <kbd class="px-1.5 py-0.5 bg-md-surface-container-highest dark:bg-gray-700 rounded text-label-sm">Ctrl+L</kbd> to quickly open the library
+        </p>
+      </div>
+    </div>
 
     <script src="script.js" defer></script>
   </body>
