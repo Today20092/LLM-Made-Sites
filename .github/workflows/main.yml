@@ -22,6 +22,13 @@ jobs:
           owner = "Today20092"
           repo = "LLM-Made-Sites"
           
+          # Find README file (case-insensitive)
+          readme_file = None
+          for f in os.listdir('.'):
+              if f.upper() == 'README.MD':
+                  readme_file = f
+                  break
+          
           links = []
           for folder in sorted(os.listdir('.')):
               if os.path.isdir(folder) and folder != '.git' and not folder.startswith('.'):
@@ -29,7 +36,7 @@ jobs:
                       url = f"https://{owner}.github.io/{repo}/{folder}/"
                       links.append(f"- [{folder}]({url})")
           
-          with open('README.md', 'r') as f:
+          with open(readme_file, 'r') as f:
               content = f.read()
           
           new_section = "## Hosted Pages\n\n" + "\n".join(links)
@@ -38,7 +45,7 @@ jobs:
           if '## Hosted Pages' not in content:
               content += "\n\n" + new_section
           
-          with open('README.md', 'w') as f:
+          with open(readme_file, 'w') as f:
               f.write(content)
           EOF
       
@@ -46,6 +53,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add README.md
+          git add README.MD
           git commit -m "docs: update github pages links" || true
           git push
