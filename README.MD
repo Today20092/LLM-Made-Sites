@@ -26,3 +26,8 @@ A simple and clean interface to write a prompt and quickly test it across multip
 ---
 
 Built by Ayoub ([Today20092](https://github.com/Today20092))
+
+## Hosted Pages
+
+- [prompt-launcher](https://Today20092.github.io/LLM-Made-Sites/prompt-launcher/)
+- [video-bitrate-calculator](https://Today20092.github.io/LLM-Made-Sites/video-bitrate-calculator/)
