@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Bitrate Calculator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="min-h-screen font-sans antialiased">
+
+  <!-- Header -->
+  <header class="header-bar sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-[#e94560] to-[#c33b54] flex items-center justify-center text-white font-bold text-sm">BR</div>
+      <div class="flex-1">
+        <h1 class="text-lg font-semibold tracking-tight heading-text">Video Bitrate Calculator</h1>
+        <p class="text-xs muted-text">Calculate &amp; compare video file sizes</p>
+      </div>
+      <button id="themeToggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg id="iconSun" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        <svg id="iconMoon" class="w-5 h-5" style="display:none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-6 py-8 space-y-8">
+
+    <!-- Global Inputs -->
+    <section class="grid md:grid-cols-2 gap-6">
+      <!-- Duration Card -->
+      <div class="card">
+        <h2 class="card-title">Project Duration</h2>
+        <div class="flex gap-3">
+          <div class="flex-1">
+            <label for="hours" class="label">Hours</label>
+            <input type="number" id="hours" value="0" min="0" class="input-field">
+          </div>
+          <div class="flex-1">
+            <label for="minutes" class="label">Minutes</label>
+            <input type="number" id="minutes" value="10" min="0" max="59" class="input-field">
+          </div>
+          <div class="flex-1">
+            <label for="seconds" class="label">Seconds</label>
+            <input type="number" id="seconds" value="0" min="0" max="59" class="input-field">
+          </div>
+        </div>
+        <p class="text-xs muted-text mt-2">Total: <span id="totalDuration" class="body-text">10m 0s</span></p>
+      </div>
+
+      <!-- Settings Card -->
+      <div class="card">
+        <h2 class="card-title">Settings</h2>
+        <div class="space-y-3">
+          <div>
+            <label for="baselineBitrate" class="label">Baseline Bitrate (Mbps)</label>
+            <input type="number" id="baselineBitrate" value="100" min="1" class="input-field">
+          </div>
+          <div>
+            <label for="costPerTB" class="label">Storage Cost ($ per TB)</label>
+            <input type="number" id="costPerTB" value="20" min="0" step="0.01" class="input-field">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Add Profile / Presets -->
+    <div class="flex flex-wrap items-center gap-3">
+      <button id="addProfile" class="px-4 py-2 rounded-lg bg-[#e94560] hover:bg-[#d13b55] text-white text-sm font-medium transition-colors">
+        + Add Bitrate Profile
+      </button>
+      <div class="preset-dropdown relative">
+        <button id="presetBtn" class="px-4 py-2 rounded-lg text-sm font-medium transition-colors preset-btn">
+          Presets &#9662;
+        </button>
+        <div id="presetMenu" class="preset-menu absolute left-0 top-full mt-1 rounded-lg shadow-xl z-40 min-w-[220px]" style="display:none">
+          <button class="preset-item" data-bitrate="8" data-name="1080p H.264">1080p H.264 &mdash; 8 Mbps</button>
+          <button class="preset-item" data-bitrate="5" data-name="1080p H.265">1080p H.265 &mdash; 5 Mbps</button>
+          <button class="preset-item" data-bitrate="35" data-name="4K H.264">4K H.264 &mdash; 35 Mbps</button>
+          <button class="preset-item" data-bitrate="18" data-name="4K H.265">4K H.265 &mdash; 18 Mbps</button>
+          <button class="preset-item" data-bitrate="147" data-name="ProRes 422 1080p">ProRes 422 1080p &mdash; 147 Mbps</button>
+          <button class="preset-item" data-bitrate="589" data-name="ProRes 422 4K">ProRes 422 4K &mdash; 589 Mbps</button>
+        </div>
+      </div>
+      <span class="text-xs muted-text" id="profileCount">1 profile</span>
+    </div>
+
+    <!-- Profiles Grid -->
+    <section id="profilesContainer" class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+    </section>
+
+    <!-- Bar Chart -->
+    <section class="card">
+      <h2 class="card-title">Size Comparison</h2>
+      <div id="barChart" class="space-y-3"></div>
+    </section>
+
+    <!-- Recording Capacity -->
+    <section class="card">
+      <h2 class="card-title">Recording Capacity</h2>
+      <p class="text-xs muted-text mb-3">How long can you record on available storage?</p>
+      <div class="mb-4" style="max-width: 240px;">
+        <label for="availableStorage" class="label">Available Storage (GB)</label>
+        <input type="number" id="availableStorage" value="500" min="0" step="1" class="input-field">
+      </div>
+      <div id="capacityResults" class="space-y-2"></div>
+    </section>
+
+    <!-- Upload Estimator -->
+    <section class="card">
+      <h2 class="card-title">Upload Time Estimates</h2>
+      <div class="mb-3" style="max-width: 200px;">
+        <label for="customSpeed" class="label">Custom Speed (Mbps)</label>
+        <input type="number" id="customSpeed" value="50" min="1" class="input-field">
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="table-head-row">
+              <th class="pb-2 pr-4 text-left">Profile</th>
+              <th class="pb-2 pr-4 text-left">File Size</th>
+              <th class="pb-2 pr-4 text-left">@ 20 Mbps</th>
+              <th class="pb-2 pr-4 text-left">@ 100 Mbps</th>
+              <th class="pb-2 pr-4 text-left">@ 1 Gbps</th>
+              <th class="pb-2 pr-4 text-left">@ 10 Gbps</th>
+              <th class="pb-2 text-left" id="customSpeedHeader">@ 50 Mbps</th>
+            </tr>
+          </thead>
+          <tbody id="uploadTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer-bar mt-12 py-6 text-center text-xs">
+    Video Bitrate Calculator &mdash; All calculations are estimates based on constant bitrate (CBR).
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
