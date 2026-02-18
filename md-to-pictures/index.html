@@ -111,9 +111,14 @@
     </div>
   </div>
 
-  <button class="btn-generate" id="gen-btn" onclick="generate()">
-    ✦ Generate Cards
-  </button>
+  <div class="btn-row">
+    <button class="btn-generate" id="gen-btn" onclick="generate()">
+      ✦ Generate Cards
+    </button>
+    <button class="btn-cancel" id="cancel-btn" onclick="cancelGeneration()" disabled>
+      ✕ Cancel
+    </button>
+  </div>
 
   <div id="status"></div>
   <div id="output"></div>

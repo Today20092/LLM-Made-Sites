@@ -162,8 +162,13 @@ select:focus { border-color: #c9a96e33; }
   pointer-events: none;
 }
 
+.btn-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
 .btn-generate {
-  width: 100%;
+  flex: 1;
   padding: 16px;
   background: linear-gradient(135deg, #c9a96e 0%, #8e6830 100%);
   border: none;
@@ -175,10 +180,26 @@ select:focus { border-color: #c9a96e33; }
   letter-spacing: 0.04em;
   cursor: pointer;
   transition: opacity 0.2s, transform 0.1s;
-  margin-top: 4px;
 }
 .btn-generate:active { opacity: 0.8; transform: scale(0.985); }
-.btn-generate:disabled { opacity: 0.35; }
+.btn-generate:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn-cancel {
+  padding: 16px 22px;
+  background: transparent;
+  border: 1.5px solid #8c3030;
+  border-radius: 12px;
+  color: #8c3030;
+  font-family: 'Playfair Display', serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: opacity 0.2s, background 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+.btn-cancel:hover:not(:disabled) { background: rgba(140,48,48,0.08); }
+.btn-cancel:active:not(:disabled) { opacity: 0.8; transform: scale(0.985); }
+.btn-cancel:disabled { opacity: 0.25; cursor: not-allowed; }
 
 #status {
   text-align: center;

@@ -103,6 +103,13 @@ document.getElementById('quality-range').addEventListener('input', function () {
   document.getElementById('quality-label').textContent = this.value + '%';
 });
 
+/* ── Cancellation flag ── */
+let cancelRequested = false;
+
+function cancelGeneration() {
+  cancelRequested = true;
+}
+
 /* ── Status helper ── */
 function setStatus(msg) {
   document.getElementById('status').textContent = msg;
@@ -275,6 +282,8 @@ async function generate() {
     return;
   }
 
+  cancelRequested = false;
+
   const theme      = document.getElementById('theme-select').value;
   const density    = parseInt(document.getElementById('density-select').value);
   const fontKey    = document.getElementById('font-select').value;
@@ -282,167 +291,184 @@ async function generate() {
   const formatVal  = document.getElementById('format-select').value;
   const qualityVal = parseInt(document.getElementById('quality-range').value) / 100;
 
-  const output  = document.getElementById('output');
-  const stage   = document.getElementById('render-stage');
-  const genBtn  = document.getElementById('gen-btn');
+  const output     = document.getElementById('output');
+  const stage      = document.getElementById('render-stage');
+  const genBtn     = document.getElementById('gen-btn');
+  const cancelBtn  = document.getElementById('cancel-btn');
 
   output.innerHTML = '';
   stage.innerHTML  = '';
   genBtn.disabled  = true;
+  cancelBtn.disabled = false;
 
-  /* Load font pairing — awaits actual font readiness via CSS Font Loading API */
-  const pairing = await loadFontPairing(fontKey);
+  try {
+    /* Load font pairing — awaits actual font readiness via CSS Font Loading API */
+    const pairing = await loadFontPairing(fontKey);
 
-  /* Determine texture light/dark mode */
-  const textureMode = LIGHT_THEMES.has(theme) ? 'light' : 'dark';
+    /* Determine texture light/dark mode */
+    const textureMode = LIGHT_THEMES.has(theme) ? 'light' : 'dark';
 
-  /* Export format config — WebP falls back to JPEG on Safari */
-  const FORMAT_MAP = {
-    jpeg: { mime: 'image/jpeg', ext: 'jpg',  lossy: true  },
-    png:  { mime: 'image/png',  ext: 'png',  lossy: false },
-    webp: SUPPORTS_WEBP_EXPORT
-      ? { mime: 'image/webp', ext: 'webp', lossy: true  }
-      : { mime: 'image/jpeg', ext: 'jpg',  lossy: true  }, // Safari fallback
-  };
-  const fmt = FORMAT_MAP[formatVal] || FORMAT_MAP.jpeg;
+    /* Export format config — WebP falls back to JPEG on Safari */
+    const FORMAT_MAP = {
+      jpeg: { mime: 'image/jpeg', ext: 'jpg',  lossy: true  },
+      png:  { mime: 'image/png',  ext: 'png',  lossy: false },
+      webp: SUPPORTS_WEBP_EXPORT
+        ? { mime: 'image/webp', ext: 'webp', lossy: true  }
+        : { mime: 'image/jpeg', ext: 'jpg',  lossy: true  }, // Safari fallback
+    };
+    const fmt = FORMAT_MAP[formatVal] || FORMAT_MAP.jpeg;
 
-  const chunks = splitMarkdown(md, density);
-  const total  = chunks.length;
-  const blobs  = [];
+    const chunks = splitMarkdown(md, density);
+    const total  = chunks.length;
+    const blobs  = [];
 
-  setStatus(`Rendering ${total} card${total !== 1 ? 's' : ''}…`);
+    setStatus(`Rendering ${total} card${total !== 1 ? 's' : ''}…`);
 
-  /*
-    Available body height:
-    1920 - 148 (header) - 380 (footer) - 40 (top pad) = 1352px
-  */
-  const BODY_H = 1352;
+    /*
+      Available body height:
+      1920 - 148 (header) - 380 (footer) - 40 (top pad) = 1352px
+    */
+    const BODY_H = 1352;
 
-  for (let i = 0; i < chunks.length; i++) {
-    setStatus(`Card ${i + 1} of ${total}…`);
+    for (let i = 0; i < chunks.length; i++) {
+      if (cancelRequested) break;
 
-    const card = document.createElement('div');
-    card.className = `tt-card t-${theme}`;
+      setStatus(`Card ${i + 1} of ${total}…`);
 
-    /* Apply font pairing via CSS custom properties */
-    card.style.setProperty('--font-heading', pairing.heading);
-    card.style.setProperty('--font-body',    pairing.body);
-    card.dataset.fontPairing  = fontKey;
+      const card = document.createElement('div');
+      card.className = `tt-card t-${theme}`;
 
-    /* Apply texture */
-    card.dataset.texture     = textureKey;
-    card.dataset.textureMode = textureMode;
+      /* Apply font pairing via CSS custom properties */
+      card.style.setProperty('--font-heading', pairing.heading);
+      card.style.setProperty('--font-body',    pairing.body);
+      card.dataset.fontPairing  = fontKey;
 
-    /* Header */
-    const hdr = document.createElement('div');
-    hdr.className = 'tt-header';
-    hdr.innerHTML = `
-      <div class="tt-header-rule"></div>
-      <div class="tt-header-ornament">
-        <span class="sm"></span>
-        <span class="lg"></span>
-        <span class="sm"></span>
-      </div>
-      <div class="tt-header-rule" style="max-width:80px;opacity:0.12"></div>`;
-    card.appendChild(hdr);
+      /* Apply texture */
+      card.dataset.texture     = textureKey;
+      card.dataset.textureMode = textureMode;
 
-    /* Body */
-    const body = document.createElement('div');
-    body.className = 'tt-body';
-    const scaler = document.createElement('div');
-    scaler.className = 'tt-content-scaler';
-    scaler.innerHTML = marked.parse(chunks[i]);
-    postProcess(scaler);
-    body.appendChild(scaler);
-    card.appendChild(body);
-
-    /* Footer */
-    const ftr = document.createElement('div');
-    ftr.className = 'tt-footer';
-    ftr.innerHTML = `
-      <div class="tt-footer-left">
-        <div class="tt-footer-ornament">
+      /* Header */
+      const hdr = document.createElement('div');
+      hdr.className = 'tt-header';
+      hdr.innerHTML = `
+        <div class="tt-header-rule"></div>
+        <div class="tt-header-ornament">
           <span class="sm"></span>
           <span class="lg"></span>
+          <span class="sm"></span>
         </div>
-        <div class="tt-footer-rule"></div>
-      </div>
-      <div class="tt-page-num">
-        ${i + 1}<em> / ${total}</em>
-      </div>`;
-    card.appendChild(ftr);
+        <div class="tt-header-rule" style="max-width:80px;opacity:0.12"></div>`;
+      card.appendChild(hdr);
 
-    stage.appendChild(card);
+      /* Body */
+      const body = document.createElement('div');
+      body.className = 'tt-body';
+      const scaler = document.createElement('div');
+      scaler.className = 'tt-content-scaler';
+      scaler.innerHTML = marked.parse(chunks[i]);
+      postProcess(scaler);
+      body.appendChild(scaler);
+      card.appendChild(body);
 
-    /* Layout reflow wait (fonts already awaited above via Font Loading API) */
-    await new Promise(r => setTimeout(r, 50));
-    fitContent(scaler, BODY_H);
-    await new Promise(r => setTimeout(r, 80));
+      /* Footer */
+      const ftr = document.createElement('div');
+      ftr.className = 'tt-footer';
+      ftr.innerHTML = `
+        <div class="tt-footer-left">
+          <div class="tt-footer-ornament">
+            <span class="sm"></span>
+            <span class="lg"></span>
+          </div>
+          <div class="tt-footer-rule"></div>
+        </div>
+        <div class="tt-page-num">
+          ${i + 1}<em> / ${total}</em>
+        </div>`;
+      card.appendChild(ftr);
 
-    /* scale:2 → output is 2160×3840px (retina quality, ~2× sharper) */
-    const canvas = await html2canvas(card, {
-      width:  1080,
-      height: 1920,
-      scale:  2,
-      useCORS: true,
-      allowTaint: true,
-      logging: false,
-    });
+      stage.appendChild(card);
 
-    stage.removeChild(card);
+      /* Layout reflow wait (fonts already awaited above via Font Loading API) */
+      await new Promise(r => setTimeout(r, 50));
+      fitContent(scaler, BODY_H);
+      await new Promise(r => setTimeout(r, 80));
 
-    const dataUrl = fmt.lossy
-      ? canvas.toDataURL(fmt.mime, qualityVal)
-      : canvas.toDataURL(fmt.mime);
-
-    blobs.push(dataUrl);
-
-    /* Preview */
-    const wrap = document.createElement('div');
-    wrap.className = 'card-wrapper';
-
-    const meta = document.createElement('div');
-    meta.className = 'card-meta';
-    meta.innerHTML = `<span class="card-meta-label">Card ${i + 1} of ${total}</span>`;
-    wrap.appendChild(meta);
-
-    const img = document.createElement('img');
-    img.className = 'card-img';
-    img.src = dataUrl;
-    wrap.appendChild(img);
-
-    const dlA = document.createElement('a');
-    dlA.className = 'btn-dl';
-    dlA.href      = dataUrl;
-    dlA.download  = `card-${String(i + 1).padStart(2, '0')}.${fmt.ext}`;
-    dlA.innerHTML = `
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="2.2"
-        stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-        <polyline points="7 10 12 15 17 10"/>
-        <line x1="12" y1="15" x2="12" y2="3"/>
-      </svg>
-      Download Card ${i + 1} (.${fmt.ext.toUpperCase()})`;
-    wrap.appendChild(dlA);
-    output.appendChild(wrap);
-  }
-
-  if (blobs.length > 1) {
-    const allBtn = document.createElement('button');
-    allBtn.className = 'btn-dl-all';
-    allBtn.innerHTML = `⬇ Download All ${total} Cards (.${fmt.ext.toUpperCase()})`;
-    allBtn.onclick = () => {
-      blobs.forEach((b, idx) => {
-        const a = document.createElement('a');
-        a.href     = b;
-        a.download = `card-${String(idx + 1).padStart(2, '0')}.${fmt.ext}`;
-        a.click();
+      /* scale:2 → output is 2160×3840px (retina quality, ~2× sharper) */
+      const canvas = await html2canvas(card, {
+        width:  1080,
+        height: 1920,
+        scale:  2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
       });
-    };
-    output.appendChild(allBtn);
-  }
 
-  setStatus(`✦ Done — ${total} card${total !== 1 ? 's' : ''} ready.`);
-  genBtn.disabled = false;
+      stage.removeChild(card);
+
+      const dataUrl = fmt.lossy
+        ? canvas.toDataURL(fmt.mime, qualityVal)
+        : canvas.toDataURL(fmt.mime);
+
+      blobs.push(dataUrl);
+
+      /* Preview */
+      const wrap = document.createElement('div');
+      wrap.className = 'card-wrapper';
+
+      const meta = document.createElement('div');
+      meta.className = 'card-meta';
+      meta.innerHTML = `<span class="card-meta-label">Card ${i + 1} of ${total}</span>`;
+      wrap.appendChild(meta);
+
+      const img = document.createElement('img');
+      img.className = 'card-img';
+      img.src = dataUrl;
+      wrap.appendChild(img);
+
+      const dlA = document.createElement('a');
+      dlA.className = 'btn-dl';
+      dlA.href      = dataUrl;
+      dlA.download  = `card-${String(i + 1).padStart(2, '0')}.${fmt.ext}`;
+      dlA.innerHTML = `
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Download Card ${i + 1} (.${fmt.ext.toUpperCase()})`;
+      wrap.appendChild(dlA);
+      output.appendChild(wrap);
+    }
+
+    if (cancelRequested) {
+      setStatus(blobs.length > 0
+        ? `Cancelled — ${blobs.length} card${blobs.length !== 1 ? 's' : ''} ready.`
+        : 'Generation cancelled.');
+    } else {
+      if (blobs.length > 1) {
+        const allBtn = document.createElement('button');
+        allBtn.className = 'btn-dl-all';
+        allBtn.innerHTML = `⬇ Download All ${total} Cards (.${fmt.ext.toUpperCase()})`;
+        allBtn.onclick = () => {
+          blobs.forEach((b, idx) => {
+            const a = document.createElement('a');
+            a.href     = b;
+            a.download = `card-${String(idx + 1).padStart(2, '0')}.${fmt.ext}`;
+            a.click();
+          });
+        };
+        output.appendChild(allBtn);
+      }
+      setStatus(`✦ Done — ${total} card${total !== 1 ? 's' : ''} ready.`);
+    }
+  } catch (err) {
+    setStatus(`Error: ${err.message || 'Generation failed. Please try again.'}`);
+    console.error('Generation error:', err);
+  } finally {
+    genBtn.disabled   = false;
+    cancelBtn.disabled = true;
+    stage.innerHTML   = '';
+  }
 }
