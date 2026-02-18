@@ -39,11 +39,35 @@ const FONT_PAIRINGS = {
   }
 };
 
-function loadFontPairing(key) {
+/* ── WebP export support detection (Safari returns PNG silently) ── */
+const SUPPORTS_WEBP_EXPORT = (() => {
+  try {
+    const c = document.createElement('canvas');
+    c.width = c.height = 1;
+    return c.toDataURL('image/webp').startsWith('data:image/webp');
+  } catch (e) { return false; }
+})();
+
+async function loadFontPairing(key) {
   const pairing = FONT_PAIRINGS[key] || FONT_PAIRINGS.scholar;
   const link = document.getElementById('gfonts-link');
   if (link && link.href !== pairing.url) {
     link.href = pairing.url;
+    // Give the browser a tick to start parsing the new stylesheet
+    await new Promise(r => setTimeout(r, 50));
+  }
+  // Await actual font readiness — resolves only when glyphs are available
+  const headingFamily = pairing.heading.split(',')[0].replace(/'/g, '').trim();
+  const bodyFamily    = pairing.body.split(',')[0].replace(/'/g, '').trim();
+  try {
+    await Promise.all([
+      document.fonts.load(`700 80px "${headingFamily}"`),
+      document.fonts.load(`300 40px "${bodyFamily}"`),
+      document.fonts.load(`400 52px "Amiri"`), // always needed for Arabic
+    ]);
+  } catch (e) {
+    // Fallback for very old browsers that lack the Font Loading API
+    await new Promise(r => setTimeout(r, 900));
   }
   return pairing;
 }
@@ -124,8 +148,9 @@ function fitContent(scaler, maxHeight) {
   if (naturalHeight <= maxHeight) return;
 
   const scale = Math.max(maxHeight / naturalHeight, 0.5);
-  scaler.style.transform      = `scale(${scale})`;
-  scaler.style.transformOrigin = 'top left';
+  scaler.style.transform = `scale(${scale})`;
+  // transform-origin is set to "top center" in CSS — do NOT override here
+  // so scaling stays symmetrical (equal left/right whitespace)
 
   const shrinkage = naturalHeight * (1 - scale);
   scaler.style.marginBottom = `-${shrinkage}px`;
@@ -260,17 +285,19 @@ async function generate() {
   stage.innerHTML  = '';
   genBtn.disabled  = true;
 
-  /* Load font pairing (swaps Google Fonts link href) */
-  const pairing = loadFontPairing(fontKey);
+  /* Load font pairing — awaits actual font readiness via CSS Font Loading API */
+  const pairing = await loadFontPairing(fontKey);
 
   /* Determine texture light/dark mode */
   const textureMode = LIGHT_THEMES.has(theme) ? 'light' : 'dark';
 
-  /* Export format config */
+  /* Export format config — WebP falls back to JPEG on Safari */
   const FORMAT_MAP = {
     jpeg: { mime: 'image/jpeg', ext: 'jpg',  lossy: true  },
     png:  { mime: 'image/png',  ext: 'png',  lossy: false },
-    webp: { mime: 'image/webp', ext: 'webp', lossy: true  }
+    webp: SUPPORTS_WEBP_EXPORT
+      ? { mime: 'image/webp', ext: 'webp', lossy: true  }
+      : { mime: 'image/jpeg', ext: 'jpg',  lossy: true  }, // Safari fallback
   };
   const fmt = FORMAT_MAP[formatVal] || FORMAT_MAP.jpeg;
 
@@ -342,15 +369,16 @@ async function generate() {
 
     stage.appendChild(card);
 
-    /* Wait for fonts and layout — extra time for new pairings to load */
-    await new Promise(r => setTimeout(r, 350));
+    /* Layout reflow wait (fonts already awaited above via Font Loading API) */
+    await new Promise(r => setTimeout(r, 50));
     fitContent(scaler, BODY_H);
     await new Promise(r => setTimeout(r, 80));
 
+    /* scale:2 → output is 2160×3840px (retina quality, ~2× sharper) */
     const canvas = await html2canvas(card, {
-      width: 1080,
+      width:  1080,
       height: 1920,
-      scale: 1,
+      scale:  2,
       useCORS: true,
       allowTaint: true,
       logging: false,

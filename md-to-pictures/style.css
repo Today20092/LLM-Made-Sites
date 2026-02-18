@@ -471,7 +471,8 @@ select:focus { border-color: #c9a96e33; }
 .tt-content-scaler {
   width: 784px;
   flex-shrink: 0;
-  transform-origin: top left;
+  transform-origin: top center; /* center — so scale() is symmetrical L/R */
+  align-self: center;           /* center in tt-body's flex column */
   overflow: hidden;
 }
 
