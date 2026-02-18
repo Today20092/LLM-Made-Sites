@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Markdown to Cards</title>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Lato:wght@300;400;700&display=swap"
+  <link id="gfonts-link"
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Lato:wght@300;400;700&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap"
     rel="stylesheet"
   />
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -44,6 +44,8 @@
   <div class="surface">
     <div class="surface-label">Settings</div>
     <div class="options-grid">
+
+      <!-- Row 1: Theme + Density -->
       <div class="opt-group">
         <label>Theme</label>
         <select id="theme-select">
@@ -63,6 +65,48 @@
           <option value="19">Dense</option>
         </select>
       </div>
+
+      <!-- Row 2: Font Pairing (full width) -->
+      <div class="opt-group opt-group--full">
+        <label>Font Pairing</label>
+        <select id="font-select">
+          <option value="scholar">Scholar — Playfair Display + Lato</option>
+          <option value="editorial">Editorial — Cormorant Garamond + Source Sans</option>
+          <option value="minimal">Minimal — DM Sans (weight hierarchy)</option>
+          <option value="spiritual">Spiritual — Amiri (Arabic-primary)</option>
+          <option value="luxury">Luxury — Libre Baskerville + Raleway</option>
+          <option value="humanist">Humanist — Merriweather + Open Sans</option>
+        </select>
+      </div>
+
+      <!-- Row 3: Texture (full width) -->
+      <div class="opt-group opt-group--full">
+        <label>Background Texture</label>
+        <select id="texture-select">
+          <option value="none">None</option>
+          <option value="paper">Paper Grain</option>
+          <option value="linen">Linen Weave</option>
+          <option value="dots">Dot Grid</option>
+          <option value="hatch">Fine Hatching</option>
+        </select>
+      </div>
+
+      <!-- Row 4: Format + Quality -->
+      <div class="opt-group">
+        <label>Export Format</label>
+        <select id="format-select">
+          <option value="jpeg">JPEG</option>
+          <option value="png">PNG (Lossless)</option>
+          <option value="webp">WebP</option>
+        </select>
+        <small class="opt-note">PNG ~2–4 MB · WebP: Chrome/Firefox only</small>
+      </div>
+      <div class="opt-group" id="quality-group">
+        <label>Quality — <span id="quality-label">95%</span></label>
+        <input type="range" id="quality-range"
+          min="60" max="100" value="95" step="1" />
+      </div>
+
     </div>
   </div>
 
