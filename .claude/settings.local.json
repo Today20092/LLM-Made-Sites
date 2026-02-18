@@ -7,7 +7,8 @@
       "Bash(git -C \"C:\\\\Users\\\\User\\\\.claude-worktrees\\\\LLM-Made-Sites\\\\pedantic-kalam\" show b2c5b10 --stat)",
       "Bash(git -C \"C:\\\\Users\\\\User\\\\.claude-worktrees\\\\LLM-Made-Sites\\\\pedantic-kalam\" log -1 --oneline)",
       "Bash(git -C \"C:\\\\Users\\\\User\\\\.claude-worktrees\\\\LLM-Made-Sites\\\\pedantic-kalam\" diff b2c5b10~1 b2c5b10 -- prompt-launcher/script.js)",
-      "Bash(git -C \"C:\\\\Users\\\\User\\\\.claude-worktrees\\\\LLM-Made-Sites\\\\pedantic-kalam\" diff b2c5b10~1 b2c5b10 -- prompt-launcher/index.html)"
+      "Bash(git -C \"C:\\\\Users\\\\User\\\\.claude-worktrees\\\\LLM-Made-Sites\\\\pedantic-kalam\" diff b2c5b10~1 b2c5b10 -- prompt-launcher/index.html)",
+      "WebFetch(domain:fonts.google.com)"
     ]
   }
 }
