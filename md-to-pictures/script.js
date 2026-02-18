@@ -36,6 +36,11 @@ const FONT_PAIRINGS = {
     url:     'https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,700;0,900;1,700&family=Open+Sans:wght@300;400;700&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap',
     heading: "'Merriweather', Georgia, serif",
     body:    "'Open Sans', Arial, sans-serif"
+  },
+  atkinson: {
+    url:     'https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,700;1,400;1,700&display=swap',
+    heading: "'Atkinson Hyperlegible Next', Arial, sans-serif",
+    body:    "'Atkinson Hyperlegible Next', Arial, sans-serif"
   }
 };
 
