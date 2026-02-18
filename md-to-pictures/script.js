@@ -1,5 +1,56 @@
 marked.setOptions({ breaks: true, gfm: true });
 
+/* ═══════════════════════════════════════
+   FONT PAIRINGS
+   All fonts are on Google Fonts CDN.
+   loadFontPairing() swaps the <link> href
+   so only fonts in use are downloaded.
+═══════════════════════════════════════ */
+const FONT_PAIRINGS = {
+  scholar: {
+    url:     'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Lato:wght@300;400;700&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap',
+    heading: "'Playfair Display', Georgia, serif",
+    body:    "'Lato', Arial, sans-serif"
+  },
+  editorial: {
+    url:     'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Source+Sans+3:wght@300;400;700&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap',
+    heading: "'Cormorant Garamond', Georgia, serif",
+    body:    "'Source Sans 3', Arial, sans-serif"
+  },
+  minimal: {
+    url:     'https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,500;0,700;1,500&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap',
+    heading: "'DM Sans', Helvetica, sans-serif",
+    body:    "'DM Sans', Helvetica, sans-serif"
+  },
+  spiritual: {
+    url:     'https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Lato:wght@300;400&display=swap',
+    heading: "'Amiri', 'Traditional Arabic', serif",
+    body:    "'Amiri', 'Lato', serif"
+  },
+  luxury: {
+    url:     'https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Raleway:wght@300;400;700&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap',
+    heading: "'Libre Baskerville', Georgia, serif",
+    body:    "'Raleway', Arial, sans-serif"
+  },
+  humanist: {
+    url:     'https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,700;0,900;1,700&family=Open+Sans:wght@300;400;700&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap',
+    heading: "'Merriweather', Georgia, serif",
+    body:    "'Open Sans', Arial, sans-serif"
+  }
+};
+
+function loadFontPairing(key) {
+  const pairing = FONT_PAIRINGS[key] || FONT_PAIRINGS.scholar;
+  const link = document.getElementById('gfonts-link');
+  if (link && link.href !== pairing.url) {
+    link.href = pairing.url;
+  }
+  return pairing;
+}
+
+/* ── Light themes (dark texture at low opacity) ── */
+const LIGHT_THEMES = new Set(['cream', 'forest', 'rose']);
+
 /* ── File reader ── */
 document.getElementById('file-input').addEventListener('change', function () {
   const file = this.files[0];
@@ -12,15 +63,29 @@ document.getElementById('file-input').addEventListener('change', function () {
   reader.readAsText(file, 'UTF-8');
 });
 
+/* ── Format selector: show/hide quality slider ── */
+document.getElementById('format-select').addEventListener('change', function () {
+  const isPng = this.value === 'png';
+  document.getElementById('quality-group').classList.toggle('hidden', isPng);
+});
+
+/* ── Quality label live update ── */
+document.getElementById('quality-range').addEventListener('input', function () {
+  document.getElementById('quality-label').textContent = this.value + '%';
+});
+
+/* ── Status helper ── */
 function setStatus(msg) {
   document.getElementById('status').textContent = msg;
 }
 
+/* ── Arabic detection ── */
 function isArabic(text) {
   return /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/
     .test(text);
 }
 
+/* ── Heading detection ── */
 function isHeading(block) {
   return /^#{1,3}\s/.test(block.trim());
 }
@@ -48,31 +113,20 @@ function postProcess(container) {
 
 /* ══════════════════════════════════════════
    FIT CONTENT
-   ─────────────────────────────────────────
-   NEVER changes the scaler width.
+   Only scale() transform — never changes width.
    Width is always 784px (set in CSS).
-   We only apply a scale() transform and
-   compensate the lost height with a negative
-   margin-bottom so the footer isn't pushed.
 ══════════════════════════════════════════ */
 function fitContent(scaler, maxHeight) {
-  // Reset any previous fit
-  scaler.style.transform = '';
+  scaler.style.transform    = '';
   scaler.style.marginBottom = '';
 
   const naturalHeight = scaler.scrollHeight;
+  if (naturalHeight <= maxHeight) return;
 
-  if (naturalHeight <= maxHeight) return; // fits fine
-
-  // Scale down — clamp at 0.5 minimum (below that just let it clip
-  // rather than become unreadable)
   const scale = Math.max(maxHeight / naturalHeight, 0.5);
-  scaler.style.transform = `scale(${scale})`;
+  scaler.style.transform      = `scale(${scale})`;
   scaler.style.transformOrigin = 'top left';
 
-  // After scaling, the element still occupies its natural height in
-  // layout. Pull up the space below with a negative margin-bottom so
-  // the footer stays in place.
   const shrinkage = naturalHeight * (1 - scale);
   scaler.style.marginBottom = `-${shrinkage}px`;
 }
@@ -92,7 +146,6 @@ function splitMarkdown(md, density) {
   const flushText = () => {
     const joined = textBuf.join('\n').trim();
     if (joined) {
-      // Split on blank lines to get individual paragraphs
       joined.split(/\n{2,}/).forEach(b => {
         if (b.trim()) blocks.push(b.trim());
       });
@@ -130,7 +183,6 @@ function splitMarkdown(md, density) {
     if (/^[-*+] |^\d+\. /.test(first)) {
       return block.split('\n').filter(l => l.trim()).length * 2 + 1;
     }
-    // Paragraph: chars ÷ 52 gives a rough "line count"
     return Math.ceil(block.replace(/\s+/g, ' ').length / 52);
   }
 
@@ -154,8 +206,6 @@ function splitMarkdown(md, density) {
       w += bw;
     }
 
-    // If current block is a heading and the next block would overflow
-    // if added here, push the heading forward to the next card.
     if (isHeading(block) && next && w + nw > density && cur.length > 1) {
       cur.pop();
       w -= bw;
@@ -166,7 +216,6 @@ function splitMarkdown(md, density) {
   }
   if (cur.length > 0) chunks.push(cur.join('\n\n'));
 
-  /* Step 4 — safety pass: no chunk may end on a lone heading */
   return mergeOrphanHeadings(chunks);
 }
 
@@ -176,7 +225,6 @@ function mergeOrphanHeadings(chunks) {
     const blocks = chunks[i].split('\n\n').filter(b => b.trim());
     const last = blocks[blocks.length - 1];
     if (isHeading(last) && i < chunks.length - 1) {
-      // Move this heading to front of the next chunk
       chunks[i + 1] = last + '\n\n' + chunks[i + 1];
       const rest = blocks.slice(0, -1).join('\n\n').trim();
       if (rest) out.push(rest);
@@ -187,7 +235,9 @@ function mergeOrphanHeadings(chunks) {
   return out.filter(c => c.trim());
 }
 
-/* ── Main Generator ── */
+/* ══════════════════════════════════════════
+   MAIN GENERATOR
+══════════════════════════════════════════ */
 async function generate() {
   const md = document.getElementById('md-input').value.trim();
   if (!md) {
@@ -195,8 +245,13 @@ async function generate() {
     return;
   }
 
-  const theme   = document.getElementById('theme-select').value;
-  const density = parseInt(document.getElementById('density-select').value);
+  const theme      = document.getElementById('theme-select').value;
+  const density    = parseInt(document.getElementById('density-select').value);
+  const fontKey    = document.getElementById('font-select').value;
+  const textureKey = document.getElementById('texture-select').value;
+  const formatVal  = document.getElementById('format-select').value;
+  const qualityVal = parseInt(document.getElementById('quality-range').value) / 100;
+
   const output  = document.getElementById('output');
   const stage   = document.getElementById('render-stage');
   const genBtn  = document.getElementById('gen-btn');
@@ -204,6 +259,20 @@ async function generate() {
   output.innerHTML = '';
   stage.innerHTML  = '';
   genBtn.disabled  = true;
+
+  /* Load font pairing (swaps Google Fonts link href) */
+  const pairing = loadFontPairing(fontKey);
+
+  /* Determine texture light/dark mode */
+  const textureMode = LIGHT_THEMES.has(theme) ? 'light' : 'dark';
+
+  /* Export format config */
+  const FORMAT_MAP = {
+    jpeg: { mime: 'image/jpeg', ext: 'jpg',  lossy: true  },
+    png:  { mime: 'image/png',  ext: 'png',  lossy: false },
+    webp: { mime: 'image/webp', ext: 'webp', lossy: true  }
+  };
+  const fmt = FORMAT_MAP[formatVal] || FORMAT_MAP.jpeg;
 
   const chunks = splitMarkdown(md, density);
   const total  = chunks.length;
@@ -223,6 +292,15 @@ async function generate() {
     const card = document.createElement('div');
     card.className = `tt-card t-${theme}`;
 
+    /* Apply font pairing via CSS custom properties */
+    card.style.setProperty('--font-heading', pairing.heading);
+    card.style.setProperty('--font-body',    pairing.body);
+    card.dataset.fontPairing  = fontKey;
+
+    /* Apply texture */
+    card.dataset.texture     = textureKey;
+    card.dataset.textureMode = textureMode;
+
     /* Header */
     const hdr = document.createElement('div');
     hdr.className = 'tt-header';
@@ -233,8 +311,7 @@ async function generate() {
         <span class="lg"></span>
         <span class="sm"></span>
       </div>
-      <div class="tt-header-rule"
-        style="max-width:80px;opacity:0.12"></div>`;
+      <div class="tt-header-rule" style="max-width:80px;opacity:0.12"></div>`;
     card.appendChild(hdr);
 
     /* Body */
@@ -265,8 +342,8 @@ async function generate() {
 
     stage.appendChild(card);
 
-    /* Wait for fonts and layout to settle */
-    await new Promise(r => setTimeout(r, 180));
+    /* Wait for fonts and layout — extra time for new pairings to load */
+    await new Promise(r => setTimeout(r, 350));
     fitContent(scaler, BODY_H);
     await new Promise(r => setTimeout(r, 80));
 
@@ -281,7 +358,10 @@ async function generate() {
 
     stage.removeChild(card);
 
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+    const dataUrl = fmt.lossy
+      ? canvas.toDataURL(fmt.mime, qualityVal)
+      : canvas.toDataURL(fmt.mime);
+
     blobs.push(dataUrl);
 
     /* Preview */
@@ -290,8 +370,7 @@ async function generate() {
 
     const meta = document.createElement('div');
     meta.className = 'card-meta';
-    meta.innerHTML =
-      `<span class="card-meta-label">Card ${i + 1} of ${total}</span>`;
+    meta.innerHTML = `<span class="card-meta-label">Card ${i + 1} of ${total}</span>`;
     wrap.appendChild(meta);
 
     const img = document.createElement('img');
@@ -301,8 +380,8 @@ async function generate() {
 
     const dlA = document.createElement('a');
     dlA.className = 'btn-dl';
-    dlA.href = dataUrl;
-    dlA.download = `card-${String(i + 1).padStart(2, '0')}.jpg`;
+    dlA.href      = dataUrl;
+    dlA.download  = `card-${String(i + 1).padStart(2, '0')}.${fmt.ext}`;
     dlA.innerHTML = `
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2.2"
@@ -311,7 +390,7 @@ async function generate() {
         <polyline points="7 10 12 15 17 10"/>
         <line x1="12" y1="15" x2="12" y2="3"/>
       </svg>
-      Download Card ${i + 1}`;
+      Download Card ${i + 1} (.${fmt.ext.toUpperCase()})`;
     wrap.appendChild(dlA);
     output.appendChild(wrap);
   }
@@ -319,12 +398,12 @@ async function generate() {
   if (blobs.length > 1) {
     const allBtn = document.createElement('button');
     allBtn.className = 'btn-dl-all';
-    allBtn.innerHTML = `⬇ Download All ${total} Cards`;
+    allBtn.innerHTML = `⬇ Download All ${total} Cards (.${fmt.ext.toUpperCase()})`;
     allBtn.onclick = () => {
       blobs.forEach((b, idx) => {
         const a = document.createElement('a');
-        a.href = b;
-        a.download = `card-${String(idx + 1).padStart(2, '0')}.jpg`;
+        a.href     = b;
+        a.download = `card-${String(idx + 1).padStart(2, '0')}.${fmt.ext}`;
         a.click();
       });
     };
