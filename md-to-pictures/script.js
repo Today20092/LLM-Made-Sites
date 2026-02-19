@@ -123,6 +123,10 @@ document.getElementById('quality-range').addEventListener('input', function () {
 /* ── Cancellation flag ── */
 let cancelRequested = false;
 
+/* ── Selection re-render state ── */
+let lastChunks   = [];
+let lastSettings = {};
+
 function cancelGeneration() {
   cancelRequested = true;
 }
@@ -340,6 +344,8 @@ async function generate() {
     const fmt = FORMAT_MAP[formatVal] || FORMAT_MAP.jpeg;
 
     const chunks = splitMarkdown(md, density);
+    lastChunks   = chunks;
+    lastSettings = { theme, fontKey, textureKey, fmt, qualityVal, pairing, textureMode };
     const total  = chunks.length;
     const blobs  = [];
 
@@ -457,6 +463,11 @@ async function generate() {
       const meta = document.createElement('div');
       meta.className = 'card-meta';
       meta.innerHTML = `<span class="card-meta-label">Card ${i + 1} of ${total}</span>`;
+      const chk = document.createElement('input');
+      chk.type = 'checkbox';
+      chk.className = 'card-select-chk';
+      chk.dataset.index = i;
+      meta.appendChild(chk);
       wrap.appendChild(meta);
 
       const img = document.createElement('img');
@@ -500,6 +511,15 @@ async function generate() {
         };
         output.appendChild(allBtn);
       }
+      if (total > 1) {
+        const selBtn = document.createElement('button');
+        selBtn.id = 'render-selected-btn';
+        selBtn.className = 'btn-dl-all';
+        selBtn.style.marginTop = '8px';
+        selBtn.innerHTML = '⟳ Render Selected Pages';
+        selBtn.onclick = renderSelected;
+        output.appendChild(selBtn);
+      }
       setStatus(`✦ Done — ${total} card${total !== 1 ? 's' : ''} ready.`);
     }
   } catch (err) {
@@ -509,5 +529,189 @@ async function generate() {
     genBtn.disabled   = false;
     cancelBtn.disabled = true;
     stage.innerHTML   = '';
+  }
+}
+
+async function renderSelected() {
+  const checked = [...document.querySelectorAll('.card-select-chk:checked')];
+  if (checked.length === 0) {
+    setStatus('No pages selected — check at least one card.');
+    return;
+  }
+
+  // Sort by original index so render order matches document order
+  const indices = checked
+    .map(c => parseInt(c.dataset.index))
+    .sort((a, b) => a - b);
+
+  const { theme, fontKey, textureKey, fmt, qualityVal, pairing, textureMode } = lastSettings;
+
+  const output    = document.getElementById('output');
+  const stage     = document.getElementById('render-stage');
+  const genBtn    = document.getElementById('gen-btn');
+  const cancelBtn = document.getElementById('cancel-btn');
+
+  output.innerHTML  = '';
+  stage.innerHTML   = '';
+  genBtn.disabled   = true;
+  cancelBtn.disabled = false;
+  cancelRequested   = false;
+
+  const selectedTotal = indices.length;
+  const blobs = [];
+
+  try {
+    setStatus(`Rendering ${selectedTotal} selected card${selectedTotal !== 1 ? 's' : ''}…`);
+    const BODY_H = 1352;
+
+    for (let pos = 0; pos < indices.length; pos++) {
+      if (cancelRequested) break;
+
+      const origIdx    = indices[pos];
+      const displayNum = pos + 1;
+
+      setStatus(`Card ${displayNum} of ${selectedTotal}…`);
+
+      const card = document.createElement('div');
+      card.className = `tt-card t-${theme}`;
+      card.style.setProperty('--font-heading', pairing.heading);
+      card.style.setProperty('--font-body',    pairing.body);
+      card.dataset.fontPairing  = fontKey;
+      card.dataset.texture      = textureKey;
+      card.dataset.textureMode  = textureMode;
+
+      /* Header */
+      const hdr = document.createElement('div');
+      hdr.className = 'tt-header';
+      hdr.innerHTML = `
+        <div class="tt-header-rule"></div>
+        <div class="tt-header-ornament">
+          <span class="sm"></span>
+          <span class="lg"></span>
+          <span class="sm"></span>
+        </div>
+        <div class="tt-header-rule" style="max-width:80px;opacity:0.12"></div>`;
+      card.appendChild(hdr);
+
+      /* Body */
+      const body = document.createElement('div');
+      body.className = 'tt-body';
+      const scaler = document.createElement('div');
+      scaler.className = 'tt-content-scaler';
+      scaler.innerHTML = marked.parse(lastChunks[origIdx]);
+      postProcess(scaler);
+      body.appendChild(scaler);
+      card.appendChild(body);
+
+      /* Footer — page number reflects subset position */
+      const ftr = document.createElement('div');
+      ftr.className = 'tt-footer';
+      ftr.innerHTML = `
+        <div class="tt-footer-left">
+          <div class="tt-footer-ornament">
+            <span class="sm"></span>
+            <span class="lg"></span>
+          </div>
+          <div class="tt-footer-rule"></div>
+        </div>
+        <div class="tt-page-num">
+          ${displayNum}<em> / ${selectedTotal}</em>
+        </div>`;
+      card.appendChild(ftr);
+
+      stage.appendChild(card);
+      await new Promise(r => setTimeout(r, 50));
+      fitContent(scaler, BODY_H);
+
+      /* Font normalization */
+      const TARGET_SCALE = 0.82;
+      const scaleMatch = scaler.style.transform.match(/scale\(([^)]+)\)/);
+      const appliedScale = scaleMatch ? parseFloat(scaleMatch[1]) : 1.0;
+      if (appliedScale > TARGET_SCALE) {
+        const fontScale = TARGET_SCALE / appliedScale;
+        card.style.setProperty('--font-scale', fontScale.toFixed(4));
+        scaler.style.transform  = '';
+        scaler.style.width      = '';
+        scaler.style.marginBottom = '';
+        await new Promise(r => setTimeout(r, 30));
+        fitContent(scaler, BODY_H);
+      }
+
+      await new Promise(r => setTimeout(r, 80));
+
+      const canvas = await html2canvas(card, {
+        width:  1080,
+        height: 1920,
+        scale:  2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+      });
+      stage.removeChild(card);
+
+      const dataUrl = fmt.lossy
+        ? canvas.toDataURL(fmt.mime, qualityVal)
+        : canvas.toDataURL(fmt.mime);
+      blobs.push(dataUrl);
+
+      /* Preview */
+      const wrap = document.createElement('div');
+      wrap.className = 'card-wrapper';
+
+      const meta = document.createElement('div');
+      meta.className = 'card-meta';
+      meta.innerHTML = `<span class="card-meta-label">Card ${displayNum} of ${selectedTotal} <span class="card-meta-orig">(orig. ${origIdx + 1})</span></span>`;
+      wrap.appendChild(meta);
+
+      const img = document.createElement('img');
+      img.className = 'card-img';
+      img.src = dataUrl;
+      wrap.appendChild(img);
+
+      const dlA = document.createElement('a');
+      dlA.className = 'btn-dl';
+      dlA.href      = dataUrl;
+      dlA.download  = `card-${String(displayNum).padStart(2, '0')}.${fmt.ext}`;
+      dlA.innerHTML = `
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Download Card ${displayNum} (.${fmt.ext.toUpperCase()})`;
+      wrap.appendChild(dlA);
+      output.appendChild(wrap);
+    }
+
+    if (!cancelRequested) {
+      if (blobs.length > 1) {
+        const allBtn = document.createElement('button');
+        allBtn.className = 'btn-dl-all';
+        allBtn.innerHTML = `⬇ Download All ${blobs.length} Cards (.${fmt.ext.toUpperCase()})`;
+        allBtn.onclick = () => {
+          blobs.forEach((b, idx) => {
+            const a = document.createElement('a');
+            a.href     = b;
+            a.download = `card-${String(idx + 1).padStart(2, '0')}.${fmt.ext}`;
+            a.click();
+          });
+        };
+        output.appendChild(allBtn);
+      }
+      setStatus(`✦ Done — ${blobs.length} card${blobs.length !== 1 ? 's' : ''} ready.`);
+    } else {
+      setStatus(blobs.length > 0
+        ? `Cancelled — ${blobs.length} card${blobs.length !== 1 ? 's' : ''} ready.`
+        : 'Generation cancelled.');
+    }
+  } catch (err) {
+    setStatus(`Error: ${err.message || 'Render failed. Please try again.'}`);
+    console.error('renderSelected error:', err);
+  } finally {
+    genBtn.disabled    = false;
+    cancelBtn.disabled = true;
+    stage.innerHTML    = '';
   }
 }

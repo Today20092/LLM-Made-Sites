@@ -293,6 +293,19 @@ select:focus { border-color: #c9a96e44; }
   letter-spacing: 0.14em;
   color: #5a5470;
 }
+.card-meta-orig {
+  opacity: 0.45;
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.card-select-chk {
+  width: 16px;
+  height: 16px;
+  accent-color: #c9a96e;
+  cursor: pointer;
+  flex-shrink: 0;
+}
 .card-img {
   width: 100%;
   border-radius: 10px;
