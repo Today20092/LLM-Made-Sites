@@ -787,6 +787,17 @@ select:focus { border-color: #c9a96e44; }
   word-break: break-word;
 }
 
+/* ── Highlight (==text==) ── */
+.tt-body mark {
+  background: var(--accent-pill);
+  color: inherit;
+  border-radius: 4px;
+  padding: 2px 10px;
+  font-style: normal;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
 .tt-body hr {
   border: none;
   height: 1px;

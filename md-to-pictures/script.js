@@ -1,5 +1,22 @@
 marked.setOptions({ breaks: true, gfm: true });
 
+marked.use({
+  extensions: [{
+    name: 'highlight',
+    level: 'inline',
+    start(src) { return src.indexOf('=='); },
+    tokenizer(src) {
+      const match = src.match(/^==([^=\n]+?)==/);
+      if (match) {
+        return { type: 'highlight', raw: match[0], text: match[1] };
+      }
+    },
+    renderer(token) {
+      return `<mark>${marked.parseInline(token.text)}</mark>`;
+    },
+  }],
+});
+
 /* ═══════════════════════════════════════
    FONT PAIRINGS
    All fonts are on Google Fonts CDN.
