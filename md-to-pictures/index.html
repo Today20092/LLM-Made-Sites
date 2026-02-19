@@ -92,7 +92,29 @@
         </select>
       </div>
 
-      <!-- Row 4: Format + Quality -->
+      <!-- Row 4: Footer Watermark (full width) -->
+      <div class="opt-group opt-group--full">
+        <label>Footer Text <span class="opt-label-hint">(watermark · leave blank for none)</span></label>
+        <input type="text" id="watermark-input"
+          placeholder="@handle  ·  My Book Title"
+          maxlength="80" />
+      </div>
+
+      <!-- Row 5: Cover Card (full width) -->
+      <div class="opt-group opt-group--full">
+        <label>Cover Title <span class="opt-label-hint">(leave blank for no cover card)</span></label>
+        <input type="text" id="cover-title-input"
+          placeholder="My Book Title"
+          maxlength="120" />
+      </div>
+      <div class="opt-group opt-group--full">
+        <label>Cover Subtitle <span class="opt-label-hint">(optional)</span></label>
+        <input type="text" id="cover-subtitle-input"
+          placeholder="A subtitle or author name"
+          maxlength="160" />
+      </div>
+
+      <!-- Row 6: Format + Quality -->
       <div class="opt-group">
         <label>Export Format</label>
         <select id="format-select">

@@ -193,10 +193,20 @@ function fitContent(scaler, maxHeight) {
   scaler.style.marginBottom = `-${shrinkage}px`;
 }
 
+/* ── Utilities ── */
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;')
+          .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* Page-break sentinel — never passed to marked.parse() */
+const PAGE_BREAK_SENTINEL = '\x00PAGE_BREAK\x00';
+
 /* ══════════════════════════════════════════
    SPLITTER
    Heading always sticks to its next block.
    A card never ends on a lone heading.
+   Use +++ on its own line to force a page break.
 ══════════════════════════════════════════ */
 function splitMarkdown(md, density) {
   /* Step 1 — collect blocks, keeping fenced code atomic */
@@ -227,6 +237,10 @@ function splitMarkdown(md, density) {
         blocks.push(fenceBuf.join('\n'));
         fenceBuf = [];
       }
+    } else if (line.trim() === '+++') {
+      /* Hard page break: flush current text, insert sentinel */
+      flushText();
+      blocks.push(PAGE_BREAK_SENTINEL);
     } else {
       textBuf.push(line);
     }
@@ -255,6 +269,13 @@ function splitMarkdown(md, density) {
 
   for (let i = 0; i < blocks.length; i++) {
     const block = blocks[i];
+
+    /* Hard page break sentinel — flush and skip */
+    if (block === PAGE_BREAK_SENTINEL) {
+      if (cur.length > 0) { chunks.push(cur.join('\n\n')); cur = []; w = 0; }
+      continue;
+    }
+
     const bw = weight(block);
     const next = blocks[i + 1];
     const nw = next ? weight(next) : 0;
@@ -300,6 +321,35 @@ function mergeOrphanHeadings(chunks) {
 /* ══════════════════════════════════════════
    MAIN GENERATOR
 ══════════════════════════════════════════ */
+/* ── Cover Card Builder ── */
+function buildCoverCard(coverTitle, coverSubtitle, theme, pairing, fontKey, textureKey, textureMode) {
+  const card = document.createElement('div');
+  card.className = `tt-card t-${theme}`;
+  card.style.setProperty('--font-heading', pairing.heading);
+  card.style.setProperty('--font-body',    pairing.body);
+  card.dataset.fontPairing  = fontKey;
+  card.dataset.texture      = textureKey;
+  card.dataset.textureMode  = textureMode;
+
+  const cover = document.createElement('div');
+  cover.className = 'tt-cover';
+  cover.innerHTML = `
+    <div class="tt-cover-ornament">
+      <div class="tt-cover-rule"></div>
+      <span class="tt-cover-diamond"></span>
+      <div class="tt-cover-rule"></div>
+    </div>
+    <h1 class="tt-cover-title">${escapeHtml(coverTitle)}</h1>
+    ${coverSubtitle ? `<p class="tt-cover-subtitle">${escapeHtml(coverSubtitle)}</p>` : ''}
+    <div class="tt-cover-ornament tt-cover-ornament--bottom">
+      <div class="tt-cover-rule"></div>
+      <span class="tt-cover-diamond"></span>
+      <div class="tt-cover-rule"></div>
+    </div>`;
+  card.appendChild(cover);
+  return card;
+}
+
 async function generate() {
   const md = document.getElementById('md-input').value.trim();
   if (!md) {
@@ -309,12 +359,15 @@ async function generate() {
 
   cancelRequested = false;
 
-  const theme      = document.getElementById('theme-select').value;
-  const density    = parseInt(document.getElementById('density-select').value);
-  const fontKey    = document.getElementById('font-select').value;
-  const textureKey = document.getElementById('texture-select').value;
-  const formatVal  = document.getElementById('format-select').value;
-  const qualityVal = parseInt(document.getElementById('quality-range').value) / 100;
+  const theme         = document.getElementById('theme-select').value;
+  const density       = parseInt(document.getElementById('density-select').value);
+  const fontKey       = document.getElementById('font-select').value;
+  const textureKey    = document.getElementById('texture-select').value;
+  const formatVal     = document.getElementById('format-select').value;
+  const qualityVal    = parseInt(document.getElementById('quality-range').value) / 100;
+  const watermarkText = escapeHtml((document.getElementById('watermark-input').value || '').trim());
+  const coverTitle    = (document.getElementById('cover-title-input').value || '').trim();
+  const coverSubtitle = (document.getElementById('cover-subtitle-input').value || '').trim();
 
   const output     = document.getElementById('output');
   const stage      = document.getElementById('render-stage');
@@ -345,7 +398,8 @@ async function generate() {
 
     const chunks = splitMarkdown(md, density);
     lastChunks   = chunks;
-    lastSettings = { theme, fontKey, textureKey, fmt, qualityVal, pairing, textureMode };
+    lastSettings = { theme, fontKey, textureKey, fmt, qualityVal, pairing, textureMode,
+                     watermarkText, coverTitle, coverSubtitle };
     const total  = chunks.length;
     const blobs  = [];
 
@@ -356,6 +410,54 @@ async function generate() {
       1920 - 148 (header) - 380 (footer) - 40 (top pad) = 1352px
     */
     const BODY_H = 1352;
+
+    /* ── Cover card (rendered before chunk loop, excluded from page numbering) ── */
+    if (coverTitle) {
+      setStatus('Rendering cover…');
+      const coverCard = buildCoverCard(coverTitle, coverSubtitle, theme, pairing, fontKey, textureKey, textureMode);
+      stage.appendChild(coverCard);
+      await new Promise(r => setTimeout(r, 130));
+      const coverCanvas = await html2canvas(coverCard, {
+        width: 1080, height: 1920, scale: 2,
+        useCORS: true, allowTaint: true, logging: false,
+      });
+      stage.removeChild(coverCard);
+      const coverUrl = fmt.lossy
+        ? coverCanvas.toDataURL(fmt.mime, qualityVal)
+        : coverCanvas.toDataURL(fmt.mime);
+      blobs.push(coverUrl);
+
+      const coverWrap = document.createElement('div');
+      coverWrap.className = 'card-wrapper';
+      const coverMeta = document.createElement('div');
+      coverMeta.className = 'card-meta';
+      coverMeta.innerHTML = `<span class="card-meta-label">Cover Card</span>`;
+      const coverChk = document.createElement('input');
+      coverChk.type = 'checkbox';
+      coverChk.className = 'card-select-chk';
+      coverChk.dataset.index = 'cover';
+      coverMeta.appendChild(coverChk);
+      coverWrap.appendChild(coverMeta);
+      const coverImg = document.createElement('img');
+      coverImg.className = 'card-img';
+      coverImg.src = coverUrl;
+      coverWrap.appendChild(coverImg);
+      const coverDl = document.createElement('a');
+      coverDl.className = 'btn-dl';
+      coverDl.href = coverUrl;
+      coverDl.download = `card-cover.${fmt.ext}`;
+      coverDl.innerHTML = `
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Download Cover (.${fmt.ext.toUpperCase()})`;
+      coverWrap.appendChild(coverDl);
+      output.appendChild(coverWrap);
+    }
 
     for (let i = 0; i < chunks.length; i++) {
       if (cancelRequested) break;
@@ -408,6 +510,7 @@ async function generate() {
           </div>
           <div class="tt-footer-rule"></div>
         </div>
+        ${watermarkText ? `<div class="tt-watermark">${watermarkText}</div>` : ''}
         <div class="tt-page-num">
           ${i + 1}<em> / ${total}</em>
         </div>`;
@@ -504,8 +607,13 @@ async function generate() {
         allBtn.onclick = () => {
           blobs.forEach((b, idx) => {
             const a = document.createElement('a');
-            a.href     = b;
-            a.download = `card-${String(idx + 1).padStart(2, '0')}.${fmt.ext}`;
+            a.href = b;
+            if (coverTitle && idx === 0) {
+              a.download = `card-cover.${fmt.ext}`;
+            } else {
+              const n = coverTitle ? idx : idx + 1;
+              a.download = `card-${String(n).padStart(2, '0')}.${fmt.ext}`;
+            }
             a.click();
           });
         };
@@ -541,10 +649,15 @@ async function renderSelected() {
 
   // Sort by original index so render order matches document order
   const indices = checked
-    .map(c => parseInt(c.dataset.index))
-    .sort((a, b) => a - b);
+    .map(c => c.dataset.index)          // strings: 'cover' | '0' | '1' | ...
+    .sort((a, b) => {
+      if (a === 'cover') return -1;
+      if (b === 'cover') return  1;
+      return parseInt(a) - parseInt(b);
+    });
 
-  const { theme, fontKey, textureKey, fmt, qualityVal, pairing, textureMode } = lastSettings;
+  const { theme, fontKey, textureKey, fmt, qualityVal, pairing, textureMode,
+          watermarkText, coverTitle, coverSubtitle } = lastSettings;
 
   const output    = document.getElementById('output');
   const stage     = document.getElementById('render-stage');
@@ -572,6 +685,46 @@ async function renderSelected() {
 
       setStatus(`Card ${displayNum} of ${selectedTotal}…`);
 
+      /* ── Cover card branch ── */
+      if (origIdx === 'cover') {
+        const coverCard = buildCoverCard(coverTitle, coverSubtitle, theme, pairing, fontKey, textureKey, textureMode);
+        stage.appendChild(coverCard);
+        await new Promise(r => setTimeout(r, 130));
+        const cvCanvas = await html2canvas(coverCard, {
+          width: 1080, height: 1920, scale: 2,
+          useCORS: true, allowTaint: true, logging: false,
+        });
+        stage.removeChild(coverCard);
+        const cvUrl = fmt.lossy
+          ? cvCanvas.toDataURL(fmt.mime, qualityVal)
+          : cvCanvas.toDataURL(fmt.mime);
+        blobs.push(cvUrl);
+        const cvWrap = document.createElement('div');
+        cvWrap.className = 'card-wrapper';
+        const cvMeta = document.createElement('div');
+        cvMeta.className = 'card-meta';
+        cvMeta.innerHTML = `<span class="card-meta-label">Cover Card</span>`;
+        cvWrap.appendChild(cvMeta);
+        const cvImg = document.createElement('img');
+        cvImg.className = 'card-img'; cvImg.src = cvUrl;
+        cvWrap.appendChild(cvImg);
+        const cvDl = document.createElement('a');
+        cvDl.className = 'btn-dl'; cvDl.href = cvUrl;
+        cvDl.download = `card-cover.${fmt.ext}`;
+        cvDl.innerHTML = `
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Download Cover (.${fmt.ext.toUpperCase()})`;
+        cvWrap.appendChild(cvDl);
+        output.appendChild(cvWrap);
+        continue;
+      }
+
       const card = document.createElement('div');
       card.className = `tt-card t-${theme}`;
       card.style.setProperty('--font-heading', pairing.heading);
@@ -598,7 +751,7 @@ async function renderSelected() {
       body.className = 'tt-body';
       const scaler = document.createElement('div');
       scaler.className = 'tt-content-scaler';
-      scaler.innerHTML = marked.parse(lastChunks[origIdx]);
+      scaler.innerHTML = marked.parse(lastChunks[parseInt(origIdx)]);
       postProcess(scaler);
       body.appendChild(scaler);
       card.appendChild(body);
@@ -614,6 +767,7 @@ async function renderSelected() {
           </div>
           <div class="tt-footer-rule"></div>
         </div>
+        ${watermarkText ? `<div class="tt-watermark">${watermarkText}</div>` : ''}
         <div class="tt-page-num">
           ${displayNum}<em> / ${selectedTotal}</em>
         </div>`;
