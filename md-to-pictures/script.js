@@ -395,6 +395,24 @@ async function generate() {
       /* Layout reflow wait (fonts already awaited above via Font Loading API) */
       await new Promise(r => setTimeout(r, 50));
       fitContent(scaler, BODY_H);
+
+      /* Font normalization: shrink fonts on sparse cards so all slides look consistent.
+         TARGET_SCALE is the maximum visual scale we allow — sparse cards get their
+         base font size reduced so the apparent size matches denser cards. */
+      const TARGET_SCALE = 0.82;
+      const rawTransform = scaler.style.transform;
+      const scaleMatch = rawTransform.match(/scale\(([^)]+)\)/);
+      const appliedScale = scaleMatch ? parseFloat(scaleMatch[1]) : 1.0;
+      if (appliedScale > TARGET_SCALE) {
+        const fontScale = TARGET_SCALE / appliedScale;
+        card.style.setProperty('--font-scale', fontScale.toFixed(4));
+        scaler.style.transform = '';
+        scaler.style.width = '';
+        scaler.style.marginBottom = '';
+        await new Promise(r => setTimeout(r, 30));
+        fitContent(scaler, BODY_H);
+      }
+
       await new Promise(r => setTimeout(r, 80));
 
       /* scale:2 → output is 2160×3840px (retina quality, ~2× sharper) */

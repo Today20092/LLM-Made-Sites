@@ -375,6 +375,9 @@ select:focus { border-color: #c9a96e44; }
   /* Default font pairing: Scholar */
   --font-heading: 'Playfair Display', Georgia, serif;
   --font-body:    'Lato', Arial, sans-serif;
+
+  /* Font normalization: JS adjusts this so sparse cards match dense card sizes */
+  --font-scale: 1;
 }
 
 /* ── Themes ── */
@@ -649,19 +652,19 @@ select:focus { border-color: #c9a96e44; }
 .tt-card[data-font-pairing="minimal"] .tt-body p  { font-weight: 300; }
 
 .tt-body h1 {
-  font-size: 80px;
+  font-size: calc(80px * var(--font-scale));
   font-weight: 700;
   line-height: 1.1;
   margin-bottom: 40px;
 }
 .tt-body h2 {
-  font-size: 60px;
+  font-size: calc(60px * var(--font-scale));
   font-weight: 600;
   line-height: 1.17;
   margin-bottom: 32px;
 }
 .tt-body h3 {
-  font-size: 46px;
+  font-size: calc(46px * var(--font-scale));
   font-weight: 500;
   font-style: italic;
   line-height: 1.25;
@@ -669,7 +672,7 @@ select:focus { border-color: #c9a96e44; }
 }
 
 .tt-body p {
-  font-size: 40px;
+  font-size: calc(40px * var(--font-scale));
   line-height: 1.85;
   margin-bottom: 34px;
   font-weight: 300;
@@ -679,7 +682,7 @@ select:focus { border-color: #c9a96e44; }
 .tt-body p:last-child { margin-bottom: 0; }
 
 .tt-body ul, .tt-body ol {
-  font-size: 40px;
+  font-size: calc(40px * var(--font-scale));
   line-height: 1.85;
   margin-bottom: 34px;
   padding-left: 52px;
@@ -709,7 +712,7 @@ select:focus { border-color: #c9a96e44; }
 .tt-body blockquote p {
   font-family: var(--font-heading) !important;
   font-style: italic;
-  font-size: 41px;
+  font-size: calc(41px * var(--font-scale));
   line-height: 1.7;
   margin-bottom: 0;
 }
@@ -718,7 +721,7 @@ select:focus { border-color: #c9a96e44; }
   position: absolute;
   top: 10px;
   left: 18px;
-  font-size: 86px;
+  font-size: calc(86px * var(--font-scale));
   color: var(--accent);
   opacity: 0.22;
   font-family: var(--font-heading);
@@ -737,7 +740,7 @@ select:focus { border-color: #c9a96e44; }
   direction: rtl;
   text-align: center;
   font-family: 'Amiri', serif !important;
-  font-size: 52px !important;
+  font-size: calc(52px * var(--font-scale)) !important;
   line-height: 2.25 !important;
   font-weight: 400;
 
@@ -765,7 +768,7 @@ select:focus { border-color: #c9a96e44; }
 }
 .tt-body pre code {
   font-family: 'Courier New', monospace !important;
-  font-size: 30px;
+  font-size: calc(30px * var(--font-scale));
   line-height: 1.65;
   white-space: pre-wrap;
   word-break: break-word;
@@ -776,7 +779,7 @@ select:focus { border-color: #c9a96e44; }
 }
 .tt-body :not(pre) > code {
   font-family: 'Courier New', monospace !important;
-  font-size: 32px;
+  font-size: calc(32px * var(--font-scale));
   padding: 3px 16px;
   border-radius: 6px;
   background: var(--accent-bg);
@@ -798,7 +801,7 @@ select:focus { border-color: #c9a96e44; }
   direction: rtl;
   text-align: right;
   font-family: 'Amiri', serif !important;
-  font-size: 48px !important;
+  font-size: calc(48px * var(--font-scale)) !important;
   line-height: 2.15 !important;
   word-break: break-word;
   overflow-wrap: break-word;
