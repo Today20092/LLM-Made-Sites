@@ -155,6 +155,7 @@ function postProcess(container) {
 function fitContent(scaler, maxHeight) {
   scaler.style.transform    = '';
   scaler.style.marginBottom = '';
+  scaler.style.width        = '';
 
   const naturalHeight = scaler.scrollHeight;
   if (naturalHeight <= maxHeight) return;
@@ -163,6 +164,9 @@ function fitContent(scaler, maxHeight) {
   scaler.style.transform = `scale(${scale})`;
   // transform-origin is set to "top center" in CSS — do NOT override here
   // so scaling stays symmetrical (equal left/right whitespace)
+
+  // Compensate width so visual width stays 784px despite uniform scale()
+  scaler.style.width = `${Math.round(784 / scale)}px`;
 
   const shrinkage = naturalHeight * (1 - scale);
   scaler.style.marginBottom = `-${shrinkage}px`;
