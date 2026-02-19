@@ -95,7 +95,7 @@ async function loadFontPairing(key) {
 }
 
 /* ── Light themes (dark texture at low opacity) ── */
-const LIGHT_THEMES = new Set(['cream', 'forest', 'rose']);
+const LIGHT_THEMES = new Set(['cream', 'forest', 'rose', 'parchment', 'sand', 'contrast']);
 
 /* ── File reader ── */
 document.getElementById('file-input').addEventListener('change', function () {

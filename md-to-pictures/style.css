@@ -485,6 +485,63 @@ select:focus { border-color: #c9a96e44; }
   --verse-border: rgba(170,84,82,0.28);
 }
 
+/* ── Extended Themes ── */
+.tt-card.t-quran {
+  background-color: #0b1510;
+  color:            #f0e8d5;
+  --accent:         #c8a84b;
+  --accent-soft:    #e0c870;
+  --accent-bg:      #132010;
+  --accent-pill:    #162818;
+  --muted:          #4a6040;
+  --rule:           rgba(200,168,75,0.18);
+  --verse-border:   rgba(200,168,75,0.35);
+}
+.tt-card.t-parchment {
+  background-color: #f8f0d8;
+  color:            #2a1e10;
+  --accent:         #8a6030;
+  --accent-soft:    #b88848;
+  --accent-bg:      #ede0bc;
+  --accent-pill:    #e8d8a8;
+  --muted:          #9a8468;
+  --rule:           rgba(138,96,48,0.2);
+  --verse-border:   rgba(138,96,48,0.3);
+}
+.tt-card.t-midnight {
+  background-color: #090909;
+  color:            #f0f0f0;
+  --accent:         #4a9eff;
+  --accent-soft:    #74b8ff;
+  --accent-bg:      #0d1420;
+  --accent-pill:    #0a1828;
+  --muted:          #404040;
+  --rule:           rgba(74,158,255,0.14);
+  --verse-border:   rgba(74,158,255,0.28);
+}
+.tt-card.t-sand {
+  background-color: #fafaf9;
+  color:            #1c1917;
+  --accent:         #d97706;
+  --accent-soft:    #f59e0b;
+  --accent-bg:      #f0eeec;
+  --accent-pill:    #fef3c7;
+  --muted:          #78716c;
+  --rule:           rgba(120,113,108,0.18);
+  --verse-border:   rgba(217,119,6,0.25);
+}
+.tt-card.t-contrast {
+  background-color: #ffffff;
+  color:            #111111;
+  --accent:         #3730a3;
+  --accent-soft:    #4338ca;
+  --accent-bg:      #eef2ff;
+  --accent-pill:    #fde047;
+  --muted:          #555555;
+  --rule:           rgba(55,48,163,0.2);
+  --verse-border:   rgba(55,48,163,0.4);
+}
+
 /* ═══════════════════════════════════════
    BACKGROUND TEXTURES
    All use inline SVG data URIs — fully
