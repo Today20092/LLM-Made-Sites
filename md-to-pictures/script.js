@@ -26,38 +26,38 @@ marked.use({
 const FONT_PAIRINGS = {
   scholar: {
     url:     'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Lato:wght@300;400;700&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap',
-    heading: "'Playfair Display', Georgia, serif",
-    body:    "'Lato', Arial, sans-serif"
+    heading: "'Playfair Display', Georgia, 'Times New Roman', serif",
+    body:    "'Lato', system-ui, -apple-system, sans-serif"
   },
   editorial: {
     url:     'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Source+Sans+3:wght@300;400;700&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap',
-    heading: "'Cormorant Garamond', Georgia, serif",
-    body:    "'Source Sans 3', Arial, sans-serif"
+    heading: "'Cormorant Garamond', Georgia, 'Times New Roman', serif",
+    body:    "'Source Sans 3', system-ui, -apple-system, sans-serif"
   },
   minimal: {
     url:     'https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,500;0,700;1,500&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap',
-    heading: "'DM Sans', Helvetica, sans-serif",
-    body:    "'DM Sans', Helvetica, sans-serif"
+    heading: "'DM Sans', system-ui, -apple-system, sans-serif",
+    body:    "'DM Sans', system-ui, -apple-system, sans-serif"
   },
   spiritual: {
     url:     'https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Lato:wght@300;400&display=swap',
-    heading: "'Amiri', 'Traditional Arabic', serif",
-    body:    "'Amiri', 'Lato', serif"
+    heading: "'Amiri', 'Traditional Arabic', Georgia, serif",
+    body:    "'Amiri', Georgia, serif"
   },
   luxury: {
-    url:     'https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Raleway:wght@300;400;700&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap',
-    heading: "'Libre Baskerville', Georgia, serif",
-    body:    "'Raleway', Arial, sans-serif"
+    url:     'https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;700&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap',
+    heading: "'Libre Baskerville', Georgia, 'Times New Roman', serif",
+    body:    "'Source Sans 3', system-ui, -apple-system, sans-serif"
   },
   humanist: {
     url:     'https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,700;0,900;1,700&family=Open+Sans:wght@300;400;700&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap',
-    heading: "'Merriweather', Georgia, serif",
-    body:    "'Open Sans', Arial, sans-serif"
+    heading: "'Merriweather', Georgia, 'Times New Roman', serif",
+    body:    "'Open Sans', system-ui, -apple-system, sans-serif"
   },
   atkinson: {
     url:     'https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,700;1,400;1,700&display=swap',
-    heading: "'Atkinson Hyperlegible Next', Arial, sans-serif",
-    body:    "'Atkinson Hyperlegible Next', Arial, sans-serif"
+    heading: "'Atkinson Hyperlegible Next', system-ui, -apple-system, sans-serif",
+    body:    "'Atkinson Hyperlegible Next', system-ui, -apple-system, sans-serif"
   }
 };
 
