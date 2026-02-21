@@ -625,8 +625,8 @@ async function generate() {
         const allBtn = document.createElement('button');
         allBtn.className = 'btn-dl-all';
         allBtn.innerHTML = `⬇ Download All ${total} Cards (.${fmt.ext.toUpperCase()})`;
-        allBtn.onclick = () => {
-          blobs.forEach((b, idx) => {
+        allBtn.onclick = async () => {
+          for (const [idx, b] of blobs.entries()) {
             const a = document.createElement('a');
             a.href = b;
             if (coverTitle && idx === 0) {
@@ -636,7 +636,8 @@ async function generate() {
               a.download = `card-${fileSlug}-${String(n).padStart(2, '0')}.${fmt.ext}`;
             }
             a.click();
-          });
+            await new Promise(r => setTimeout(r, 80));
+          }
         };
         output.appendChild(allBtn);
       }
@@ -865,13 +866,14 @@ async function renderSelected() {
         const allBtn = document.createElement('button');
         allBtn.className = 'btn-dl-all';
         allBtn.innerHTML = `⬇ Download All ${blobs.length} Cards (.${fmt.ext.toUpperCase()})`;
-        allBtn.onclick = () => {
-          blobs.forEach((b, idx) => {
+        allBtn.onclick = async () => {
+          for (const [idx, b] of blobs.entries()) {
             const a = document.createElement('a');
             a.href     = b;
             a.download = `card-${fileSlug}-${String(idx + 1).padStart(2, '0')}.${fmt.ext}`;
             a.click();
-          });
+            await new Promise(r => setTimeout(r, 80));
+          }
         };
         output.appendChild(allBtn);
       }
