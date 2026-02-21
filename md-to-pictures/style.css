@@ -445,37 +445,43 @@ select:focus { border-color: #c9a96e44; }
   --verse-border: rgba(201,169,110,0.28);
 }
 .tt-card.t-ink {
-  background-color: #13100d;
-  color: #ede4d8;
-  --accent:       #d4956a;
-  --accent-soft:  #e8b890;
-  --accent-bg:    #1e1812;
-  --accent-pill:  #261e16;
-  --muted:        #5a4e44;
-  --rule:         rgba(212,149,106,0.18);
-  --verse-border: rgba(212,149,106,0.28);
+  /* Crimson gothic — old manuscripts, red ink, candlelit horror
+     Contrast: #f2e0df on #110808 ≈ 14:1 */
+  background-color: #110808;
+  color: #f2e0df;
+  --accent:       #c03030;
+  --accent-soft:  #d85050;
+  --accent-bg:    #1e0c0c;
+  --accent-pill:  #260e0e;
+  --muted:        #5e3838;
+  --rule:         rgba(192,48,48,0.18);
+  --verse-border: rgba(192,48,48,0.32);
 }
 .tt-card.t-slate {
-  background-color: #141b2a;
-  color: #cdd4e8;
-  --accent:       #7096d4;
-  --accent-soft:  #96b4e8;
-  --accent-bg:    #1a2236;
-  --accent-pill:  #1e2840;
-  --muted:        #3a4a68;
-  --rule:         rgba(112,150,212,0.18);
-  --verse-border: rgba(112,150,212,0.28);
+  /* Deep naval ocean — submarine charts, open ocean at night
+     Contrast: #b8c8e0 on #0c1520 ≈ 11.5:1 */
+  background-color: #0c1520;
+  color: #b8c8e0;
+  --accent:       #4a80c8;
+  --accent-soft:  #6898d8;
+  --accent-bg:    #101c2e;
+  --accent-pill:  #142238;
+  --muted:        #2e4260;
+  --rule:         rgba(74,128,200,0.20);
+  --verse-border: rgba(74,128,200,0.32);
 }
 .tt-card.t-forest {
-  background-color: #f0f4ec;
-  color: #182018;
-  --accent:       #487848;
-  --accent-soft:  #6a9e6a;
-  --accent-bg:    #dce8d8;
-  --accent-pill:  #cee0c8;
-  --muted:        #708870;
-  --rule:         rgba(72,120,72,0.2);
-  --verse-border: rgba(72,120,72,0.3);
+  /* Lush botanical rainforest — vivid botanical green, dark forest floor
+     Contrast: #142014 on #edf5e8 ≈ 14:1 */
+  background-color: #edf5e8;
+  color: #142014;
+  --accent:       #2e7030;
+  --accent-soft:  #4a9040;
+  --accent-bg:    #d4e8cc;
+  --accent-pill:  #c4deb8;
+  --muted:        #5a7a5a;
+  --rule:         rgba(46,112,48,0.22);
+  --verse-border: rgba(46,112,48,0.32);
 }
 .tt-card.t-rose {
   background-color: #fdf4f2;
@@ -491,15 +497,18 @@ select:focus { border-color: #c9a96e44; }
 
 /* ── Extended Themes ── */
 .tt-card.t-quran {
-  background-color: #0b1510;
-  color:            #f0e8d5;
-  --accent:         #c8a84b;
-  --accent-soft:    #e0c870;
-  --accent-bg:      #132010;
-  --accent-pill:    #162818;
-  --muted:          #4a6040;
-  --rule:           rgba(200,168,75,0.18);
-  --verse-border:   rgba(200,168,75,0.35);
+  /* Sacred Islamic manuscript — forest-green + antique gold
+     Contrast: #ede6d2 on #081210 ≈ 13.5:1
+     Highest --verse-border opacity in the set for Quranic verse prominence */
+  background-color: #081210;
+  color:            #ede6d2;
+  --accent:         #c4a040;
+  --accent-soft:    #d8bc58;
+  --accent-bg:      #0e1e12;
+  --accent-pill:    #122018;
+  --muted:          #3e5838;
+  --rule:           rgba(196,160,64,0.22);
+  --verse-border:   rgba(196,160,64,0.45);
 }
 .tt-card.t-parchment {
   background-color: #f8f0d8;
@@ -524,15 +533,17 @@ select:focus { border-color: #c9a96e44; }
   --verse-border:   rgba(74,158,255,0.28);
 }
 .tt-card.t-sand {
-  background-color: #fafaf9;
-  color:            #1c1917;
-  --accent:         #d97706;
-  --accent-soft:    #f59e0b;
-  --accent-bg:      #f0eeec;
-  --accent-pill:    #fef3c7;
-  --muted:          #78716c;
-  --rule:           rgba(120,113,108,0.18);
-  --verse-border:   rgba(217,119,6,0.25);
+  /* Desert terracotta — adobe clay, Southwest landscapes, terracotta pots
+     Contrast: #241810 on #faf4ed ≈ 14:1 */
+  background-color: #faf4ed;
+  color:            #241810;
+  --accent:         #b85830;
+  --accent-soft:    #d07848;
+  --accent-bg:      #f2e8dc;
+  --accent-pill:    #fde0c8;
+  --muted:          #886858;
+  --rule:           rgba(184,88,48,0.20);
+  --verse-border:   rgba(184,88,48,0.30);
 }
 .tt-card.t-contrast {
   background-color: #ffffff;
@@ -546,32 +557,32 @@ select:focus { border-color: #c9a96e44; }
   --verse-border:   rgba(55,48,163,0.4);
 }
 
-/* ── Aurora: deep indigo-black bg · mint-green accent · cream-white text ──
-   Contrast: #e8f0e0 on #0d0f14 ≈ 14:1 · accent #6be0a0 on bg ≈ 9:1        */
+/* ── Aurora: deep space indigo-black · vivid emerald-mint · pale green text ──
+   Contrast: #d4eed8 on #080a12 ≈ 14.5:1 · accent #40d890 on bg ≈ 9:1       */
 .tt-card.t-aurora {
-  background-color: #0d0f14;
-  color:            #e8f0e0;
-  --accent:         #6be0a0;
-  --accent-soft:    #90ecb8;
-  --accent-bg:      #101c18;
-  --accent-pill:    #122018;
-  --muted:          #4a5e52;
-  --rule:           rgba(107,224,160,0.16);
-  --verse-border:   rgba(107,224,160,0.32);
+  background-color: #080a12;
+  color:            #d4eed8;
+  --accent:         #40d890;
+  --accent-soft:    #70e8b0;
+  --accent-bg:      #0c1a18;
+  --accent-pill:    #0e1e1c;
+  --muted:          #3c5e50;
+  --rule:           rgba(64,216,144,0.16);
+  --verse-border:   rgba(64,216,144,0.34);
 }
 
-/* ── Ember: near-black warm bg · copper-amber accent · warm ivory text ──
-   Contrast: #f2e8d8 on #110e0a ≈ 15:1 · accent #e8924a on bg ≈ 7:1      */
+/* ── Ember: volcanic near-black · vivid fire orange · warm ivory text ──
+   Contrast: #f6ebe0 on #0e0806 ≈ 15:1 · accent #f07020 on bg ≈ 8:1      */
 .tt-card.t-ember {
-  background-color: #110e0a;
-  color:            #f2e8d8;
-  --accent:         #e8924a;
-  --accent-soft:    #f0aa70;
-  --accent-bg:      #1e1408;
-  --accent-pill:    #261808;
-  --muted:          #5a4a38;
-  --rule:           rgba(232,146,74,0.18);
-  --verse-border:   rgba(232,146,74,0.32);
+  background-color: #0e0806;
+  color:            #f6ebe0;
+  --accent:         #f07020;
+  --accent-soft:    #f89050;
+  --accent-bg:      #1a0e06;
+  --accent-pill:    #221004;
+  --muted:          #5c4428;
+  --rule:           rgba(240,112,32,0.20);
+  --verse-border:   rgba(240,112,32,0.36);
 }
 
 /* ── Noir: cool charcoal bg · silver-teal accent · cool off-white text ──
