@@ -1,4 +1,12 @@
+:root {
+  color-scheme: dark;
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+button, .file-btn, .btn-dl, select, input[type="range"], input[type="checkbox"] {
+  touch-action: manipulation;
+}
 
 body {
   background: #0a0a0f;
@@ -10,6 +18,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
   padding: 40px 20px 100px;
+  padding: env(safe-area-inset-top, 40px) env(safe-area-inset-right, 20px)
+           max(100px, env(safe-area-inset-bottom, 0px)) env(safe-area-inset-left, 20px);
   max-width: 520px;
   margin: 0 auto;
 }
@@ -27,6 +37,7 @@ body {
   font-weight: 600;
   color: #f0e8dc;
   letter-spacing: 0.02em;
+  text-wrap: balance;
 }
 .app-header p {
   font-size: 0.75rem;
@@ -34,6 +45,7 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.18em;
   margin-top: 8px;
+  text-wrap: balance;
 }
 
 /* ── Surface Cards ── */
@@ -49,7 +61,7 @@ body {
   border-color: #2a2a3e;
 }
 .surface-label {
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.16em;
   color: #5a5470;
@@ -111,7 +123,7 @@ body {
   align-items: center;
   gap: 12px;
   color: #2e2a3a;
-  font-size: 0.64rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
 }
@@ -141,6 +153,10 @@ textarea:focus {
   border-color: #c9a96e44;
   box-shadow: 0 0 0 3px #c9a96e10;
 }
+textarea:focus-visible {
+  outline: 2px solid #c9a96e;
+  outline-offset: 2px;
+}
 textarea::placeholder { color: #2e2a3a; }
 
 /* ── Settings Grid ── */
@@ -163,7 +179,7 @@ textarea::placeholder { color: #2e2a3a; }
 }
 .opt-note {
   display: block;
-  font-size: 0.62rem;
+  font-size: 0.75rem;
   color: #3a3650;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -189,6 +205,11 @@ select {
 }
 select:hover { border-color: #2e2e48; }
 select:focus { border-color: #c9a96e44; }
+select:focus-visible {
+  outline: 2px solid #c9a96e;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px #c9a96e10;
+}
 
 /* ── Text inputs (watermark, cover title/subtitle) ── */
 .opt-label-hint { opacity: 0.38; font-weight: 300; font-style: italic; }
@@ -209,6 +230,10 @@ select:focus { border-color: #c9a96e44; }
 .opt-group input[type="text"]:focus {
   border-color: #c9a96e44;
   box-shadow: 0 0 0 3px #c9a96e10;
+}
+.opt-group input[type="text"]:focus-visible {
+  outline: 2px solid #c9a96e;
+  outline-offset: 2px;
 }
 .opt-group input[type="text"]::placeholder { color: #2e2a3a; }
 
@@ -274,7 +299,7 @@ select:focus { border-color: #c9a96e44; }
   font-weight: 700;
   letter-spacing: 0.04em;
   cursor: pointer;
-  transition: opacity 0.2s, background 0.15s, transform 0.1s, border-color 0.2s;
+  transition: opacity 0.2s ease, background 0.2s ease, transform 0.15s ease, border-color 0.2s ease, color 0.2s ease;
   white-space: nowrap;
 }
 .btn-cancel:hover:not(:disabled) {
@@ -314,7 +339,7 @@ select:focus { border-color: #c9a96e44; }
   padding: 0 2px;
 }
 .card-meta-label {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
   color: #5a5470;
@@ -393,6 +418,15 @@ select:focus { border-color: #c9a96e44; }
   top: 0;
   width: 1080px;
   pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
 }
 
 /* ═══════════════════════════════════════

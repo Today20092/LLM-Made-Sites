@@ -118,7 +118,12 @@ document.getElementById('format-select').addEventListener('change', function () 
 /* ── Quality label live update ── */
 document.getElementById('quality-range').addEventListener('input', function () {
   document.getElementById('quality-label').textContent = this.value + '%';
+  this.setAttribute('aria-valuetext', this.value + ' percent');
 });
+
+/* ── Button event listeners ── */
+document.getElementById('gen-btn').addEventListener('click', generate);
+document.getElementById('cancel-btn').addEventListener('click', cancelGeneration);
 
 /* ── Cancellation flag ── */
 let cancelRequested = false;
@@ -457,11 +462,13 @@ async function generate() {
       coverChk.type = 'checkbox';
       coverChk.className = 'card-select-chk';
       coverChk.dataset.index = 'cover';
+      coverChk.setAttribute('aria-label', 'Select cover card for re-render');
       coverMeta.appendChild(coverChk);
       coverWrap.appendChild(coverMeta);
       const coverImg = document.createElement('img');
       coverImg.className = 'card-img';
       coverImg.src = coverUrl;
+      coverImg.alt = 'Preview of cover card';
       coverWrap.appendChild(coverImg);
       const coverDl = document.createElement('a');
       coverDl.className = 'btn-dl';
@@ -591,12 +598,14 @@ async function generate() {
       chk.type = 'checkbox';
       chk.className = 'card-select-chk';
       chk.dataset.index = i;
+      chk.setAttribute('aria-label', `Select card ${i + 1} of ${total} for re-render`);
       meta.appendChild(chk);
       wrap.appendChild(meta);
 
       const img = document.createElement('img');
       img.className = 'card-img';
       img.src = dataUrl;
+      img.alt = `Preview of card ${i + 1} of ${total}`;
       wrap.appendChild(img);
 
       const dlA = document.createElement('a');
@@ -625,7 +634,7 @@ async function generate() {
         const allBtn = document.createElement('button');
         allBtn.className = 'btn-dl-all';
         allBtn.innerHTML = `⬇ Download All ${total} Cards (.${fmt.ext.toUpperCase()})`;
-        allBtn.onclick = () => {
+        allBtn.addEventListener('click', () => {
           blobs.forEach((b, idx) => {
             setTimeout(() => {
               const a = document.createElement('a');
@@ -639,7 +648,7 @@ async function generate() {
               a.click();
             }, idx * 300);
           });
-        };
+        });
         output.appendChild(allBtn);
       }
       if (total > 1) {
@@ -648,7 +657,7 @@ async function generate() {
         selBtn.className = 'btn-dl-all';
         selBtn.style.marginTop = '8px';
         selBtn.innerHTML = '⟳ Render Selected Pages';
-        selBtn.onclick = renderSelected;
+        selBtn.addEventListener('click', renderSelected);
         output.appendChild(selBtn);
       }
       setStatus(`✦ Done — ${total} card${total !== 1 ? 's' : ''} ready.`);
@@ -730,6 +739,7 @@ async function renderSelected() {
         cvWrap.appendChild(cvMeta);
         const cvImg = document.createElement('img');
         cvImg.className = 'card-img'; cvImg.src = cvUrl;
+        cvImg.alt = 'Preview of cover card';
         cvWrap.appendChild(cvImg);
         const cvDl = document.createElement('a');
         cvDl.className = 'btn-dl'; cvDl.href = cvUrl;
@@ -843,6 +853,7 @@ async function renderSelected() {
       const img = document.createElement('img');
       img.className = 'card-img';
       img.src = dataUrl;
+      img.alt = `Preview of card ${displayNum} of ${selectedTotal} (original ${parseInt(origIdx) + 1})`;
       wrap.appendChild(img);
 
       const dlA = document.createElement('a');
@@ -867,7 +878,7 @@ async function renderSelected() {
         const allBtn = document.createElement('button');
         allBtn.className = 'btn-dl-all';
         allBtn.innerHTML = `⬇ Download All ${blobs.length} Cards (.${fmt.ext.toUpperCase()})`;
-        allBtn.onclick = () => {
+        allBtn.addEventListener('click', () => {
           blobs.forEach((b, idx) => {
             setTimeout(() => {
               const a = document.createElement('a');
@@ -876,7 +887,7 @@ async function renderSelected() {
               a.click();
             }, idx * 300);
           });
-        };
+        });
         output.appendChild(allBtn);
       }
       setStatus(`✦ Done — ${blobs.length} card${blobs.length !== 1 ? 's' : ''} ready.`);
