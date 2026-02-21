@@ -625,19 +625,20 @@ async function generate() {
         const allBtn = document.createElement('button');
         allBtn.className = 'btn-dl-all';
         allBtn.innerHTML = `⬇ Download All ${total} Cards (.${fmt.ext.toUpperCase()})`;
-        allBtn.onclick = async () => {
-          for (const [idx, b] of blobs.entries()) {
-            const a = document.createElement('a');
-            a.href = b;
-            if (coverTitle && idx === 0) {
-              a.download = `cover-${fileSlug}.${fmt.ext}`;
-            } else {
-              const n = coverTitle ? idx : idx + 1;
-              a.download = `card-${fileSlug}-${String(n).padStart(2, '0')}.${fmt.ext}`;
-            }
-            a.click();
-            await new Promise(r => setTimeout(r, 80));
-          }
+        allBtn.onclick = () => {
+          blobs.forEach((b, idx) => {
+            setTimeout(() => {
+              const a = document.createElement('a');
+              a.href = b;
+              if (coverTitle && idx === 0) {
+                a.download = `cover-${fileSlug}.${fmt.ext}`;
+              } else {
+                const n = coverTitle ? idx : idx + 1;
+                a.download = `card-${fileSlug}-${String(n).padStart(2, '0')}.${fmt.ext}`;
+              }
+              a.click();
+            }, idx * 300);
+          });
         };
         output.appendChild(allBtn);
       }
@@ -866,14 +867,15 @@ async function renderSelected() {
         const allBtn = document.createElement('button');
         allBtn.className = 'btn-dl-all';
         allBtn.innerHTML = `⬇ Download All ${blobs.length} Cards (.${fmt.ext.toUpperCase()})`;
-        allBtn.onclick = async () => {
-          for (const [idx, b] of blobs.entries()) {
-            const a = document.createElement('a');
-            a.href     = b;
-            a.download = `card-${fileSlug}-${String(idx + 1).padStart(2, '0')}.${fmt.ext}`;
-            a.click();
-            await new Promise(r => setTimeout(r, 80));
-          }
+        allBtn.onclick = () => {
+          blobs.forEach((b, idx) => {
+            setTimeout(() => {
+              const a = document.createElement('a');
+              a.href     = b;
+              a.download = `card-${fileSlug}-${String(idx + 1).padStart(2, '0')}.${fmt.ext}`;
+              a.click();
+            }, idx * 300);
+          });
         };
         output.appendChild(allBtn);
       }
