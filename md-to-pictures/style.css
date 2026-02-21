@@ -542,6 +542,62 @@ select:focus { border-color: #c9a96e44; }
   --verse-border:   rgba(55,48,163,0.4);
 }
 
+/* ── Aurora: deep indigo-black bg · mint-green accent · cream-white text ──
+   Contrast: #e8f0e0 on #0d0f14 ≈ 14:1 · accent #6be0a0 on bg ≈ 9:1        */
+.tt-card.t-aurora {
+  background-color: #0d0f14;
+  color:            #e8f0e0;
+  --accent:         #6be0a0;
+  --accent-soft:    #90ecb8;
+  --accent-bg:      #101c18;
+  --accent-pill:    #122018;
+  --muted:          #4a5e52;
+  --rule:           rgba(107,224,160,0.16);
+  --verse-border:   rgba(107,224,160,0.32);
+}
+
+/* ── Ember: near-black warm bg · copper-amber accent · warm ivory text ──
+   Contrast: #f2e8d8 on #110e0a ≈ 15:1 · accent #e8924a on bg ≈ 7:1      */
+.tt-card.t-ember {
+  background-color: #110e0a;
+  color:            #f2e8d8;
+  --accent:         #e8924a;
+  --accent-soft:    #f0aa70;
+  --accent-bg:      #1e1408;
+  --accent-pill:    #261808;
+  --muted:          #5a4a38;
+  --rule:           rgba(232,146,74,0.18);
+  --verse-border:   rgba(232,146,74,0.32);
+}
+
+/* ── Noir: cool charcoal bg · silver-teal accent · cool off-white text ──
+   Contrast: #d8dde6 on #111418 ≈ 11:1 · accent #7ec8c8 on bg ≈ 8:1      */
+.tt-card.t-noir {
+  background-color: #111418;
+  color:            #d8dde6;
+  --accent:         #7ec8c8;
+  --accent-soft:    #a0d8d8;
+  --accent-bg:      #141c20;
+  --accent-pill:    #162028;
+  --muted:          #46545e;
+  --rule:           rgba(126,200,200,0.16);
+  --verse-border:   rgba(126,200,200,0.30);
+}
+
+/* ── Plum: deep purple-black bg · lavender accent · lavender-white text ──
+   Contrast: #e4dff4 on #100c18 ≈ 14:1 · accent #b898f0 on bg ≈ 8:1       */
+.tt-card.t-plum {
+  background-color: #100c18;
+  color:            #e4dff4;
+  --accent:         #b898f0;
+  --accent-soft:    #cdb4f8;
+  --accent-bg:      #1a1228;
+  --accent-pill:    #1e1430;
+  --muted:          #4e4268;
+  --rule:           rgba(184,152,240,0.16);
+  --verse-border:   rgba(184,152,240,0.30);
+}
+
 /* ═══════════════════════════════════════
    BACKGROUND TEXTURES
    All use inline SVG data URIs — fully
