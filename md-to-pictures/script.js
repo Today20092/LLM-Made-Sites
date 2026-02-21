@@ -142,6 +142,25 @@ function isArabic(text) {
     .test(text);
 }
 
+/* ── Arabic paragraph detection (ratio-based) ──
+   English text containing ﷺ (U+FDFA) would trigger isArabic(),
+   so we only classify a paragraph as Arabic if >50% of its
+   non-whitespace characters are in Arabic Unicode ranges. */
+function isArabicParagraph(text) {
+  const arabicChars = (text.match(/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/g) || []).length;
+  const totalChars = text.replace(/\s/g, '').length;
+  return totalChars > 0 && (arabicChars / totalChars) > 0.5;
+}
+
+/* ── Slug generator for unique file names ── */
+function makeSlug(md) {
+  const text = md.replace(/[#*`_\[\]()>+=!~\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/g, '')
+    .trim().slice(0, 60);
+  const slug = text.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '').toLowerCase().replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 24);
+  const rand = Math.random().toString(16).slice(2, 6);
+  return (slug || 'card') + '-' + rand;
+}
+
 /* ── Heading detection ── */
 function isHeading(block) {
   return /^#{1,3}\s/.test(block.trim());
@@ -162,9 +181,10 @@ function postProcess(container) {
     }
   });
 
-  // Arabic paragraphs → RTL class
+  // Arabic paragraphs → RTL class (ratio-based to avoid misclassifying
+  // English text that contains Arabic-script characters like ﷺ)
   container.querySelectorAll('p, li').forEach(el => {
-    if (isArabic(el.textContent)) el.classList.add('ar-para');
+    if (isArabicParagraph(el.textContent)) el.classList.add('ar-para');
   });
 }
 
@@ -398,9 +418,10 @@ async function generate() {
 
     const chunks = splitMarkdown(md, density);
     lastChunks   = chunks;
+    const fileSlug = makeSlug(md);
     lastSettings = { theme, fontKey, textureKey, fmt, qualityVal, pairing, textureMode,
-                     watermarkText, coverTitle, coverSubtitle };
-    const total  = chunks.length;
+                     watermarkText, coverTitle, coverSubtitle, fileSlug };
+    const total    = chunks.length;
     const blobs  = [];
 
     setStatus(`Rendering ${total} card${total !== 1 ? 's' : ''}…`);
@@ -445,7 +466,7 @@ async function generate() {
       const coverDl = document.createElement('a');
       coverDl.className = 'btn-dl';
       coverDl.href = coverUrl;
-      coverDl.download = `card-cover.${fmt.ext}`;
+      coverDl.download = `cover-${fileSlug}.${fmt.ext}`;
       coverDl.innerHTML = `
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2.2"
@@ -581,7 +602,7 @@ async function generate() {
       const dlA = document.createElement('a');
       dlA.className = 'btn-dl';
       dlA.href      = dataUrl;
-      dlA.download  = `card-${String(i + 1).padStart(2, '0')}.${fmt.ext}`;
+      dlA.download  = `card-${fileSlug}-${String(i + 1).padStart(2, '0')}.${fmt.ext}`;
       dlA.innerHTML = `
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2.2"
@@ -609,10 +630,10 @@ async function generate() {
             const a = document.createElement('a');
             a.href = b;
             if (coverTitle && idx === 0) {
-              a.download = `card-cover.${fmt.ext}`;
+              a.download = `cover-${fileSlug}.${fmt.ext}`;
             } else {
               const n = coverTitle ? idx : idx + 1;
-              a.download = `card-${String(n).padStart(2, '0')}.${fmt.ext}`;
+              a.download = `card-${fileSlug}-${String(n).padStart(2, '0')}.${fmt.ext}`;
             }
             a.click();
           });
@@ -657,7 +678,7 @@ async function renderSelected() {
     });
 
   const { theme, fontKey, textureKey, fmt, qualityVal, pairing, textureMode,
-          watermarkText, coverTitle, coverSubtitle } = lastSettings;
+          watermarkText, coverTitle, coverSubtitle, fileSlug } = lastSettings;
 
   const output    = document.getElementById('output');
   const stage     = document.getElementById('render-stage');
@@ -710,7 +731,7 @@ async function renderSelected() {
         cvWrap.appendChild(cvImg);
         const cvDl = document.createElement('a');
         cvDl.className = 'btn-dl'; cvDl.href = cvUrl;
-        cvDl.download = `card-cover.${fmt.ext}`;
+        cvDl.download = `cover-${fileSlug}.${fmt.ext}`;
         cvDl.innerHTML = `
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2.2"
@@ -825,7 +846,7 @@ async function renderSelected() {
       const dlA = document.createElement('a');
       dlA.className = 'btn-dl';
       dlA.href      = dataUrl;
-      dlA.download  = `card-${String(displayNum).padStart(2, '0')}.${fmt.ext}`;
+      dlA.download  = `card-${fileSlug}-${String(displayNum).padStart(2, '0')}.${fmt.ext}`;
       dlA.innerHTML = `
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2.2"
@@ -848,7 +869,7 @@ async function renderSelected() {
           blobs.forEach((b, idx) => {
             const a = document.createElement('a');
             a.href     = b;
-            a.download = `card-${String(idx + 1).padStart(2, '0')}.${fmt.ext}`;
+            a.download = `card-${fileSlug}-${String(idx + 1).padStart(2, '0')}.${fmt.ext}`;
             a.click();
           });
         };
