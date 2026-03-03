@@ -30,11 +30,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const resetVarsBtn = document.getElementById("resetVarsBtn");
   const filledPreview = document.getElementById("filledPreview");
   const missingVarsHint = document.getElementById("missingVarsHint");
-  const toggleFilledPreview =
-    document.getElementById("toggleFilledPreview");
-  const filledPreviewWrapper = document.getElementById(
-    "filledPreviewWrapper"
-  );
+  const toggleFilledPreview = document.getElementById("toggleFilledPreview");
+  const filledPreviewWrapper = document.getElementById("filledPreviewWrapper");
   const previewChevron = document.getElementById("previewChevron");
 
   const copyFilledBtn = document.getElementById("copyFilledBtn");
@@ -51,29 +48,19 @@ document.addEventListener("DOMContentLoaded", () => {
   const shareModal = document.getElementById("shareModal");
   const closeShareModal = document.getElementById("closeShareModal");
   const shareTabs = Array.from(document.querySelectorAll(".shareTab"));
-  const sharePanels = Array.from(
-    document.querySelectorAll(".sharePanel")
-  );
+  const sharePanels = Array.from(document.querySelectorAll(".sharePanel"));
   const includeVarsInLink = document.getElementById("includeVarsInLink");
   const includeMetaInLink = document.getElementById("includeMetaInLink");
-  const canonicalizeInLink =
-    document.getElementById("canonicalizeInLink");
+  const canonicalizeInLink = document.getElementById("canonicalizeInLink");
   const shareLinkInput = document.getElementById("shareLinkInput");
   const copyLinkBtn = document.getElementById("copyLinkBtn");
-  const nativeShareWrapper = document.getElementById(
-    "nativeShareWrapper"
-  );
+  const nativeShareWrapper = document.getElementById("nativeShareWrapper");
   const nativeShareBtn = document.getElementById("nativeShareBtn");
-  const shareFilledPreview =
-    document.getElementById("shareFilledPreview");
-  const shareTemplatePreview = document.getElementById(
-    "shareTemplatePreview"
-  );
-  const shareMessagePreview = document.getElementById(
-    "shareMessagePreview"
-  );
+  const shareFilledPreview = document.getElementById("shareFilledPreview");
+  const shareTemplatePreview = document.getElementById("shareTemplatePreview");
+  const shareMessagePreview = document.getElementById("shareMessagePreview");
   const copyFilledFromModalBtn = document.getElementById(
-    "copyFilledFromModalBtn"
+    "copyFilledFromModalBtn",
   );
   const copyTemplateBtn = document.getElementById("copyTemplateBtn");
   const copyMessageBtn = document.getElementById("copyMessageBtn");
@@ -261,8 +248,7 @@ document.addEventListener("DOMContentLoaded", () => {
       state.tags = String(data.tags || "");
       state.notes = String(data.notes || "");
       state.template = String(data.template || "");
-      state.vars =
-        data.vars && typeof data.vars === "object" ? data.vars : {};
+      state.vars = data.vars && typeof data.vars === "object" ? data.vars : {};
 
       return true;
     } catch {
@@ -368,8 +354,13 @@ document.addEventListener("DOMContentLoaded", () => {
   function autoResizeTextarea(el) {
     if (!el) return;
     try {
+      const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+
       el.style.height = "auto";
       el.style.height = el.scrollHeight + "px";
+
+      window.scrollTo(scrollLeft, scrollTop);
     } catch (e) {
       // ignore
     }
@@ -432,7 +423,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const re = new RegExp(
         "\\{\\{\\s*" + escapeRegex(key) + "\\s*\\}\\}",
-        "g"
+        "g",
       );
       result = result.replace(re, value);
     });
@@ -528,9 +519,7 @@ document.addEventListener("DOMContentLoaded", () => {
             .map(([k, v]) => [String(k), String(v || "")])
             .sort((a, b) => a[0].localeCompare(b[0]));
 
-      const nonEmpty = pairs.filter(
-        ([, v]) => String(v).trim().length > 0
-      );
+      const nonEmpty = pairs.filter(([, v]) => String(v).trim().length > 0);
       if (nonEmpty.length > 0) payload.r = nonEmpty;
     }
 
@@ -561,8 +550,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const compressed = hashParams.get("p") || params.get("p");
     if (compressed) {
       try {
-        const json =
-          LZString.decompressFromEncodedURIComponent(compressed);
+        const json = LZString.decompressFromEncodedURIComponent(compressed);
         if (!json) return false;
 
         const data = JSON.parse(json);
@@ -602,9 +590,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 2) Backward compatible format: ?prompt=...
     const legacyPrompt = params.get("prompt");
     if (legacyPrompt) {
-      const decoded = decodeURIComponent(
-        legacyPrompt.replace(/\+/g, " ")
-      );
+      const decoded = decodeURIComponent(legacyPrompt.replace(/\+/g, " "));
       state.template = decoded;
 
       const legacyTitle = params.get("title");
@@ -769,7 +755,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (isCustom) {
         const deleteBtn = document.createElement("button");
         deleteBtn.type = "button";
-        deleteBtn.className = "absolute -top-2 -right-2 w-6 h-6 bg-md-error text-md-error-on rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-short-4 flex items-center justify-center text-xs font-bold shadow-elevation-2";
+        deleteBtn.className =
+          "absolute -top-2 -right-2 w-6 h-6 bg-md-error text-md-error-on rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-short-4 flex items-center justify-center text-xs font-bold shadow-elevation-2";
         deleteBtn.innerHTML = "×";
         deleteBtn.title = "Remove custom chatbot";
         deleteBtn.addEventListener("click", (e) => {
@@ -790,7 +777,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Add "Add Custom" button
     const addBtn = document.createElement("button");
     addBtn.type = "button";
-    addBtn.className = "flex items-center justify-center p-4 rounded-md-md border-2 border-dashed border-md-outline dark:border-gray-600 text-md-surface-on-variant dark:text-gray-400 hover:border-md-primary hover:text-md-primary dark:hover:border-indigo-400 dark:hover:text-indigo-400 transition-all duration-short-4 ease-standard text-center font-medium";
+    addBtn.className =
+      "flex items-center justify-center p-4 rounded-md-md border-2 border-dashed border-md-outline dark:border-gray-600 text-md-surface-on-variant dark:text-gray-400 hover:border-md-primary hover:text-md-primary dark:hover:border-indigo-400 dark:hover:text-indigo-400 transition-all duration-short-4 ease-standard text-center font-medium";
     addBtn.innerHTML = `<span class="text-2xl mr-2">+</span>Add Custom`;
     addBtn.addEventListener("click", openCustomChatbotModal);
     chatbotButtons.appendChild(addBtn);
@@ -927,10 +915,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   includeVarsInLink.addEventListener("change", refreshShareModalPreviews);
   includeMetaInLink.addEventListener("change", refreshShareModalPreviews);
-  canonicalizeInLink.addEventListener(
-    "change",
-    refreshShareModalPreviews
-  );
+  canonicalizeInLink.addEventListener("change", refreshShareModalPreviews);
 
   copyLinkBtn.addEventListener("click", async () => {
     refreshShareModalPreviews();
@@ -974,11 +959,15 @@ document.addEventListener("DOMContentLoaded", () => {
    * Custom Chatbot Modal
    */
   const customChatbotModal = document.getElementById("customChatbotModal");
-  const closeCustomChatbotModal = document.getElementById("closeCustomChatbotModal");
+  const closeCustomChatbotModal = document.getElementById(
+    "closeCustomChatbotModal",
+  );
   const customBotName = document.getElementById("customBotName");
   const customBotIcon = document.getElementById("customBotIcon");
   const customBotUrl = document.getElementById("customBotUrl");
-  const customBotSupportsQuery = document.getElementById("customBotSupportsQuery");
+  const customBotSupportsQuery = document.getElementById(
+    "customBotSupportsQuery",
+  );
   const saveCustomChatbotBtn = document.getElementById("saveCustomChatbotBtn");
 
   function openCustomChatbotModal() {
@@ -997,7 +986,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (closeCustomChatbotModal) {
-    closeCustomChatbotModal.addEventListener("click", closeCustomChatbotModalFn);
+    closeCustomChatbotModal.addEventListener(
+      "click",
+      closeCustomChatbotModalFn,
+    );
   }
 
   if (customChatbotModal) {
@@ -1089,12 +1081,14 @@ document.addEventListener("DOMContentLoaded", () => {
     savedTemplates.forEach((template, index) => {
       const varKeys = extractVariables(template.template);
       const varCount = varKeys.length;
-      const previewText = template.template.length > 100
-        ? template.template.substring(0, 100) + "..."
-        : template.template;
+      const previewText =
+        template.template.length > 100
+          ? template.template.substring(0, 100) + "..."
+          : template.template;
 
       const item = document.createElement("div");
-      item.className = "group p-4 bg-md-surface-container dark:bg-gray-700/50 rounded-md-md border border-md-outline-variant dark:border-gray-600 hover:border-md-primary dark:hover:border-indigo-400 transition-colors duration-short-4 cursor-pointer";
+      item.className =
+        "group p-4 bg-md-surface-container dark:bg-gray-700/50 rounded-md-md border border-md-outline-variant dark:border-gray-600 hover:border-md-primary dark:hover:border-indigo-400 transition-colors duration-short-4 cursor-pointer";
       item.innerHTML = `
         <div class="flex items-start justify-between gap-3">
           <div class="flex-1 min-w-0">
@@ -1229,7 +1223,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (data.templates && Array.isArray(data.templates)) {
           // Merge templates (avoid duplicates by ID)
           const existingIds = new Set(savedTemplates.map((t) => t.id));
-          const newTemplates = data.templates.filter((t) => !existingIds.has(t.id));
+          const newTemplates = data.templates.filter(
+            (t) => !existingIds.has(t.id),
+          );
           savedTemplates = [...newTemplates, ...savedTemplates];
           saveTemplates();
         }
@@ -1237,7 +1233,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (data.customChatbots && Array.isArray(data.customChatbots)) {
           // Merge custom chatbots (avoid duplicates by name)
           const existingNames = new Set(customChatbots.map((c) => c.name));
-          const newChatbots = data.customChatbots.filter((c) => !existingNames.has(c.name));
+          const newChatbots = data.customChatbots.filter(
+            (c) => !existingNames.has(c.name),
+          );
           customChatbots = [...customChatbots, ...newChatbots];
           saveCustomChatbots();
           createChatbotButtons();
@@ -1277,7 +1275,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (importTemplatesBtn && importTemplatesInput) {
-    importTemplatesBtn.addEventListener("click", () => importTemplatesInput.click());
+    importTemplatesBtn.addEventListener("click", () =>
+      importTemplatesInput.click(),
+    );
     importTemplatesInput.addEventListener("change", (e) => {
       const file = e.target.files[0];
       if (file) {
@@ -1294,10 +1294,16 @@ document.addEventListener("DOMContentLoaded", () => {
         shareModal.classList.add("hidden");
         shareModal.classList.remove("flex");
       }
-      if (customChatbotModal && !customChatbotModal.classList.contains("hidden")) {
+      if (
+        customChatbotModal &&
+        !customChatbotModal.classList.contains("hidden")
+      ) {
         closeCustomChatbotModalFn();
       }
-      if (templateLibraryModal && !templateLibraryModal.classList.contains("hidden")) {
+      if (
+        templateLibraryModal &&
+        !templateLibraryModal.classList.contains("hidden")
+      ) {
         closeTemplateLibraryModalFn();
       }
     }
