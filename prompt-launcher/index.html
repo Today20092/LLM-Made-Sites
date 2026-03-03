@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -36,73 +36,195 @@
             colors: {
               // Material 3 Light Theme
               md: {
-                primary: { DEFAULT: '#6750A4', on: '#FFFFFF', container: '#EADDFF', 'on-container': '#21005D' },
-                secondary: { DEFAULT: '#625B71', on: '#FFFFFF', container: '#E8DEF8', 'on-container': '#1D192B' },
-                tertiary: { DEFAULT: '#7D5260', on: '#FFFFFF', container: '#FFD8E4', 'on-container': '#31111D' },
-                error: { DEFAULT: '#B3261E', on: '#FFFFFF', container: '#F9DEDC', 'on-container': '#410E0B' },
-                surface: { DEFAULT: '#FEF7FF', on: '#1D1B20', variant: '#E7E0EC', 'on-variant': '#49454F', dim: '#DED8E1', bright: '#FEF7FF', 'container-lowest': '#FFFFFF', 'container-low': '#F7F2FA', 'container': '#F3EDF7', 'container-high': '#ECE6F0', 'container-highest': '#E6E0E9' },
-                outline: { DEFAULT: '#79747E', variant: '#CAC4D0' },
-                inverse: { surface: '#322F35', 'on-surface': '#F5EFF7', primary: '#D0BCFF' },
-                shadow: '#000000',
-                scrim: '#000000',
+                primary: {
+                  DEFAULT: "#6750A4",
+                  on: "#FFFFFF",
+                  container: "#EADDFF",
+                  "on-container": "#21005D",
+                },
+                secondary: {
+                  DEFAULT: "#625B71",
+                  on: "#FFFFFF",
+                  container: "#E8DEF8",
+                  "on-container": "#1D192B",
+                },
+                tertiary: {
+                  DEFAULT: "#7D5260",
+                  on: "#FFFFFF",
+                  container: "#FFD8E4",
+                  "on-container": "#31111D",
+                },
+                error: {
+                  DEFAULT: "#B3261E",
+                  on: "#FFFFFF",
+                  container: "#F9DEDC",
+                  "on-container": "#410E0B",
+                },
+                surface: {
+                  DEFAULT: "#FEF7FF",
+                  on: "#1D1B20",
+                  variant: "#E7E0EC",
+                  "on-variant": "#49454F",
+                  dim: "#DED8E1",
+                  bright: "#FEF7FF",
+                  "container-lowest": "#FFFFFF",
+                  "container-low": "#F7F2FA",
+                  container: "#F3EDF7",
+                  "container-high": "#ECE6F0",
+                  "container-highest": "#E6E0E9",
+                },
+                outline: { DEFAULT: "#79747E", variant: "#CAC4D0" },
+                inverse: {
+                  surface: "#322F35",
+                  "on-surface": "#F5EFF7",
+                  primary: "#D0BCFF",
+                },
+                shadow: "#000000",
+                scrim: "#000000",
               },
             },
             fontFamily: {
-              sans: ['Roboto', 'system-ui', 'sans-serif'],
+              sans: ["Roboto", "system-ui", "sans-serif"],
             },
             fontSize: {
               // Material 3 Type Scale
-              'display-lg': ['57px', { lineHeight: '64px', letterSpacing: '-0.25px', fontWeight: '400' }],
-              'display-md': ['45px', { lineHeight: '52px', letterSpacing: '0px', fontWeight: '400' }],
-              'display-sm': ['36px', { lineHeight: '44px', letterSpacing: '0px', fontWeight: '400' }],
-              'headline-lg': ['32px', { lineHeight: '40px', letterSpacing: '0px', fontWeight: '400' }],
-              'headline-md': ['28px', { lineHeight: '36px', letterSpacing: '0px', fontWeight: '400' }],
-              'headline-sm': ['24px', { lineHeight: '32px', letterSpacing: '0px', fontWeight: '400' }],
-              'title-lg': ['22px', { lineHeight: '28px', letterSpacing: '0px', fontWeight: '500' }],
-              'title-md': ['16px', { lineHeight: '24px', letterSpacing: '0.15px', fontWeight: '500' }],
-              'title-sm': ['14px', { lineHeight: '20px', letterSpacing: '0.1px', fontWeight: '500' }],
-              'label-lg': ['14px', { lineHeight: '20px', letterSpacing: '0.1px', fontWeight: '500' }],
-              'label-md': ['12px', { lineHeight: '16px', letterSpacing: '0.5px', fontWeight: '500' }],
-              'label-sm': ['11px', { lineHeight: '16px', letterSpacing: '0.5px', fontWeight: '500' }],
-              'body-lg': ['16px', { lineHeight: '24px', letterSpacing: '0.5px', fontWeight: '400' }],
-              'body-md': ['14px', { lineHeight: '20px', letterSpacing: '0.25px', fontWeight: '400' }],
-              'body-sm': ['12px', { lineHeight: '16px', letterSpacing: '0.4px', fontWeight: '400' }],
+              "display-lg": [
+                "57px",
+                {
+                  lineHeight: "64px",
+                  letterSpacing: "-0.25px",
+                  fontWeight: "400",
+                },
+              ],
+              "display-md": [
+                "45px",
+                { lineHeight: "52px", letterSpacing: "0px", fontWeight: "400" },
+              ],
+              "display-sm": [
+                "36px",
+                { lineHeight: "44px", letterSpacing: "0px", fontWeight: "400" },
+              ],
+              "headline-lg": [
+                "32px",
+                { lineHeight: "40px", letterSpacing: "0px", fontWeight: "400" },
+              ],
+              "headline-md": [
+                "28px",
+                { lineHeight: "36px", letterSpacing: "0px", fontWeight: "400" },
+              ],
+              "headline-sm": [
+                "24px",
+                { lineHeight: "32px", letterSpacing: "0px", fontWeight: "400" },
+              ],
+              "title-lg": [
+                "22px",
+                { lineHeight: "28px", letterSpacing: "0px", fontWeight: "500" },
+              ],
+              "title-md": [
+                "16px",
+                {
+                  lineHeight: "24px",
+                  letterSpacing: "0.15px",
+                  fontWeight: "500",
+                },
+              ],
+              "title-sm": [
+                "14px",
+                {
+                  lineHeight: "20px",
+                  letterSpacing: "0.1px",
+                  fontWeight: "500",
+                },
+              ],
+              "label-lg": [
+                "14px",
+                {
+                  lineHeight: "20px",
+                  letterSpacing: "0.1px",
+                  fontWeight: "500",
+                },
+              ],
+              "label-md": [
+                "12px",
+                {
+                  lineHeight: "16px",
+                  letterSpacing: "0.5px",
+                  fontWeight: "500",
+                },
+              ],
+              "label-sm": [
+                "11px",
+                {
+                  lineHeight: "16px",
+                  letterSpacing: "0.5px",
+                  fontWeight: "500",
+                },
+              ],
+              "body-lg": [
+                "16px",
+                {
+                  lineHeight: "24px",
+                  letterSpacing: "0.5px",
+                  fontWeight: "400",
+                },
+              ],
+              "body-md": [
+                "14px",
+                {
+                  lineHeight: "20px",
+                  letterSpacing: "0.25px",
+                  fontWeight: "400",
+                },
+              ],
+              "body-sm": [
+                "12px",
+                {
+                  lineHeight: "16px",
+                  letterSpacing: "0.4px",
+                  fontWeight: "400",
+                },
+              ],
             },
             boxShadow: {
               // Material 3 Elevation
-              'elevation-1': '0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15)',
-              'elevation-2': '0px 1px 2px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15)',
-              'elevation-3': '0px 1px 3px rgba(0, 0, 0, 0.3), 0px 4px 8px 3px rgba(0, 0, 0, 0.15)',
-              'elevation-4': '0px 2px 3px rgba(0, 0, 0, 0.3), 0px 6px 10px 4px rgba(0, 0, 0, 0.15)',
-              'elevation-5': '0px 4px 4px rgba(0, 0, 0, 0.3), 0px 8px 12px 6px rgba(0, 0, 0, 0.15)',
+              "elevation-1":
+                "0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15)",
+              "elevation-2":
+                "0px 1px 2px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15)",
+              "elevation-3":
+                "0px 1px 3px rgba(0, 0, 0, 0.3), 0px 4px 8px 3px rgba(0, 0, 0, 0.15)",
+              "elevation-4":
+                "0px 2px 3px rgba(0, 0, 0, 0.3), 0px 6px 10px 4px rgba(0, 0, 0, 0.15)",
+              "elevation-5":
+                "0px 4px 4px rgba(0, 0, 0, 0.3), 0px 8px 12px 6px rgba(0, 0, 0, 0.15)",
             },
             borderRadius: {
               // Material 3 Shape
-              'xs-md': '4px',
-              'sm-md': '8px',
-              'md-md': '12px',
-              'lg-md': '16px',
-              'xl-md': '28px',
+              "xs-md": "4px",
+              "sm-md": "8px",
+              "md-md": "12px",
+              "lg-md": "16px",
+              "xl-md": "28px",
             },
             transitionDuration: {
               // Material 3 Motion
-              'short-1': '50ms',
-              'short-2': '100ms',
-              'short-3': '150ms',
-              'short-4': '200ms',
-              'medium-1': '250ms',
-              'medium-2': '300ms',
-              'medium-3': '350ms',
-              'medium-4': '400ms',
-              'long-1': '450ms',
-              'long-2': '500ms',
-              'long-3': '550ms',
-              'long-4': '600ms',
+              "short-1": "50ms",
+              "short-2": "100ms",
+              "short-3": "150ms",
+              "short-4": "200ms",
+              "medium-1": "250ms",
+              "medium-2": "300ms",
+              "medium-3": "350ms",
+              "medium-4": "400ms",
+              "long-1": "450ms",
+              "long-2": "500ms",
+              "long-3": "550ms",
+              "long-4": "600ms",
             },
             transitionTimingFunction: {
-              'standard': 'cubic-bezier(0.2, 0, 0, 1)',
-              'emphasized-decelerate': 'cubic-bezier(0.05, 0.7, 0.1, 1)',
-              'emphasized-accelerate': 'cubic-bezier(0.3, 0, 0.8, 0.15)',
+              standard: "cubic-bezier(0.2, 0, 0, 1)",
+              "emphasized-decelerate": "cubic-bezier(0.05, 0.7, 0.1, 1)",
+              "emphasized-accelerate": "cubic-bezier(0.3, 0, 0.8, 0.15)",
             },
           },
         },
@@ -112,7 +234,7 @@
     <!-- Simple compression: LZ-String -->
     <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
   </head>
 
   <body
@@ -158,11 +280,15 @@
           >
             AI Prompt Launcher
           </h1>
-          <p class="text-md-surface-on-variant dark:text-gray-300 mt-2 text-body-md sm:text-body-lg">
+          <p
+            class="text-md-surface-on-variant dark:text-gray-300 mt-2 text-body-md sm:text-body-lg"
+          >
             Write a prompt once, fill variables like <code>{{name}}</code>,
             share it, and launch it across multiple chatbots.
           </p>
-          <p class="text-body-sm text-md-surface-on-variant dark:text-gray-400 mt-2">
+          <p
+            class="text-body-sm text-md-surface-on-variant dark:text-gray-400 mt-2"
+          >
             Shortcuts:
             <kbd
               class="px-1.5 py-0.5 bg-md-surface-container-highest dark:bg-gray-700 rounded text-label-sm"
@@ -251,7 +377,9 @@
               class="text-title-lg font-medium text-md-surface-on dark:text-gray-200"
               >Prompt Template</label
             >
-            <div class="text-body-sm text-md-surface-on-variant dark:text-gray-400">
+            <div
+              class="text-body-sm text-md-surface-on-variant dark:text-gray-400"
+            >
               <span id="charCount">0 characters</span>
             </div>
           </div>
@@ -267,7 +395,9 @@ Use variables like:
 - Goal: {{goal}}"
           ></textarea>
 
-          <p class="text-body-sm text-md-surface-on-variant dark:text-gray-400 mt-2">
+          <p
+            class="text-body-sm text-md-surface-on-variant dark:text-gray-400 mt-2"
+          >
             Tip: Variables are detected automatically from <code>{{...}}</code>
             patterns.
           </p>
@@ -279,7 +409,9 @@ Use variables like:
           class="hidden mb-6 border border-md-outline-variant dark:border-gray-700 rounded-md-md p-4 bg-md-surface-container dark:bg-gray-800/40"
         >
           <div class="flex items-center justify-between gap-3">
-            <h2 class="text-title-md font-medium text-md-surface-on dark:text-white">
+            <h2
+              class="text-title-md font-medium text-md-surface-on dark:text-white"
+            >
               Fill Variables
             </h2>
             <button
@@ -296,7 +428,9 @@ Use variables like:
             <!-- Variable inputs inserted here -->
           </div>
 
-          <div class="mt-4 border-t border-md-outline-variant dark:border-gray-700 pt-3">
+          <div
+            class="mt-4 border-t border-md-outline-variant dark:border-gray-700 pt-3"
+          >
             <button
               id="toggleFilledPreview"
               type="button"
@@ -364,8 +498,18 @@ Use variables like:
             id="templateLibraryBtn"
             class="flex items-center justify-center gap-2 bg-md-surface-container-highest dark:bg-gray-700 hover:bg-md-surface-container-high dark:hover:bg-gray-600 text-md-surface-on dark:text-gray-100 font-medium py-3 px-6 rounded-full shadow-elevation-1 hover:shadow-elevation-2 transition-all duration-short-4 ease-standard focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-md-outline"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
+              />
             </svg>
             Library
           </button>
@@ -379,13 +523,17 @@ Use variables like:
         </section>
 
         <!-- Launch -->
-        <section class="border-t border-md-outline-variant dark:border-gray-700 pt-8">
+        <section
+          class="border-t border-md-outline-variant dark:border-gray-700 pt-8"
+        >
           <h2
             class="text-headline-sm font-normal text-md-surface-on dark:text-white mb-2 text-center"
           >
             Launch in AI Chatbots
           </h2>
-          <p class="text-body-md text-md-surface-on-variant dark:text-gray-300 mb-6 text-center">
+          <p
+            class="text-body-md text-md-surface-on-variant dark:text-gray-300 mb-6 text-center"
+          >
             For chatbots that don't support URL autofill, this tool will copy
             the filled prompt first—then open the site.
           </p>
@@ -429,7 +577,9 @@ Use variables like:
             >
               Share
             </h3>
-            <p class="text-body-md text-md-surface-on-variant dark:text-gray-300 mt-1">
+            <p
+              class="text-body-md text-md-surface-on-variant dark:text-gray-300 mt-1"
+            >
               Choose the simplest format for the recipient.
             </p>
           </div>
@@ -505,7 +655,9 @@ Use variables like:
                   </label>
                 </div>
 
-                <span class="text-body-sm text-md-surface-on-variant dark:text-gray-400">
+                <span
+                  class="text-body-sm text-md-surface-on-variant dark:text-gray-400"
+                >
                   Uses LZ-String compression.
                 </span>
               </div>
@@ -523,7 +675,9 @@ Use variables like:
                     >Minify whitespace in template & vars (smaller link)</span
                   >
                 </label>
-                <span class="text-body-sm text-md-surface-on-variant dark:text-gray-400">
+                <span
+                  class="text-body-sm text-md-surface-on-variant dark:text-gray-400"
+                >
                   Trims trailing spaces and collapses 3+ blank lines to 2.
                 </span>
               </div>
@@ -567,7 +721,9 @@ Use variables like:
                 </svg>
                 Share via…
               </button>
-              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">
+              <p
+                class="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center"
+              >
                 Opens your device's share menu
               </p>
             </div>
@@ -684,7 +840,9 @@ Use variables like:
             >
               Add Custom Chatbot
             </h3>
-            <p class="text-body-md text-md-surface-on-variant dark:text-gray-300 mt-1">
+            <p
+              class="text-body-md text-md-surface-on-variant dark:text-gray-300 mt-1"
+            >
               Add your own AI chatbot service
             </p>
           </div>
@@ -742,13 +900,18 @@ Use variables like:
               class="w-full px-3 py-2 rounded-sm-md border-b-2 border-md-outline dark:border-gray-600 bg-md-surface-container-highest dark:bg-gray-700 text-md-surface-on dark:text-gray-100 focus:outline-none focus:border-md-primary dark:focus:border-indigo-400 transition-colors duration-short-4"
               placeholder="https://example.com/chat"
             />
-            <p class="text-body-sm text-md-surface-on-variant dark:text-gray-400 mt-1">
-              Use <code>{{{s}}}</code> as placeholder for the prompt (e.g., <code>?q={{{s}}}</code>)
+            <p
+              class="text-body-sm text-md-surface-on-variant dark:text-gray-400 mt-1"
+            >
+              Use <code>{{{s}}}</code> as placeholder for the prompt (e.g.,
+              <code>?q={{{s}}}</code>)
             </p>
           </div>
 
           <div>
-            <label class="inline-flex items-center gap-2 text-body-md cursor-pointer">
+            <label
+              class="inline-flex items-center gap-2 text-body-md cursor-pointer"
+            >
               <input
                 id="customBotSupportsQuery"
                 type="checkbox"
@@ -758,8 +921,11 @@ Use variables like:
                 Supports URL query parameter autofill
               </span>
             </label>
-            <p class="text-body-sm text-md-surface-on-variant dark:text-gray-400 mt-1 ml-6">
-              If checked, the prompt will be added to the URL. Otherwise, it will be copied to clipboard first.
+            <p
+              class="text-body-sm text-md-surface-on-variant dark:text-gray-400 mt-1 ml-6"
+            >
+              If checked, the prompt will be added to the URL. Otherwise, it
+              will be copied to clipboard first.
             </p>
           </div>
         </div>
@@ -795,7 +961,9 @@ Use variables like:
             >
               Template Library
             </h3>
-            <p class="text-body-md text-md-surface-on-variant dark:text-gray-300 mt-1">
+            <p
+              class="text-body-md text-md-surface-on-variant dark:text-gray-300 mt-1"
+            >
               Save and manage your prompt templates
             </p>
           </div>
@@ -809,14 +977,26 @@ Use variables like:
         </div>
 
         <!-- Library Actions -->
-        <div class="flex flex-wrap gap-3 mb-4 pb-4 border-b border-md-outline-variant dark:border-gray-700">
+        <div
+          class="flex flex-wrap gap-3 mb-4 pb-4 border-b border-md-outline-variant dark:border-gray-700"
+        >
           <button
             id="saveToLibraryBtn"
             class="flex items-center gap-2 px-4 py-2 rounded-full bg-md-primary hover:bg-md-primary/90 text-md-primary-on font-medium shadow-elevation-1 hover:shadow-elevation-2 transition-all duration-short-4"
             type="button"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 4v16m8-8H4"
+              />
             </svg>
             Save Current
           </button>
@@ -825,8 +1005,18 @@ Use variables like:
             class="flex items-center gap-2 px-4 py-2 rounded-full bg-md-surface-container-highest dark:bg-gray-700 hover:bg-md-surface-container-high dark:hover:bg-gray-600 text-md-surface-on dark:text-gray-100 font-medium transition-all duration-short-4"
             type="button"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+              />
             </svg>
             Export
           </button>
@@ -835,8 +1025,18 @@ Use variables like:
             class="flex items-center gap-2 px-4 py-2 rounded-full bg-md-surface-container-highest dark:bg-gray-700 hover:bg-md-surface-container-high dark:hover:bg-gray-600 text-md-surface-on dark:text-gray-100 font-medium transition-all duration-short-4"
             type="button"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+              />
             </svg>
             Import
           </button>
@@ -849,16 +1049,30 @@ Use variables like:
         </div>
 
         <!-- Template List -->
-        <div id="templateList" class="flex-1 overflow-y-auto space-y-3 min-h-[200px]">
+        <div
+          id="templateList"
+          class="flex-1 overflow-y-auto space-y-3 min-h-[200px]"
+        >
           <!-- Templates will be rendered here -->
         </div>
 
-        <p class="text-body-sm text-md-surface-on-variant dark:text-gray-400 mt-4 pt-4 border-t border-md-outline-variant dark:border-gray-700">
-          Tip: Press <kbd class="px-1.5 py-0.5 bg-md-surface-container-highest dark:bg-gray-700 rounded text-label-sm">Ctrl+L</kbd> to quickly open the library
+        <p
+          class="text-body-sm text-md-surface-on-variant dark:text-gray-400 mt-4 pt-4 border-t border-md-outline-variant dark:border-gray-700"
+        >
+          Tip: Press
+          <kbd
+            class="px-1.5 py-0.5 bg-md-surface-container-highest dark:bg-gray-700 rounded text-label-sm"
+            >Ctrl+L</kbd
+          >
+          to quickly open the library
         </p>
       </div>
     </div>
 
-    <script src="script.js" defer></script>
+    <!-- Modular JS loading -->
+    <script src="js/config.js" defer></script>
+    <script src="js/state.js" defer></script>
+    <script src="js/ui.js" defer></script>
+    <script src="js/main.js" defer></script>
   </body>
 </html>
