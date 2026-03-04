@@ -25,3 +25,20 @@
 .fade-in {
   animation: fadeIn 400ms cubic-bezier(0.05, 0.7, 0.1, 1);
 }
+
+/* Custom textarea resizer for better mobile touch targets */
+textarea::-webkit-resizer {
+  background-color: transparent;
+  /* Use a noticeable chevron/handle icon */
+  background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 14L14 10M6 14L14 6' stroke='%2379747E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: bottom right;
+  /* Make the touch area significantly larger than typical default */
+  min-width: 32px;
+  min-height: 32px;
+}
+
+/* For dark mode */
+.dark textarea::-webkit-resizer {
+  background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 14L14 10M6 14L14 6' stroke='%23CAC4D0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
