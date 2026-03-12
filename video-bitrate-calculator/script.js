@@ -170,14 +170,24 @@
     }
   });
 
-  // Presets (Chips)
-  document.querySelectorAll("md-filter-chip").forEach(chip => {
+  // Presets (Chips) - Enforce single-selection
+  const presetChips = document.querySelectorAll("md-filter-chip");
+  presetChips.forEach(chip => {
     chip.addEventListener("click", () => {
       if (!reverseModeToggle.selected) {
-        baselineBitrateEl.value = chip.dataset.bitrate;
-        audioBitrateEl.value = chip.dataset.audio;
-        recalc();
-        saveState();
+        // Deselect others
+        presetChips.forEach(c => { if (c !== chip) c.selected = false; });
+        
+        // If the chip was just selected, apply the values
+        if (chip.selected) {
+          baselineBitrateEl.value = chip.dataset.bitrate;
+          audioBitrateEl.value = chip.dataset.audio;
+          recalc();
+          saveState();
+        }
+      } else {
+        // Prevent selection in reverse mode
+        chip.selected = false;
       }
     });
   });
