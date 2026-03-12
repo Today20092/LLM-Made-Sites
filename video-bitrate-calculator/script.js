@@ -16,6 +16,8 @@
   const capacityResults = $("#capacityResults");
   const customSpeedEl = $("#customSpeed");
   const customSpeedHeader = $("#customSpeedHeader");
+  const shareConfigBtn = $("#shareConfig");
+  const toastEl = $("#toast");
 
   // ===== Theme =====
   const themeToggle = $("#themeToggle");
@@ -268,6 +270,36 @@
       profiles: Array.from(profiles.entries()).map(([id, p]) => ({ id, bitrate: p.bitrate, name: p.name })),
     };
     localStorage.setItem("vbc-state", JSON.stringify(state));
+    return state;
+  }
+
+  function getStateString() {
+    const state = saveState();
+    return btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+  }
+
+  function applyState(state) {
+    if (!state) return;
+    hoursEl.value = state.hours ?? 0;
+    minutesEl.value = state.minutes ?? 10;
+    secondsEl.value = state.seconds ?? 0;
+    baselineBitrateEl.value = state.baselineBitrate ?? 100;
+    costPerTBEl.value = state.costPerTB ?? 20;
+    availableStorageEl.value = state.availableStorage ?? 500;
+    customSpeedEl.value = state.customSpeed ?? 50;
+
+    // Clear existing profiles
+    container.innerHTML = "";
+    profiles.clear();
+
+    if (state.profiles && state.profiles.length > 0) {
+      state.profiles.forEach((p) => {
+        createProfileCard(p.id, p.bitrate, p.name);
+      });
+    } else {
+      addProfile(50);
+    }
+    recalc();
   }
 
   function loadState() {
@@ -275,23 +307,34 @@
     if (!raw) return false;
     try {
       const state = JSON.parse(raw);
-      hoursEl.value = state.hours ?? 0;
-      minutesEl.value = state.minutes ?? 10;
-      secondsEl.value = state.seconds ?? 0;
-      baselineBitrateEl.value = state.baselineBitrate ?? 100;
-      costPerTBEl.value = state.costPerTB ?? 20;
-      availableStorageEl.value = state.availableStorage ?? 500;
-      customSpeedEl.value = state.customSpeed ?? 50;
-      if (state.profiles && state.profiles.length > 0) {
-        state.profiles.forEach((p) => {
-          createProfileCard(p.id, p.bitrate, p.name);
-        });
-        return true;
-      }
+      applyState(state);
+      return true;
     } catch (e) {
       // ignore
     }
     return false;
+  }
+
+  function loadFromUrl() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sharedState = urlParams.get("s");
+    if (sharedState) {
+      try {
+        const state = JSON.parse(decodeURIComponent(escape(atob(sharedState))));
+        applyState(state);
+        return true;
+      } catch (e) {
+        console.error("Failed to parse shared state", e);
+      }
+    }
+    return false;
+  }
+
+  function showToast() {
+    toastEl.classList.remove("translate-x-full");
+    setTimeout(() => {
+      toastEl.classList.add("translate-x-full");
+    }, 3000);
   }
 
   // ===== Events =====
@@ -304,8 +347,24 @@
 
   $("#addProfile").addEventListener("click", () => addProfile());
 
+  shareConfigBtn.addEventListener("click", () => {
+    const stateStr = getStateString();
+    const url = new URL(window.location.href);
+    url.searchParams.set("s", stateStr);
+    window.history.replaceState({}, "", url);
+    
+    navigator.clipboard.writeText(url.href).then(() => {
+      showToast();
+    });
+  });
+
   // ===== Init =====
-  const restored = loadState();
+  const restoredFromUrl = loadFromUrl();
+  let restored = restoredFromUrl;
+  if (!restored) {
+    restored = loadState();
+  }
+  
   if (!restored) {
     addProfile(50);
   }
