@@ -274,8 +274,26 @@
   }
 
   function getStateString() {
-    const state = saveState();
-    return btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+    const s = saveState();
+    // Compact format: v2|h|m|s|base|cost|stor|speed|p1id,p1bit,p1name|p2id,p2bit,p2name...
+    const parts = [
+      "v2",
+      s.hours,
+      s.minutes,
+      s.seconds,
+      s.baselineBitrate,
+      s.costPerTB,
+      s.availableStorage,
+      s.customSpeed,
+    ];
+
+    s.profiles.forEach((p) => {
+      // Escape commas and pipes in name
+      const name = encodeURIComponent(p.name).replace(/\|/g, "%7C").replace(/,/g, "%2C");
+      parts.push(`${p.id},${p.bitrate},${name}`);
+    });
+
+    return btoa(unescape(encodeURIComponent(parts.join("|"))));
   }
 
   function applyState(state) {
@@ -320,9 +338,31 @@
     const sharedState = urlParams.get("s");
     if (sharedState) {
       try {
-        const state = JSON.parse(decodeURIComponent(escape(atob(sharedState))));
-        applyState(state);
-        return true;
+        const decoded = decodeURIComponent(escape(atob(sharedState)));
+        if (decoded.startsWith("v2|")) {
+          // Compact format
+          const p = decoded.split("|");
+          const state = {
+            hours: p[1],
+            minutes: p[2],
+            seconds: p[3],
+            baselineBitrate: p[4],
+            costPerTB: p[5],
+            availableStorage: p[6],
+            customSpeed: p[7],
+            profiles: p.slice(8).map((profStr) => {
+              const [id, bitrate, name] = profStr.split(",");
+              return { id: parseInt(id), bitrate: parseFloat(bitrate), name: decodeURIComponent(name) };
+            }),
+          };
+          applyState(state);
+          return true;
+        } else {
+          // v1 (JSON)
+          const state = JSON.parse(decoded);
+          applyState(state);
+          return true;
+        }
       } catch (e) {
         console.error("Failed to parse shared state", e);
       }
