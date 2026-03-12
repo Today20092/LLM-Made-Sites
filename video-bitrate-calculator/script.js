@@ -164,6 +164,9 @@
   applySuggestionBtn.addEventListener("click", () => {
     const rec = getRecommendedBitrate();
     if (rec && !reverseModeToggle.selected) {
+      // Deselect all platform presets
+      presetChips.forEach(c => { c.selected = false; });
+      
       baselineBitrateEl.value = rec;
       recalc();
       saveState();
