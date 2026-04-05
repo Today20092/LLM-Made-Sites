@@ -15,7 +15,8 @@ A simple and clean interface to write a prompt and quickly test it across multip
 *   **Live Tool:** [**.../prompt-launcher/**](https://today20092.github.io/LLM-Made-Sites/prompt-launcher/)
 *   **Features:**
     *   Dynamically generates launch links as you type.
-    *   Supports Perplexity, DuckDuckGo AI, ChatGPT, and T3 Chat.
+    *   Supports ChatGPT, Claude, Perplexity, T3 Chat, Google Gemini, Grok, Mistral Le Chat, Poe, DeepSeek, and Copilot.
+    *   Some chatbots open with the prompt prefilled; others open first and use copy/paste.
     *   Responsive design for both desktop and mobile.
 
 ### 2. Video Bitrate Calculator

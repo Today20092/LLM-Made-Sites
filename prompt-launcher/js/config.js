@@ -24,7 +24,7 @@ const builtInChatbots = [
     name: "Perplexity",
     icon: "🔍",
     supportsQueryParam: true,
-    urlTemplate: "https://perplexity.ai/?q={{{s}}}",
+    urlTemplate: "https://www.perplexity.ai/search/new?q={{{s}}}",
   },
   {
     name: "T3 Chat",
