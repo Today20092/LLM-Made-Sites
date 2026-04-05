@@ -4,6 +4,7 @@
 const STORAGE_KEY = "promptLauncher_state";
 const SAVE_DEBOUNCE_MS = 500;
 const CUSTOM_CHATBOTS_KEY = "promptLauncher_customChatbots";
+const HIDDEN_CHATBOTS_KEY = "promptLauncher_hiddenChatbots";
 const TEMPLATES_KEY = "promptLauncher_templates";
 
 const builtInChatbots = [

@@ -55,7 +55,7 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans: ["Roboto", "system-ui", "sans-serif"],
+        sans: ["Segoe UI Variable", "Segoe UI", "Aptos", "system-ui", "sans-serif"],
       },
       fontSize: {
         // Material 3 Type Scale

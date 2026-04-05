@@ -587,9 +587,9 @@ function createChatbotButtons() {
     a.setAttribute("data-bot-name", bot.name);
     a.target = "_blank";
     a.rel = "noopener noreferrer";
-    a.className = `group flex min-h-[72px] items-center gap-3 rounded-[24px] border border-md-outline-variant/70 dark:border-gray-700/80 bg-md-surface-container-high/85 dark:bg-gray-700/45 px-4 py-3 pr-24 shadow-elevation-1 text-left w-full transition-all duration-short-4 ease-standard hover:border-md-primary hover:shadow-elevation-2 dark:hover:border-indigo-400`;
+    a.className = `group flex min-h-[60px] sm:min-h-[72px] items-center gap-3 rounded-[24px] border border-md-outline-variant/70 dark:border-gray-700/80 bg-md-surface-container-high/85 dark:bg-gray-700/45 px-3 py-2.5 sm:px-4 sm:py-3 pr-16 sm:pr-24 shadow-elevation-1 text-left w-full transition-all duration-short-4 ease-standard hover:border-md-primary hover:shadow-elevation-2 dark:hover:border-indigo-400`;
     a.innerHTML = `
-      <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-[18px] bg-md-primary-container text-2xl">${bot.icon}</span>
+      <span class="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-[18px] bg-md-primary-container text-xl sm:text-2xl">${bot.icon}</span>
       <span class="min-w-0 flex-1">
         <span class="block truncate font-medium text-md-surface-on dark:text-white text-base">${bot.name}</span>
         <span class="block text-body-sm text-md-surface-on-variant dark:text-gray-300">
@@ -613,7 +613,7 @@ function createChatbotButtons() {
     if (isCustom) {
       const deleteBtn = document.createElement("button");
       deleteBtn.type = "button";
-      deleteBtn.className = "absolute -top-2 -right-2 w-7 h-7 bg-md-error text-md-error-on rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-short-4 flex items-center justify-center text-xs font-bold shadow-elevation-2";
+      deleteBtn.className = "absolute -top-2 -right-2 w-6 h-6 sm:w-7 sm:h-7 bg-md-error text-md-error-on rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-short-4 flex items-center justify-center text-xs font-bold shadow-elevation-2";
       deleteBtn.textContent = "×";
       deleteBtn.title = "Remove custom chatbot";
       deleteBtn.addEventListener("click", (e) => {
@@ -663,9 +663,9 @@ function createChatbotButtons() {
 
   const addBtn = document.createElement("button");
   addBtn.type = "button";
-  addBtn.className = "flex min-h-[72px] items-center gap-3 rounded-[24px] border-2 border-dashed border-md-outline-variant/80 dark:border-gray-600 bg-transparent px-4 py-3 text-left font-medium text-md-surface-on-variant dark:text-gray-400 transition-all duration-short-4 ease-standard hover:border-md-primary hover:text-md-primary dark:hover:border-indigo-400 dark:hover:text-indigo-400";
+  addBtn.className = "flex min-h-[60px] sm:min-h-[72px] items-center gap-3 rounded-[24px] border-2 border-dashed border-md-outline-variant/80 dark:border-gray-600 bg-transparent px-3 py-2.5 sm:px-4 sm:py-3 text-left font-medium text-md-surface-on-variant dark:text-gray-400 transition-all duration-short-4 ease-standard hover:border-md-primary hover:text-md-primary dark:hover:border-indigo-400 dark:hover:text-indigo-400";
   addBtn.innerHTML = `
-    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-[18px] border border-dashed border-current text-xl">+</span>
+    <span class="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-[18px] border border-dashed border-current text-xl">+</span>
     <span class="min-w-0 flex-1">
       <span class="block truncate text-md-surface-on dark:text-gray-100">Add Custom</span>
       <span class="block text-body-sm">Create a personal chatbot shortcut</span>

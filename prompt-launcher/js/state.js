@@ -4,6 +4,7 @@
 
 // Custom chatbots (user-defined)
 let customChatbots = [];
+let hiddenChatbots = [];
 
 function loadCustomChatbots() {
   try {
@@ -25,6 +26,47 @@ function saveCustomChatbots() {
   } catch {
     // Storage full or unavailable
   }
+}
+
+function loadHiddenChatbots() {
+  try {
+    const raw = localStorage.getItem(HIDDEN_CHATBOTS_KEY);
+    if (raw) {
+      const data = JSON.parse(raw);
+      if (Array.isArray(data)) {
+        hiddenChatbots = data.map((name) => String(name)).filter(Boolean);
+      }
+    }
+  } catch {
+    hiddenChatbots = [];
+  }
+}
+
+function saveHiddenChatbots() {
+  try {
+    localStorage.setItem(HIDDEN_CHATBOTS_KEY, JSON.stringify(hiddenChatbots));
+  } catch {
+    // Storage full or unavailable
+  }
+}
+
+function hideChatbot(botName) {
+  const name = String(botName || "").trim();
+  if (!name || hiddenChatbots.includes(name)) return;
+  hiddenChatbots = [...hiddenChatbots, name];
+  saveHiddenChatbots();
+}
+
+function showChatbot(botName) {
+  const name = String(botName || "").trim();
+  if (!name) return;
+  hiddenChatbots = hiddenChatbots.filter((entry) => entry !== name);
+  saveHiddenChatbots();
+}
+
+function resetHiddenChatbots() {
+  hiddenChatbots = [];
+  saveHiddenChatbots();
 }
 
 // Templates library
@@ -52,9 +94,16 @@ function saveTemplates() {
   }
 }
 
-// Combined chatbots visibility
+function isHiddenChatbot(botName) {
+  return hiddenChatbots.includes(botName);
+}
+
 function getAllChatbots() {
   return [...builtInChatbots, ...customChatbots];
+}
+
+function getVisibleChatbots() {
+  return getAllChatbots().filter((bot) => !isHiddenChatbot(bot.name));
 }
 
 // Main App state

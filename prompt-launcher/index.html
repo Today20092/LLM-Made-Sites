@@ -307,15 +307,15 @@ Use variables like:
         </section>
 
         <!-- Actions -->
-        <section class="order-5 sticky bottom-3 z-30 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] sm:order-2 sm:static sm:px-0 sm:pb-0 mt-6 sm:mt-8">
+        <section class="order-5 z-30 px-2 mt-4 sm:order-2 sm:sticky sm:bottom-3 sm:px-0 sm:mt-8">
           <div
-            class="mx-auto max-w-5xl rounded-t-[28px] sm:rounded-[28px] border border-md-outline-variant/70 dark:border-gray-700/80 bg-md-surface-container-high/95 dark:bg-gray-800/90 backdrop-blur-md shadow-elevation-3 px-3 py-3 sm:px-4 sm:py-4"
+            class="mx-auto max-w-5xl rounded-[24px] sm:rounded-[28px] border border-md-outline-variant/70 dark:border-gray-700/80 bg-md-surface-container-high/95 dark:bg-gray-800/90 backdrop-blur-md shadow-elevation-3 px-2 py-2 sm:px-4 sm:py-4"
           >
-            <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-3">
+            <div class="grid grid-cols-2 gap-1.5 sm:flex sm:flex-wrap sm:gap-3">
               <button
                 id="copyFilledBtn"
                 disabled
-                class="flex min-h-[56px] w-full sm:w-auto flex-1 items-center justify-center gap-2 rounded-2xl bg-md-primary px-4 py-3 font-medium text-md-primary-on shadow-elevation-1 transition-all duration-short-4 ease-standard hover:bg-md-primary/90 hover:shadow-elevation-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-md-primary disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+                class="flex min-h-[44px] w-full sm:w-auto flex-1 items-center justify-center gap-2 rounded-2xl bg-md-primary px-3 py-2 text-body-sm sm:text-label-lg font-medium text-md-primary-on shadow-elevation-1 transition-all duration-short-4 ease-standard hover:bg-md-primary/90 hover:shadow-elevation-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-md-primary disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
               >
                 Copy Filled Prompt
               </button>
@@ -323,24 +323,24 @@ Use variables like:
               <button
                 id="shareBtn"
                 disabled
-                class="flex min-h-[56px] w-full sm:w-auto flex-1 items-center justify-center gap-2 rounded-2xl bg-md-secondary px-4 py-3 font-medium text-md-secondary-on shadow-elevation-1 transition-all duration-short-4 ease-standard hover:bg-md-secondary/90 hover:shadow-elevation-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-md-secondary disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+                class="flex min-h-[44px] w-full sm:w-auto flex-1 items-center justify-center gap-2 rounded-2xl bg-md-secondary px-3 py-2 text-body-sm sm:text-label-lg font-medium text-md-secondary-on shadow-elevation-1 transition-all duration-short-4 ease-standard hover:bg-md-secondary/90 hover:shadow-elevation-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-md-secondary disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
               >
                 Share
               </button>
             </div>
 
             <details class="mt-2 sm:hidden">
-              <summary class="list-none flex min-h-[48px] items-center justify-between gap-2 rounded-2xl border border-md-outline-variant/70 bg-md-surface-container-highest px-4 py-3 font-medium text-md-surface-on shadow-elevation-1 transition-colors duration-short-4 focus:outline-none">
+              <summary class="list-none flex min-h-[44px] items-center justify-between gap-2 rounded-2xl border border-md-outline-variant/70 bg-md-surface-container-highest px-3 py-2.5 text-body-sm font-medium text-md-surface-on shadow-elevation-1 transition-colors duration-short-4 focus:outline-none">
                 <span>More actions</span>
                 <svg class="h-5 w-5 text-md-surface-on-variant" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
               </summary>
 
-              <div class="grid grid-cols-2 gap-2 pt-2">
+              <div class="grid grid-cols-2 gap-1.5 pt-2">
                 <button
                   data-template-library-trigger
-                  class="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl border border-md-outline-variant/70 bg-md-surface-container-highest px-4 py-3 font-medium text-md-surface-on shadow-elevation-1 transition-all duration-short-4 ease-standard hover:bg-md-surface-container-high hover:shadow-elevation-2 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
+                  class="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-2xl border border-md-outline-variant/70 bg-md-surface-container-highest px-3 py-2 text-body-sm font-medium text-md-surface-on shadow-elevation-1 transition-all duration-short-4 ease-standard hover:bg-md-surface-container-high hover:shadow-elevation-2 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
                   type="button"
                 >
                   <svg
@@ -361,7 +361,7 @@ Use variables like:
 
                 <button
                   data-clear-draft-trigger
-                  class="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl bg-md-tertiary px-4 py-3 font-medium text-md-tertiary-on shadow-elevation-1 transition-all duration-short-4 ease-standard hover:bg-md-tertiary/90 hover:shadow-elevation-2"
+                  class="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-2xl bg-md-tertiary px-3 py-2 text-body-sm font-medium text-md-tertiary-on shadow-elevation-1 transition-all duration-short-4 ease-standard hover:bg-md-tertiary/90 hover:shadow-elevation-2"
                   type="button"
                 >
                   Clear
@@ -402,7 +402,7 @@ Use variables like:
 
         <!-- Launch -->
         <section
-          class="order-2 sm:order-5 border-t border-md-outline-variant/70 dark:border-gray-700/80 pt-6 sm:pt-8"
+          class="order-2 sm:order-5 border-t border-md-outline-variant/70 dark:border-gray-700/80 pt-6 sm:pt-8 mb-6 sm:mb-8"
         >
           <h2
             class="text-headline-sm font-normal text-md-surface-on dark:text-white mb-2 text-left"
