@@ -10,6 +10,7 @@ let varsSection, varsList, resetVarsBtn, filledPreview, missingVarsHint, toggleF
 let copyFilledBtn, shareBtn, clearBtn, fabButton;
 let chatbotButtons;
 let toast, toastText;
+let toastActionBtn;
 
 // Share modal elements
 let shareModal, closeShareModal, shareTabs, sharePanels;
@@ -23,6 +24,123 @@ let customChatbotModal, closeCustomChatbotModal, customBotName, customBotIcon, c
 
 // Template library modal elements
 let templateLibraryModal, closeTemplateLibrary, templateLibraryBtn, saveToLibraryBtn, templateList, exportTemplatesBtn, importTemplatesBtn, importTemplatesInput;
+let templateLibraryTriggers, clearDraftTriggers;
+
+// Clear confirm modal
+let clearConfirmModal, closeClearConfirmModal, cancelClearBtn, confirmClearBtn;
+
+let modalScrollLockCount = 0;
+let activeModalState = null;
+let toastTimer = null;
+
+function lockPageScroll() {
+  modalScrollLockCount += 1;
+  document.documentElement.classList.add("overflow-hidden");
+  document.body.classList.add("overflow-hidden");
+}
+
+function unlockPageScroll() {
+  modalScrollLockCount = Math.max(0, modalScrollLockCount - 1);
+  if (modalScrollLockCount === 0) {
+    document.documentElement.classList.remove("overflow-hidden");
+    document.body.classList.remove("overflow-hidden");
+  }
+}
+
+function getFocusableElements(root) {
+  if (!root) return [];
+
+  const selector =
+    'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+  return Array.from(root.querySelectorAll(selector)).filter((el) => {
+    return (
+      !el.hasAttribute("disabled") &&
+      el.getAttribute("aria-hidden") !== "true" &&
+      el.getClientRects().length > 0
+    );
+  });
+}
+
+function openModal(modalEl, options = {}) {
+  if (!modalEl) return;
+
+  const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  activeModalState = { modalEl, opener };
+
+  modalEl.classList.remove("hidden");
+  modalEl.classList.add("flex");
+  lockPageScroll();
+
+  const focusTarget = options.initialFocus || getFocusableElements(modalEl)[0] || modalEl;
+  window.setTimeout(() => {
+    if (focusTarget && typeof focusTarget.focus === "function") {
+      focusTarget.focus();
+    }
+    if (options.select && typeof focusTarget.select === "function") {
+      focusTarget.select();
+    }
+  }, 0);
+}
+
+function closeModal(modalEl, options = {}) {
+  if (!modalEl || modalEl.classList.contains("hidden")) return;
+
+  modalEl.classList.add("hidden");
+  modalEl.classList.remove("flex");
+  unlockPageScroll();
+
+  const restoreFocus = options.restoreFocus !== false;
+  if (activeModalState?.modalEl === modalEl) {
+    const opener = activeModalState.opener;
+    activeModalState = null;
+    if (restoreFocus && opener && document.contains(opener)) {
+      window.setTimeout(() => opener.focus(), 0);
+    }
+  }
+}
+
+function getOpenModal() {
+  return activeModalState?.modalEl || null;
+}
+
+function trapModalFocus(e) {
+  const modalEl = getOpenModal();
+  if (!modalEl) return false;
+
+  if (e.key === "Escape") {
+    e.preventDefault();
+    closeModal(modalEl);
+    return true;
+  }
+
+  if (e.key !== "Tab") return false;
+
+  const focusables = getFocusableElements(modalEl);
+  if (focusables.length === 0) {
+    e.preventDefault();
+    if (typeof modalEl.focus === "function") modalEl.focus();
+    return true;
+  }
+
+  const first = focusables[0];
+  const last = focusables[focusables.length - 1];
+  const active = document.activeElement;
+
+  if (e.shiftKey && active === first) {
+    e.preventDefault();
+    last.focus();
+    return true;
+  }
+
+  if (!e.shiftKey && active === last) {
+    e.preventDefault();
+    first.focus();
+    return true;
+  }
+
+  return false;
+}
 
 /**
  * Initialize DOM element references
@@ -59,6 +177,7 @@ function initElements() {
 
   toast = document.getElementById("toast");
   toastText = document.getElementById("toastText");
+  toastActionBtn = document.getElementById("toastAction");
 
   // Share modal
   shareModal = document.getElementById("shareModal");
@@ -97,6 +216,18 @@ function initElements() {
   exportTemplatesBtn = document.getElementById("exportTemplatesBtn");
   importTemplatesBtn = document.getElementById("importTemplatesBtn");
   importTemplatesInput = document.getElementById("importTemplatesInput");
+  templateLibraryTriggers = Array.from(
+    document.querySelectorAll("[data-template-library-trigger]"),
+  );
+  clearDraftTriggers = Array.from(
+    document.querySelectorAll("[data-clear-draft-trigger]"),
+  );
+
+  // Clear confirm modal
+  clearConfirmModal = document.getElementById("clearConfirmModal");
+  closeClearConfirmModal = document.getElementById("closeClearConfirmModal");
+  cancelClearBtn = document.getElementById("cancelClearBtn");
+  confirmClearBtn = document.getElementById("confirmClearBtn");
 
   // Wire auto-resize for primary textareas
   const _autoResizeTargets = [
@@ -126,14 +257,57 @@ function updateThemeIcons() {
   }
 }
 
-function showToast(message) {
+function hideToast() {
+  if (toastTimer) {
+    clearTimeout(toastTimer);
+    toastTimer = null;
+  }
+
+  toast.classList.add("opacity-0", "translate-y-2");
+  toast.classList.remove("opacity-100", "translate-y-0");
+  if (toastActionBtn) {
+    toastActionBtn.classList.add("hidden");
+    toastActionBtn.onclick = null;
+  }
+}
+
+function showToast(message, options = {}) {
+  const actionLabel = options.actionLabel || "";
+  const actionHandler = typeof options.actionHandler === "function" ? options.actionHandler : null;
+  const duration = typeof options.duration === "number" ? options.duration : 1600;
+
   toastText.textContent = message;
+
+  if (toastTimer) clearTimeout(toastTimer);
+
+  if (toastActionBtn) {
+    if (actionHandler) {
+      toastActionBtn.textContent = actionLabel || "Undo";
+      toastActionBtn.classList.remove("hidden");
+      toastActionBtn.onclick = async () => {
+        const handler = actionHandler;
+        hideToast();
+        if (handler) await handler();
+      };
+    } else {
+      toastActionBtn.classList.add("hidden");
+      toastActionBtn.onclick = null;
+    }
+  }
+
   toast.classList.remove("opacity-0", "translate-y-2");
   toast.classList.add("opacity-100", "translate-y-0");
-  window.setTimeout(() => {
-    toast.classList.add("opacity-0", "translate-y-2");
-    toast.classList.remove("opacity-100", "translate-y-0");
-  }, 1600);
+  toastTimer = window.setTimeout(() => {
+    hideToast();
+  }, duration);
+}
+
+function showUndoToast(message, actionHandler) {
+  showToast(message, {
+    actionLabel: "Undo",
+    actionHandler,
+    duration: 5000,
+  });
 }
 
 async function copyToClipboard(text) {
@@ -236,16 +410,24 @@ function renderVariables(varKeys) {
     if (state.vars[key] === undefined) state.vars[key] = "";
 
     const wrap = document.createElement("div");
-    wrap.className = "bg-md-surface-container-high dark:bg-gray-700/60 border border-md-outline-variant dark:border-gray-600 rounded-sm-md p-3";
+    wrap.className = "rounded-[24px] border border-md-outline-variant/70 dark:border-gray-700/80 bg-md-surface-container-high/75 dark:bg-gray-700/45 p-3 shadow-elevation-1";
 
     wrap.innerHTML = `
-      <label class="block text-label-lg font-medium text-md-surface-on dark:text-gray-200 mb-1">
-        ${key}
-      </label>
+      <div class="flex items-start justify-between gap-3 mb-2">
+        <label class="block text-label-lg font-medium text-md-surface-on dark:text-gray-200 break-words">
+          ${key}
+        </label>
+        <span class="shrink-0 rounded-full border border-md-outline-variant/70 dark:border-gray-600 px-2 py-0.5 text-label-sm text-md-surface-on-variant dark:text-gray-300">
+          Variable
+        </span>
+      </div>
       <textarea
         data-var-key="${key}"
         rows="2"
-        class="w-full px-3 py-2 rounded-sm-md border-b-2 border-md-outline dark:border-gray-600 bg-md-surface-container-highest dark:bg-gray-700 text-md-surface-on dark:text-gray-100 focus:outline-none focus:border-md-primary dark:focus:border-indigo-400 resize-none overflow-hidden transition-colors duration-short-4"
+        name="var-${key}"
+        autocomplete="off"
+        spellcheck="false"
+        class="w-full px-3 py-2 rounded-2xl border border-md-outline-variant/70 dark:border-gray-700/80 bg-md-surface-container-highest/90 dark:bg-gray-800/80 text-md-surface-on dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-md-primary focus:border-md-primary resize-none overflow-hidden transition-colors duration-short-4"
         placeholder="Enter value for {{${key}}}"
       ></textarea>
     `;
@@ -323,8 +505,8 @@ function setShareTab(tabName) {
   shareTabs.forEach((t) => {
     const isActive = t.dataset.tab === tabName;
     t.className = isActive
-      ? "shareTab px-3 py-2 rounded-sm-md text-label-lg font-medium bg-md-secondary-container text-md-secondary-on-container"
-      : "shareTab px-3 py-2 rounded-sm-md text-label-lg font-medium bg-md-surface-container-highest dark:bg-gray-700 text-md-surface-on dark:text-gray-100";
+      ? "shareTab shrink-0 whitespace-nowrap px-4 py-2 rounded-full text-label-lg font-medium bg-md-secondary-container text-md-secondary-on-container"
+      : "shareTab shrink-0 whitespace-nowrap px-4 py-2 rounded-full text-label-lg font-medium bg-md-surface-container-highest dark:bg-gray-700 text-md-surface-on dark:text-gray-100";
   });
 
   sharePanels.forEach((p) => p.classList.add("hidden"));
@@ -363,10 +545,40 @@ function refreshShareModalPreviews() {
 
 function createChatbotButtons() {
   chatbotButtons.innerHTML = "";
-  const allBots = getAllChatbots();
+  const visibleBots = getVisibleChatbots();
 
-  allBots.forEach((bot, index) => {
-    const isCustom = index >= builtInChatbots.length;
+  if (hiddenChatbots.length > 0) {
+    const notice = document.createElement("div");
+    notice.className =
+      "mb-1 rounded-[24px] border border-md-outline-variant/70 dark:border-gray-700/80 bg-md-surface-container/75 dark:bg-gray-800/45 px-4 py-3 flex items-center justify-between gap-3";
+    notice.innerHTML = `
+      <div class="min-w-0">
+        <p class="text-title-md font-medium text-md-surface-on dark:text-white">
+          ${hiddenChatbots.length} hidden chatbot${hiddenChatbots.length === 1 ? "" : "s"}
+        </p>
+        <p class="text-body-sm text-md-surface-on-variant dark:text-gray-400">
+          Hidden chatbots stay out of your launcher until you bring them back.
+        </p>
+      </div>
+      <button
+        type="button"
+        class="shrink-0 rounded-full bg-md-surface-container-highest dark:bg-gray-700 px-3 py-2 text-label-lg font-medium text-md-surface-on dark:text-gray-100 hover:bg-md-surface-container-high dark:hover:bg-gray-600 transition-colors duration-short-4"
+      >
+        Show all
+      </button>
+    `;
+    const restoreBtn = notice.querySelector("button");
+    restoreBtn.addEventListener("click", () => {
+      resetHiddenChatbots();
+      createChatbotButtons();
+      updateChatbotButtons();
+      showToast("All chatbots restored");
+    });
+    chatbotButtons.appendChild(notice);
+  }
+
+  visibleBots.forEach((bot) => {
+    const isCustom = customChatbots.includes(bot);
 
     const wrapper = document.createElement("div");
     wrapper.className = "relative group";
@@ -375,15 +587,23 @@ function createChatbotButtons() {
     a.setAttribute("data-bot-name", bot.name);
     a.target = "_blank";
     a.rel = "noopener noreferrer";
-    a.className = `flex items-center justify-center p-4 rounded-md-md shadow-elevation-1 hover:shadow-elevation-2 font-medium text-md-primary-on text-base bg-md-primary hover:bg-md-primary/90 transition-all duration-short-4 ease-standard text-center w-full`;
-    a.innerHTML = `<span class="text-2xl mr-2">${bot.icon}</span>${bot.name}`;
+    a.className = `group flex min-h-[72px] items-center gap-3 rounded-[24px] border border-md-outline-variant/70 dark:border-gray-700/80 bg-md-surface-container-high/85 dark:bg-gray-700/45 px-4 py-3 pr-24 shadow-elevation-1 text-left w-full transition-all duration-short-4 ease-standard hover:border-md-primary hover:shadow-elevation-2 dark:hover:border-indigo-400`;
+    a.innerHTML = `
+      <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-[18px] bg-md-primary-container text-2xl">${bot.icon}</span>
+      <span class="min-w-0 flex-1">
+        <span class="block truncate font-medium text-md-surface-on dark:text-white text-base">${bot.name}</span>
+        <span class="block text-body-sm text-md-surface-on-variant dark:text-gray-300">
+          ${bot.supportsQueryParam ? "Auto-fills prompt" : "Copies first, then opens"}
+        </span>
+      </span>
+    `;
 
     a.addEventListener("click", async (e) => {
       if (bot.supportsQueryParam) return;
 
       e.preventDefault();
       const ok = await copyToClipboard(getFilledPrompt());
-      if (ok) showToast("Copied — paste into the chatbot");
+      if (ok) showToast("Copied - paste into the chatbot");
 
       window.open(bot.urlTemplate, "_blank", "noopener,noreferrer");
     });
@@ -393,19 +613,49 @@ function createChatbotButtons() {
     if (isCustom) {
       const deleteBtn = document.createElement("button");
       deleteBtn.type = "button";
-      deleteBtn.className = "absolute -top-2 -right-2 w-6 h-6 bg-md-error text-md-error-on rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-short-4 flex items-center justify-center text-xs font-bold shadow-elevation-2";
-      deleteBtn.innerHTML = "×";
+      deleteBtn.className = "absolute -top-2 -right-2 w-7 h-7 bg-md-error text-md-error-on rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-short-4 flex items-center justify-center text-xs font-bold shadow-elevation-2";
+      deleteBtn.textContent = "×";
       deleteBtn.title = "Remove custom chatbot";
       deleteBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        const customIndex = index - builtInChatbots.length;
+        const customIndex = customChatbots.findIndex((entry) => entry.name === bot.name);
+        if (customIndex < 0) return;
+        const snapshot = { bot: { ...customChatbots[customIndex] }, index: customIndex };
         customChatbots.splice(customIndex, 1);
+        showChatbot(bot.name);
         saveCustomChatbots();
+        saveHiddenChatbots();
         createChatbotButtons();
         updateChatbotButtons();
-        showToast(`Removed ${bot.name}`);
+        showUndoToast(`Removed ${bot.name}`, async () => {
+          const insertAt = Math.min(snapshot.index, customChatbots.length);
+          if (customChatbots.some((entry) => entry.name === snapshot.bot.name)) {
+            return;
+          }
+          customChatbots.splice(insertAt, 0, snapshot.bot);
+          saveCustomChatbots();
+          createChatbotButtons();
+          updateChatbotButtons();
+          showToast(`Restored ${snapshot.bot.name}`);
+        });
       });
       wrapper.appendChild(deleteBtn);
+    }
+
+    if (!isCustom) {
+      const hideBtn = document.createElement("button");
+      hideBtn.type = "button";
+      hideBtn.className = "absolute top-3 right-3 rounded-full bg-md-primary-container px-3 py-1.5 text-label-sm font-medium text-md-primary-on-container shadow-elevation-1 transition-colors duration-short-4 hover:bg-md-primary-container/80";
+      hideBtn.textContent = "Hide";
+      hideBtn.setAttribute("aria-label", `Hide ${bot.name}`);
+      hideBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        hideChatbot(bot.name);
+        createChatbotButtons();
+        updateChatbotButtons();
+        showToast(`Hidden ${bot.name}`);
+      });
+      wrapper.appendChild(hideBtn);
     }
 
     chatbotButtons.appendChild(wrapper);
@@ -413,8 +663,14 @@ function createChatbotButtons() {
 
   const addBtn = document.createElement("button");
   addBtn.type = "button";
-  addBtn.className = "flex items-center justify-center p-4 rounded-md-md border-2 border-dashed border-md-outline dark:border-gray-600 text-md-surface-on-variant dark:text-gray-400 hover:border-md-primary hover:text-md-primary dark:hover:border-indigo-400 dark:hover:text-indigo-400 transition-all duration-short-4 ease-standard text-center font-medium";
-  addBtn.innerHTML = `<span class="text-2xl mr-2">+</span>Add Custom`;
+  addBtn.className = "flex min-h-[72px] items-center gap-3 rounded-[24px] border-2 border-dashed border-md-outline-variant/80 dark:border-gray-600 bg-transparent px-4 py-3 text-left font-medium text-md-surface-on-variant dark:text-gray-400 transition-all duration-short-4 ease-standard hover:border-md-primary hover:text-md-primary dark:hover:border-indigo-400 dark:hover:text-indigo-400";
+  addBtn.innerHTML = `
+    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-[18px] border border-dashed border-current text-xl">+</span>
+    <span class="min-w-0 flex-1">
+      <span class="block truncate text-md-surface-on dark:text-gray-100">Add Custom</span>
+      <span class="block text-body-sm">Create a personal chatbot shortcut</span>
+    </span>
+  `;
   addBtn.addEventListener("click", openCustomChatbotModal);
   chatbotButtons.appendChild(addBtn);
 }
@@ -424,25 +680,20 @@ function openCustomChatbotModal() {
   customBotIcon.value = "🤖";
   customBotUrl.value = "";
   customBotSupportsQuery.checked = false;
-  customChatbotModal.classList.remove("hidden");
-  customChatbotModal.classList.add("flex");
-  customBotName.focus();
+  openModal(customChatbotModal, { initialFocus: customBotName });
 }
 
 function closeCustomChatbotModalFn() {
-  customChatbotModal.classList.add("hidden");
-  customChatbotModal.classList.remove("flex");
+  closeModal(customChatbotModal);
 }
 
 function openTemplateLibraryModal() {
   renderTemplateList();
-  templateLibraryModal.classList.remove("hidden");
-  templateLibraryModal.classList.add("flex");
+  openModal(templateLibraryModal, { initialFocus: saveToLibraryBtn });
 }
 
 function closeTemplateLibraryModalFn() {
-  templateLibraryModal.classList.add("hidden");
-  templateLibraryModal.classList.remove("flex");
+  closeModal(templateLibraryModal);
 }
 
 function renderTemplateList() {
@@ -462,10 +713,10 @@ function renderTemplateList() {
   savedTemplates.forEach((template, index) => {
     const varKeys = extractVariables(template.template);
     const varCount = varKeys.length;
-    const previewText = template.template.length > 100 ? template.template.substring(0, 100) + "..." : template.template;
+    const previewText = template.template.length > 100 ? template.template.substring(0, 100) + "…" : template.template;
 
     const item = document.createElement("div");
-    item.className = "group p-4 bg-md-surface-container dark:bg-gray-700/50 rounded-md-md border border-md-outline-variant dark:border-gray-600 hover:border-md-primary dark:hover:border-indigo-400 transition-colors duration-short-4 cursor-pointer";
+    item.className = "group p-4 bg-md-surface-container-high/80 dark:bg-gray-700/45 rounded-[24px] border border-md-outline-variant/70 dark:border-gray-700/80 hover:border-md-primary dark:hover:border-indigo-400 transition-colors duration-short-4 cursor-pointer shadow-elevation-1";
     item.innerHTML = `
       <div class="flex items-start justify-between gap-3">
         <div class="flex-1 min-w-0">
@@ -481,7 +732,7 @@ function renderTemplateList() {
           </div>
         </div>
         <button
-          class="delete-template-btn opacity-0 group-hover:opacity-100 p-2 text-md-error hover:bg-md-error-container rounded-full transition-all duration-short-4"
+          class="delete-template-btn opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-2 text-md-error hover:bg-md-error-container rounded-full transition-all duration-short-4"
           data-index="${index}"
           title="Delete template"
         >
@@ -547,6 +798,7 @@ function loadTemplate(index) {
   if (state.notes.trim()) {
     notesWrap.classList.remove("hidden");
     toggleNotes.textContent = "− Hide notes";
+    toggleNotes.setAttribute("aria-expanded", "true");
   }
 
   const varKeys = extractVariables(state.template);
@@ -560,18 +812,31 @@ function loadTemplate(index) {
 
 function deleteTemplate(index) {
   const template = savedTemplates[index];
+  if (!template) return;
+
+  const snapshot = { template: { ...template }, index };
   savedTemplates.splice(index, 1);
   saveTemplates();
   renderTemplateList();
-  showToast(`Deleted "${template.title || "Untitled"}"`);
+  showUndoToast(`Deleted "${template.title || "Untitled"}"`, async () => {
+    if (savedTemplates.some((entry) => entry.id === snapshot.template.id)) {
+      return;
+    }
+    const insertAt = Math.min(snapshot.index, savedTemplates.length);
+    savedTemplates.splice(insertAt, 0, snapshot.template);
+    saveTemplates();
+    renderTemplateList();
+    showToast(`Restored "${snapshot.template.title || "Untitled"}"`);
+  });
 }
 
 function exportTemplates() {
   const data = {
-    version: 1,
+    version: 2,
     exportedAt: Date.now(),
     templates: savedTemplates,
     customChatbots: customChatbots,
+    hiddenChatbots: hiddenChatbots,
   };
 
   const json = JSON.stringify(data, null, 2);
@@ -607,6 +872,17 @@ function importTemplates(file) {
         const newChatbots = data.customChatbots.filter((c) => !existingNames.has(c.name));
         customChatbots = [...customChatbots, ...newChatbots];
         saveCustomChatbots();
+        createChatbotButtons();
+        updateChatbotButtons();
+      }
+
+      if (data.hiddenChatbots && Array.isArray(data.hiddenChatbots)) {
+        const merged = new Set(hiddenChatbots);
+        data.hiddenChatbots.forEach((name) => {
+          if (name) merged.add(String(name));
+        });
+        hiddenChatbots = Array.from(merged);
+        saveHiddenChatbots();
         createChatbotButtons();
         updateChatbotButtons();
       }

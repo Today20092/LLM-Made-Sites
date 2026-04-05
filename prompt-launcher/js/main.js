@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Load custom chatbots and templates from localStorage
     loadCustomChatbots();
+    loadHiddenChatbots();
     loadTemplates();
 
     // Render initial chatbot buttons
@@ -36,6 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (state.notes.trim()) {
         notesWrap.classList.remove("hidden");
         toggleNotes.textContent = "− Hide notes";
+        toggleNotes.setAttribute("aria-expanded", "true");
       }
       notesInput.value = state.notes;
 
@@ -61,6 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (state.notes.trim()) {
           notesWrap.classList.remove("hidden");
           toggleNotes.textContent = "− Hide notes";
+          toggleNotes.setAttribute("aria-expanded", "true");
         }
         notesInput.value = state.notes;
 
@@ -79,6 +82,31 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function clearDraft() {
+    state.title = "";
+    state.tags = "";
+    state.notes = "";
+    state.template = "";
+    state.vars = {};
+
+    titleInput.value = "";
+    tagsInput.value = "";
+    notesInput.value = "";
+    promptInput.value = "";
+
+    varsSection.classList.add("hidden");
+    varsList.innerHTML = "";
+    filledPreview.value = "";
+    notesWrap.classList.add("hidden");
+    toggleNotes.textContent = "+ Add notes";
+    toggleNotes.setAttribute("aria-expanded", "false");
+    updateDerivedViews();
+
+    clearStorage();
+    showToast("Draft cleared");
+    promptInput.focus();
+  }
+
   // --- EVENT LISTENERS ---
 
   themeToggle.addEventListener("click", () => {
@@ -90,6 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
   toggleNotes.addEventListener("click", () => {
     const isHidden = notesWrap.classList.toggle("hidden");
     toggleNotes.textContent = isHidden ? "+ Add notes" : "− Hide notes";
+    toggleNotes.setAttribute("aria-expanded", String(!isHidden));
   });
 
   promptInput.addEventListener("input", () => {
@@ -127,6 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   toggleFilledPreview.addEventListener("click", () => {
     const isHidden = filledPreviewWrapper.classList.toggle("hidden");
+    toggleFilledPreview.setAttribute("aria-expanded", String(!isHidden));
     if (!isHidden) {
       // Rotates chevron to point up
       previewChevron.style.transform = "rotate(180deg)";
@@ -149,28 +179,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (ok) showToast("Copied to clipboard");
   });
 
-  clearBtn.addEventListener("click", () => {
-    state.title = "";
-    state.tags = "";
-    state.notes = "";
-    state.template = "";
-    state.vars = {};
+  const clearTriggers = [clearBtn, ...(clearDraftTriggers || [])].filter(Boolean);
+  clearTriggers.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (!clearConfirmModal) {
+        clearDraft();
+        return;
+      }
 
-    titleInput.value = "";
-    tagsInput.value = "";
-    notesInput.value = "";
-    promptInput.value = "";
-
-    varsSection.classList.add("hidden");
-    varsList.innerHTML = "";
-    filledPreview.value = "";
-    updateDerivedViews();
-
-    // Clear localStorage as well
-    clearStorage();
-
-    showToast("Cleared");
-    promptInput.focus();
+      openModal(clearConfirmModal, { initialFocus: cancelClearBtn });
+    });
   });
 
   // Share modal open/close
@@ -185,19 +203,22 @@ document.addEventListener("DOMContentLoaded", () => {
       nativeShareWrapper.classList.add("hidden");
     }
 
-    shareModal.classList.remove("hidden");
-    shareModal.classList.add("flex");
+    openModal(shareModal, { initialFocus: shareLinkInput });
+    window.setTimeout(() => {
+      if (shareLinkInput) {
+        shareLinkInput.focus();
+        shareLinkInput.select();
+      }
+    }, 0);
   });
 
   closeShareModal.addEventListener("click", () => {
-    shareModal.classList.add("hidden");
-    shareModal.classList.remove("flex");
+    closeModal(shareModal);
   });
 
   shareModal.addEventListener("click", (e) => {
     if (e.target === shareModal) {
-      shareModal.classList.add("hidden");
-      shareModal.classList.remove("flex");
+      closeModal(shareModal);
     }
   });
 
@@ -300,9 +321,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Template library wiring
-  if (templateLibraryBtn) {
-    templateLibraryBtn.addEventListener("click", openTemplateLibraryModal);
-  }
+  const templateLibraryTriggersAll = [templateLibraryBtn, ...(templateLibraryTriggers || [])].filter(Boolean);
+  templateLibraryTriggersAll.forEach((btn) => {
+    btn.addEventListener("click", openTemplateLibraryModal);
+  });
 
   if (closeTemplateLibrary) {
     closeTemplateLibrary.addEventListener("click", closeTemplateLibraryModalFn);
@@ -311,6 +333,27 @@ document.addEventListener("DOMContentLoaded", () => {
   if (templateLibraryModal) {
     templateLibraryModal.addEventListener("click", (e) => {
       if (e.target === templateLibraryModal) closeTemplateLibraryModalFn();
+    });
+  }
+
+  if (closeClearConfirmModal) {
+    closeClearConfirmModal.addEventListener("click", () => closeModal(clearConfirmModal));
+  }
+
+  if (cancelClearBtn) {
+    cancelClearBtn.addEventListener("click", () => closeModal(clearConfirmModal));
+  }
+
+  if (clearConfirmModal) {
+    clearConfirmModal.addEventListener("click", (e) => {
+      if (e.target === clearConfirmModal) closeModal(clearConfirmModal);
+    });
+  }
+
+  if (confirmClearBtn) {
+    confirmClearBtn.addEventListener("click", () => {
+      closeModal(clearConfirmModal, { restoreFocus: false });
+      clearDraft();
     });
   }
 
@@ -337,23 +380,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Keyboard shortcuts
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
-      if (!shareModal.classList.contains("hidden")) {
-        shareModal.classList.add("hidden");
-        shareModal.classList.remove("flex");
-      }
-      if (
-        customChatbotModal &&
-        !customChatbotModal.classList.contains("hidden")
-      ) {
-        closeCustomChatbotModalFn();
-      }
-      if (
-        templateLibraryModal &&
-        !templateLibraryModal.classList.contains("hidden")
-      ) {
-        closeTemplateLibraryModalFn();
-      }
+    if (getOpenModal()) {
+      trapModalFocus(e);
+      return;
     }
 
     if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
