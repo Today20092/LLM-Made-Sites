@@ -159,6 +159,27 @@ textarea:focus-visible {
 }
 textarea::placeholder { color: #2e2a3a; }
 
+.opt-toggle {
+  padding-top: 2px;
+}
+.opt-toggle-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.78rem;
+  line-height: 1.2;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #c9c2da;
+  cursor: pointer;
+  user-select: none;
+}
+.opt-toggle-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #c9a96e;
+}
+
 /* ── Settings Grid ── */
 .options-grid {
   display: grid;
@@ -350,6 +371,11 @@ select:focus-visible {
   text-transform: none;
   letter-spacing: 0;
 }
+.card-preview-frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+}
 .card-select-chk {
   width: 16px;
   height: 16px;
@@ -359,9 +385,71 @@ select:focus-visible {
 }
 .card-img {
   width: 100%;
-  border-radius: 10px;
+  border-radius: 0;
   display: block;
   box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+}
+.card-safe-zone {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.card-safe-zone__scrim {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to bottom, rgba(10, 10, 15, 0.42), rgba(10, 10, 15, 0.42));
+}
+.card-safe-zone__scrim--top {
+  top: 0;
+  height: 12.5%;
+}
+.card-safe-zone__scrim--bottom {
+  bottom: 0;
+  height: 18%;
+}
+.card-safe-zone__frame {
+  position: absolute;
+  inset: 12% 8% 18% 8%;
+  border: 2px solid rgba(201, 169, 110, 0.85);
+  border-radius: 18px;
+  box-shadow:
+    0 0 0 1px rgba(10, 10, 15, 0.7) inset,
+    0 0 0 9999px rgba(10, 10, 15, 0);
+}
+.card-safe-zone__frame::before,
+.card-safe-zone__frame::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: rgba(201, 169, 110, 0.95);
+  border-style: solid;
+}
+.card-safe-zone__frame::before {
+  top: -1px;
+  left: -1px;
+  border-width: 2px 0 0 2px;
+  border-top-left-radius: 16px;
+}
+.card-safe-zone__frame::after {
+  right: -1px;
+  bottom: -1px;
+  border-width: 0 2px 2px 0;
+  border-bottom-right-radius: 16px;
+}
+.card-safe-zone__label {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(15, 14, 20, 0.78);
+  color: #ead9b5;
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
 }
 .btn-dl {
   display: flex;
@@ -1134,3 +1222,5 @@ select:focus-visible {
   word-break: break-word;
   overflow-wrap: break-word;
 }
+
+

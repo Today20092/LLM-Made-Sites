@@ -91,11 +91,488 @@ async function loadFontPairing(key) {
     // Fallback for very old browsers that lack the Font Loading API
     await new Promise(r => setTimeout(r, 900));
   }
-  return pairing;
+  return { ...pairing, measure: buildMeasureFonts(pairing) };
 }
 
 /* ── Light themes (dark texture at low opacity) ── */
 const LIGHT_THEMES = new Set(['cream', 'forest', 'rose', 'parchment', 'sand', 'contrast']);
+const SETTINGS_STORAGE_KEY = 'md-to-pictures.settings.v1';
+
+const controls = {
+  theme: document.getElementById('theme-select'),
+  density: document.getElementById('density-select'),
+  font: document.getElementById('font-select'),
+  texture: document.getElementById('texture-select'),
+  safeZone: document.getElementById('safezone-toggle'),
+  watermark: document.getElementById('watermark-input'),
+  coverTitle: document.getElementById('cover-title-input'),
+  coverSubtitle: document.getElementById('cover-subtitle-input'),
+  format: document.getElementById('format-select'),
+  quality: document.getElementById('quality-range'),
+  qualityGroup: document.getElementById('quality-group'),
+  qualityLabel: document.getElementById('quality-label'),
+  preflight: document.getElementById('preflight'),
+};
+
+function getSettingsStore() {
+  try {
+    return window.localStorage;
+  } catch (e) {
+    return null;
+  }
+}
+
+function syncFormatUi() {
+  const isPng = controls.format.value === 'png';
+  controls.qualityGroup.classList.toggle('hidden', isPng);
+}
+
+function syncQualityUi() {
+  controls.qualityLabel.textContent = `${controls.quality.value}%`;
+  controls.quality.setAttribute('aria-valuetext', `${controls.quality.value} percent`);
+}
+
+function readUiSettings() {
+  return {
+    theme: controls.theme.value,
+    density: controls.density.value,
+    font: controls.font.value,
+    texture: controls.texture.value,
+    safeZone: controls.safeZone?.checked ?? false,
+    watermark: controls.watermark.value,
+    coverTitle: controls.coverTitle.value,
+    coverSubtitle: controls.coverSubtitle.value,
+    format: controls.format.value,
+    quality: controls.quality.value,
+  };
+}
+
+function applyUiSettings(settings) {
+  if (!settings || typeof settings !== 'object') return;
+  if (settings.theme) controls.theme.value = settings.theme;
+  if (settings.density) controls.density.value = settings.density;
+  if (settings.font) controls.font.value = settings.font;
+  if (settings.texture) controls.texture.value = settings.texture;
+  if (settings.safeZone !== undefined && controls.safeZone) controls.safeZone.checked = settings.safeZone === true || settings.safeZone === 'true';
+  if (settings.watermark !== undefined) controls.watermark.value = settings.watermark;
+  if (settings.coverTitle !== undefined) controls.coverTitle.value = settings.coverTitle;
+  if (settings.coverSubtitle !== undefined) controls.coverSubtitle.value = settings.coverSubtitle;
+  if (settings.format) controls.format.value = settings.format;
+  if (settings.quality) controls.quality.value = settings.quality;
+  syncFormatUi();
+  syncQualityUi();
+}
+
+function saveUiSettings() {
+  const store = getSettingsStore();
+  if (!store) return;
+  try {
+    store.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(readUiSettings()));
+  } catch (e) {
+    // Ignore storage quota and privacy-mode failures.
+  }
+}
+
+function readUrlSettings() {
+  const params = new URLSearchParams(window.location.search);
+  const settings = {};
+  for (const key of ['theme', 'density', 'font', 'texture', 'safeZone', 'watermark', 'coverTitle', 'coverSubtitle', 'format', 'quality']) {
+    if (params.has(key)) settings[key] = params.get(key);
+  }
+  return settings;
+}
+
+function syncShareableUrl() {
+  try {
+    const url = new URL(window.location.href);
+    const settings = readUiSettings();
+    for (const [key, value] of Object.entries(settings)) {
+      if (value) {
+        url.searchParams.set(key, value);
+      } else {
+        url.searchParams.delete(key);
+      }
+    }
+    history.replaceState(null, '', url);
+  } catch (e) {
+    // Ignore environments that do not allow history updates.
+  }
+}
+
+function restoreUiSettings() {
+  const store = getSettingsStore();
+  const urlSettings = readUrlSettings();
+  const hasUrlSettings = Object.keys(urlSettings).length > 0;
+
+  try {
+    if (store) {
+      const raw = store.getItem(SETTINGS_STORAGE_KEY);
+      if (raw) {
+        applyUiSettings(JSON.parse(raw));
+      }
+    }
+  } catch (e) {
+    // Ignore malformed saved state and fall back to defaults.
+  }
+
+  applyUiSettings(urlSettings);
+  syncFormatUi();
+  syncQualityUi();
+  try {
+    const url = new URL(window.location.href);
+    if (url.searchParams.has('preset')) {
+      url.searchParams.delete('preset');
+      history.replaceState(null, '', url);
+    }
+  } catch (e) {
+    // Ignore environments that do not allow history updates.
+  }
+  if (hasUrlSettings) syncShareableUrl();
+}
+
+restoreUiSettings();
+setPreflightIdle('Paste markdown to estimate card count and surface validation notes.');
+
+function onManualSettingChange() {
+  saveUiSettings();
+  syncShareableUrl();
+  schedulePreflight();
+}
+
+const CARD_CONTENT_WIDTH = 784;
+const CARD_BODY_H = 1352;
+
+function firstFontFamily(stack) {
+  return stack.split(',')[0].replace(/['"]/g, '').trim();
+}
+
+function buildMeasureFonts(pairing) {
+  const headingFamily = firstFontFamily(pairing.heading);
+  const bodyFamily = firstFontFamily(pairing.body);
+
+  return {
+    heading1: `700 80px "${headingFamily}"`,
+    heading2: `600 60px "${headingFamily}"`,
+    heading3: `italic 500 46px "${headingFamily}"`,
+    body:     `300 40px "${bodyFamily}"`,
+    quote:    `italic 600 41px "${headingFamily}"`,
+    code:     '400 30px "Courier New"',
+    table:    `300 34px "${bodyFamily}"`,
+    arabic:   '400 52px "Amiri"',
+  };
+}
+
+let pretextModulePromise = null;
+const pretextHeightCache = new Map();
+
+async function getPretextModule() {
+  pretextModulePromise ??= import('./vendor/pretext/layout.js')
+    .catch(() => import('https://cdn.jsdelivr.net/npm/@chenglou/pretext/+esm'));
+  return pretextModulePromise;
+}
+
+async function measureTextHeight(text, font, width, lineHeight, whiteSpace = 'normal') {
+  const key = `${font}::${width}::${lineHeight}::${whiteSpace}::${text}`;
+  if (pretextHeightCache.has(key)) return pretextHeightCache.get(key);
+
+  const { prepare, layout } = await getPretextModule();
+  const prepared = prepare(text, font, { whiteSpace });
+  const height = layout(prepared, width, lineHeight).height;
+  pretextHeightCache.set(key, height);
+  return height;
+}
+
+function stripListMarker(line) {
+  return line.replace(/^(\s*)(?:[-*+]|(?:\d+\.))\s+/, '$1').trim();
+}
+
+function stripQuoteMarker(line) {
+  return line.replace(/^>\s?/, '').trim();
+}
+
+function stripFenceContent(block) {
+  const lines = block.trim().split('\n');
+  if (lines.length <= 2) return '';
+  return lines.slice(1, -1).join('\n').trim();
+}
+
+async function estimateBlockHeight(block, pairing) {
+  const trimmed = block.trim();
+  if (!trimmed) return 0;
+
+  const first = trimmed.split('\n')[0].trim();
+  const measure = pairing.measure || buildMeasureFonts(pairing);
+
+  try {
+    if (/^#{1,3}\s/.test(first)) {
+      const level = first.match(/^#{1,3}/)[0].length;
+      const text = trimmed.replace(/^#{1,3}\s+/, '').trim();
+      const font = level === 1 ? measure.heading1 : level === 2 ? measure.heading2 : measure.heading3;
+      const lineHeight = level === 1 ? 88 : level === 2 ? 70 : 57.5;
+      const marginBottom = level === 1 ? 40 : level === 2 ? 32 : 28;
+      return (await measureTextHeight(text, font, CARD_CONTENT_WIDTH, lineHeight, 'pre-wrap')) + marginBottom;
+    }
+
+    if (/^```/.test(first)) {
+      const code = stripFenceContent(trimmed);
+      const font = isArabic(code) ? measure.arabic : measure.code;
+      const lineHeight = isArabic(code) ? 117 : 49.5;
+      const paddingY = 56;
+      const marginY = isArabic(code) ? 68 : 64;
+      return (await measureTextHeight(code, font, CARD_CONTENT_WIDTH - 64, lineHeight, 'pre-wrap')) + paddingY + marginY;
+    }
+
+    if (/^>/.test(first)) {
+      const quoteBlocks = trimmed
+        .split(/\n{2,}/)
+        .map(part => part.split('\n').map(stripQuoteMarker).join('\n').trim())
+        .filter(Boolean);
+      let total = 0;
+      for (const quote of quoteBlocks) {
+        total += await measureTextHeight(quote, measure.quote, CARD_CONTENT_WIDTH - 104, 69.7, 'pre-wrap');
+        total += 16;
+      }
+      return total + 60;
+    }
+
+    if (/^[-*+] |^\d+\. /.test(first)) {
+      const items = trimmed.split('\n').filter(Boolean);
+      let total = 34;
+      for (const rawItem of items) {
+        const indent = (rawItem.match(/^\s*/) || [''])[0].length;
+        const nestedLevel = Math.min(Math.floor(indent / 2), 4);
+        const item = stripListMarker(rawItem);
+        const width = Math.max(CARD_CONTENT_WIDTH - 52 - (nestedLevel * 36), 360);
+        total += await measureTextHeight(item, measure.body, width, 74, 'pre-wrap');
+        total += nestedLevel > 0 ? 18 : 16;
+      }
+      return total;
+    }
+
+    if (/^\|/.test(first) || /\|/.test(trimmed)) {
+      const rows = trimmed.split('\n').filter(line => line.trim());
+      const textRows = rows
+        .filter(line => !/^\s*\|?\s*:?[-=]+:?\s*(?:\|\s*:?[-=]+:?\s*)*\|?\s*$/.test(line))
+        .map(line => line.replace(/^\s*\|?/, '').replace(/\|?\s*$/, '').replace(/\s*\|\s*/g, '  '))
+        .filter(Boolean);
+      let total = 0;
+      for (const row of textRows) {
+        total += await measureTextHeight(row, measure.table, CARD_CONTENT_WIDTH, 54.4, 'pre-wrap');
+      }
+      return total + 38;
+    }
+
+    const plain = trimmed.replace(/\s+/g, ' ').trim();
+    if (!plain) return 0;
+    return (await measureTextHeight(plain, measure.body, CARD_CONTENT_WIDTH, 74, 'pre-wrap')) + 34;
+  } catch (err) {
+    return null;
+  }
+}
+
+function fallbackBlockWeight(block) {
+  const first = block.trim().split('\n')[0];
+  if (/^# /.test(first))   return 7;
+  if (/^## /.test(first))  return 6;
+  if (/^### /.test(first)) return 5;
+  if (/^```/.test(first))  return isArabic(block) ? 8 : 5;
+  if (/^>/.test(first))    return 5;
+  if (/^[-*+] |^\d+\. /.test(first)) {
+    return block.split('\n').filter(l => l.trim()).length * 2 + 1;
+  }
+  return Math.ceil(block.replace(/\s+/g, ' ').length / 52);
+}
+
+function collectMarkdownBlocks(md) {
+  const blocks = [];
+  let inFence = false;
+  let fenceBuf = [];
+  let textBuf = [];
+
+  const flushText = () => {
+    const joined = textBuf.join('\n').trim();
+    if (joined) {
+      joined.split(/\n{2,}/).forEach(b => {
+        if (b.trim()) blocks.push(b.trim());
+      });
+    }
+    textBuf = [];
+  };
+
+  for (const line of md.split('\n')) {
+    if (!inFence && line.trim().startsWith('```')) {
+      flushText();
+      inFence = true;
+      fenceBuf = [line];
+    } else if (inFence) {
+      fenceBuf.push(line);
+      if (line.trim() === '```' || (line.trim().startsWith('```') && fenceBuf.length > 1)) {
+        inFence = false;
+        blocks.push(fenceBuf.join('\n'));
+        fenceBuf = [];
+      }
+    } else if (line.trim() === '+++') {
+      flushText();
+      blocks.push(PAGE_BREAK_SENTINEL);
+    } else {
+      textBuf.push(line);
+    }
+  }
+  flushText();
+  if (fenceBuf.length) blocks.push(fenceBuf.join('\n'));
+  return blocks;
+}
+
+function validateMarkdown(md) {
+  const issues = [];
+  const lines = md.split('\n');
+  const fenceStarts = lines.reduce((count, line) => count + (line.trim().startsWith('```') ? 1 : 0), 0);
+  if (fenceStarts % 2 === 1) {
+    issues.push({ kind: 'warn', title: 'Unclosed fence', text: 'A code fence appears to be unclosed.' });
+  }
+
+  const blocks = md.split(/\n{2,}/).map(b => b.trim()).filter(Boolean);
+  const longBlock = blocks.find(block => block.length > 1800 || block.split('\n').length > 28);
+  if (longBlock) {
+    issues.push({ kind: 'warn', title: 'Long section', text: 'One section is very long and may span multiple cards.' });
+  }
+
+  for (let i = 0; i < lines.length - 1; i++) {
+    const line = lines[i].trim();
+    if (!line.includes('|') || line.startsWith('```')) continue;
+    const next = lines[i + 1].trim();
+    const rowLike = /^\|.*\|$/.test(line) || line.includes('|');
+    const separatorLike = /^\s*\|?\s*:?[-=]+:?\s*(?:\|\s*:?[-=]+:?\s*)*\|?\s*$/.test(next);
+    if (rowLike && !separatorLike && !next.includes('|')) {
+      issues.push({ kind: 'warn', title: 'Possible table issue', text: `Table-like content near line ${i + 1} may be malformed.` });
+      break;
+    }
+  }
+
+  return issues;
+}
+
+let preflightTimer = null;
+let preflightSeq = 0;
+let jszipModulePromise = null;
+
+async function getZipModule() {
+  if (window.JSZip) return { default: window.JSZip };
+  jszipModulePromise ??= import('https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm');
+  return jszipModulePromise;
+}
+
+function renderPreflightPanel(state) {
+  if (!controls.preflight) return;
+
+  const themeLabel = controls.theme.options[controls.theme.selectedIndex]?.textContent || controls.theme.value;
+
+  const warnings = state.issues || [];
+  const warningCount = warnings.length;
+  const countLabel = `${state.cards} card${state.cards === 1 ? '' : 's'}`;
+
+  controls.preflight.innerHTML = `
+    <div class="preflight-meta">
+      <span class="preflight-badge">${countLabel} estimated</span>
+      <span>${themeLabel} theme</span>
+    </div>
+    <div class="preflight-title">Preflight</div>
+    <div class="preflight-list">
+      ${warningCount > 0
+        ? warnings.map(issue => `<div class="preflight-item" data-kind="${issue.kind || 'info'}"><strong>${issue.title}:</strong> ${issue.text}</div>`).join('')
+        : '<div class="preflight-item" data-kind="info">No validation issues detected.</div>'}
+    </div>`;
+}
+
+function setPreflightIdle(message) {
+  if (!controls.preflight) return;
+  controls.preflight.innerHTML = `
+    <div class="preflight-meta">
+      <span class="preflight-badge">Preflight</span>
+      <span>Live estimate</span>
+    </div>
+    <div class="preflight-title">Preview</div>
+    <div class="preflight-list">
+      <div class="preflight-item" data-kind="info">${message}</div>
+    </div>`;
+}
+
+async function updatePreflight() {
+  const md = document.getElementById('md-input').value.trim();
+  const seq = ++preflightSeq;
+
+  if (!md) {
+    setPreflightIdle('Paste markdown to estimate card count and surface validation notes.');
+    return;
+  }
+
+  try {
+    const theme = controls.theme.value;
+    const density = parseInt(controls.density.value, 10);
+    const fontKey = controls.font.value;
+    const pairing = await loadFontPairing(fontKey);
+    if (seq !== preflightSeq) return;
+
+    const chunks = await splitMarkdown(md, density, pairing, !(controls.coverTitle.value || '').trim());
+    if (seq !== preflightSeq) return;
+
+    const issues = validateMarkdown(md);
+    if (seq !== preflightSeq) return;
+
+    const hasCoverCard = Boolean((controls.coverTitle.value || '').trim() || chunks.autoCover);
+    renderPreflightPanel({ cards: chunks.length + (hasCoverCard ? 1 : 0), issues, theme });
+  } catch (err) {
+    if (seq !== preflightSeq) return;
+    setPreflightIdle('Preflight preview is unavailable right now. You can still render normally.');
+  }
+}
+
+function schedulePreflight() {
+  clearTimeout(preflightTimer);
+  preflightTimer = setTimeout(updatePreflight, 250);
+}
+
+async function downloadZip(entries, zipBaseName) {
+  const { default: JSZip } = await getZipModule();
+  const zip = new JSZip();
+
+  for (const entry of entries) {
+    const base64 = entry.data.split(',')[1];
+    zip.file(entry.name, base64, { base64: true });
+  }
+
+  const blob = await zip.generateAsync({ type: 'blob' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${zipBaseName}.zip`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+function appendZipButton(output, entries, zipBaseName) {
+  if (entries.length < 2) return;
+
+  const btn = document.createElement('button');
+  btn.className = 'btn-dl-all';
+  btn.style.marginTop = '8px';
+  btn.textContent = 'Download ZIP Archive';
+  btn.addEventListener('click', async () => {
+    const label = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Preparing ZIP...';
+    try {
+      await downloadZip(entries, zipBaseName);
+    } catch (err) {
+      console.error('ZIP export failed:', err);
+      setStatus('ZIP export failed. Individual downloads are still available.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = label;
+    }
+  });
+  output.appendChild(btn);
+}
 
 /* ── File reader ── */
 document.getElementById('file-input').addEventListener('change', function () {
@@ -105,21 +582,33 @@ document.getElementById('file-input').addEventListener('change', function () {
   const reader = new FileReader();
   reader.onload = e => {
     document.getElementById('md-input').value = e.target.result;
+    schedulePreflight();
   };
   reader.readAsText(file, 'UTF-8');
 });
 
+
 /* ── Format selector: show/hide quality slider ── */
 document.getElementById('format-select').addEventListener('change', function () {
-  const isPng = this.value === 'png';
-  document.getElementById('quality-group').classList.toggle('hidden', isPng);
+  syncFormatUi();
+  onManualSettingChange();
 });
 
 /* ── Quality label live update ── */
 document.getElementById('quality-range').addEventListener('input', function () {
-  document.getElementById('quality-label').textContent = this.value + '%';
-  this.setAttribute('aria-valuetext', this.value + ' percent');
+  syncQualityUi();
+  onManualSettingChange();
 });
+
+['theme-select', 'density-select', 'font-select', 'texture-select',
+ 'safezone-toggle', 'watermark-input', 'cover-title-input', 'cover-subtitle-input']
+  .forEach(id => {
+    const el = document.getElementById(id);
+    const evt = el.tagName === 'INPUT' ? 'input' : 'change';
+    el.addEventListener(evt, onManualSettingChange);
+  });
+
+document.getElementById('md-input').addEventListener('input', schedulePreflight);
 
 /* ── Button event listeners ── */
 document.getElementById('gen-btn').addEventListener('click', generate);
@@ -233,98 +722,84 @@ const PAGE_BREAK_SENTINEL = '\x00PAGE_BREAK\x00';
    A card never ends on a lone heading.
    Use +++ on its own line to force a page break.
 ══════════════════════════════════════════ */
-function splitMarkdown(md, density) {
-  /* Step 1 — collect blocks, keeping fenced code atomic */
-  const blocks = [];
-  let inFence = false;
-  let fenceBuf = [];
-  let textBuf = [];
+async function splitMarkdown(md, density, pairing, useAutoCover = true) {
+  const blocks = collectMarkdownBlocks(md);
+  const autoCover = useAutoCover ? extractTikTokCover(blocks) : null;
+  const workingBlocks = autoCover ? blocks.slice(1) : blocks;
 
-  const flushText = () => {
-    const joined = textBuf.join('\n').trim();
-    if (joined) {
-      joined.split(/\n{2,}/).forEach(b => {
-        if (b.trim()) blocks.push(b.trim());
-      });
+  const fallbackScale = CARD_BODY_H / 14;
+  const targetHeight = CARD_BODY_H * (density / 14);
+  const hookCap = targetHeight * 0.68;
+  const slideCap = targetHeight * 0.86;
+
+  const weightForBlock = async block => {
+    let bw = await estimateBlockHeight(block, pairing);
+    if (bw == null || Number.isNaN(bw)) {
+      bw = fallbackBlockWeight(block) * fallbackScale;
     }
-    textBuf = [];
+    return bw;
   };
 
-  for (const line of md.split('\n')) {
-    if (!inFence && line.trim().startsWith('```')) {
-      flushText();
-      inFence = true;
-      fenceBuf = [line];
-    } else if (inFence) {
-      fenceBuf.push(line);
-      if (line.trim() === '```' || (line.trim().startsWith('```') && fenceBuf.length > 1)) {
-        inFence = false;
-        blocks.push(fenceBuf.join('\n'));
-        fenceBuf = [];
-      }
-    } else if (line.trim() === '+++') {
-      /* Hard page break: flush current text, insert sentinel */
-      flushText();
-      blocks.push(PAGE_BREAK_SENTINEL);
-    } else {
-      textBuf.push(line);
-    }
-  }
-  flushText();
-  if (fenceBuf.length) blocks.push(fenceBuf.join('\n'));
-
-  /* Step 2 — weight each block */
-  function weight(block) {
-    const first = block.trim().split('\n')[0];
-    if (/^# /.test(first))   return 7;
-    if (/^## /.test(first))  return 6;
-    if (/^### /.test(first)) return 5;
-    if (/^```/.test(first))  return isArabic(block) ? 8 : 5;
-    if (/^>/.test(first))    return 5;
-    if (/^[-*+] |^\d+\. /.test(first)) {
-      return block.split('\n').filter(l => l.trim()).length * 2 + 1;
-    }
-    return Math.ceil(block.replace(/\s+/g, ' ').length / 52);
-  }
-
-  /* Step 3 — pack into chunks, heading sticks to next block */
   const chunks = [];
   let cur = [];
-  let w = 0;
+  let curWeight = 0;
+  let currentHeadingLevel = 0;
 
-  for (let i = 0; i < blocks.length; i++) {
-    const block = blocks[i];
+  const flush = () => {
+    if (cur.length > 0) {
+      chunks.push(cur.join('\n\n'));
+      cur = [];
+    }
+    curWeight = 0;
+    currentHeadingLevel = 0;
+  };
 
-    /* Hard page break sentinel — flush and skip */
+  for (let i = 0; i < workingBlocks.length; i++) {
+    const block = workingBlocks[i];
+
     if (block === PAGE_BREAK_SENTINEL) {
-      if (cur.length > 0) { chunks.push(cur.join('\n\n')); cur = []; w = 0; }
+      flush();
       continue;
     }
 
-    const bw = weight(block);
-    const next = blocks[i + 1];
-    const nw = next ? weight(next) : 0;
+    const trimmed = block.trim();
+    const next = workingBlocks[i + 1];
+    const nextTrimmed = next && next !== PAGE_BREAK_SENTINEL ? next.trim() : '';
+    const blockWeight = await weightForBlock(block);
+    const isHeadingBlock = isHeading(block);
+    const headingLevel = isHeadingBlock ? trimmed.match(/^#{1,3}/)[0].length : 0;
 
-    if (w + bw > density && cur.length > 0) {
-      chunks.push(cur.join('\n\n'));
-      cur = [block];
-      w = bw;
-    } else {
+    if (isHeadingBlock) {
+      flush();
       cur.push(block);
-      w += bw;
+      curWeight = blockWeight;
+      currentHeadingLevel = headingLevel;
+      continue;
     }
 
-    if (isHeading(block) && next && w + nw > density && cur.length > 1) {
-      cur.pop();
-      w -= bw;
-      if (cur.length > 0) chunks.push(cur.join('\n\n'));
-      cur = [block];
-      w = bw;
+    const limit = currentHeadingLevel === 1 ? hookCap : slideCap;
+    const wouldOverflow = cur.length > 0 && curWeight + blockWeight > limit;
+    const nextStartsHeading = /^#{1,3}\s/.test(nextTrimmed);
+
+    if (wouldOverflow && cur.length > 1) {
+      flush();
+    } else if (wouldOverflow && cur.length === 1 && currentHeadingLevel === 1 && nextStartsHeading) {
+      flush();
+    }
+
+    cur.push(block);
+    curWeight += blockWeight;
+
+    if (currentHeadingLevel === 1 && curWeight >= hookCap && next && !nextStartsHeading) {
+      flush();
     }
   }
+
   if (cur.length > 0) chunks.push(cur.join('\n\n'));
 
-  return mergeOrphanHeadings(chunks);
+  const merged = mergeOrphanHeadings(chunks);
+  merged.autoCover = autoCover;
+  return merged;
 }
 
 function mergeOrphanHeadings(chunks) {
@@ -391,8 +866,8 @@ async function generate() {
   const formatVal     = document.getElementById('format-select').value;
   const qualityVal    = parseInt(document.getElementById('quality-range').value) / 100;
   const watermarkText = escapeHtml((document.getElementById('watermark-input').value || '').trim());
-  const coverTitle    = (document.getElementById('cover-title-input').value || '').trim();
-  const coverSubtitle = (document.getElementById('cover-subtitle-input').value || '').trim();
+  const manualCoverTitle = (document.getElementById('cover-title-input').value || '').trim();
+  const manualCoverSubtitle = (document.getElementById('cover-subtitle-input').value || '').trim();
 
   const output     = document.getElementById('output');
   const stage      = document.getElementById('render-stage');
@@ -421,21 +896,20 @@ async function generate() {
     };
     const fmt = FORMAT_MAP[formatVal] || FORMAT_MAP.jpeg;
 
-    const chunks = splitMarkdown(md, density);
+    const chunks = await splitMarkdown(md, density, pairing, !manualCoverTitle);
     lastChunks   = chunks;
+    const autoCover = chunks.autoCover;
     const fileSlug = makeSlug(md);
+    const coverTitle = manualCoverTitle || autoCover?.title || '';
+    const coverSubtitle = manualCoverSubtitle || autoCover?.subtitle || '';
+    const hasCoverCard = Boolean(coverTitle);
     lastSettings = { theme, fontKey, textureKey, fmt, qualityVal, pairing, textureMode,
-                     watermarkText, coverTitle, coverSubtitle, fileSlug };
-    const total    = chunks.length;
+                     watermarkText, coverTitle, coverSubtitle, fileSlug, hasCoverCard };
+    const total    = chunks.length + (hasCoverCard ? 1 : 0);
     const blobs  = [];
+    const exportFiles = [];
 
     setStatus(`Rendering ${total} card${total !== 1 ? 's' : ''}…`);
-
-    /*
-      Available body height:
-      1920 - 148 (header) - 380 (footer) - 40 (top pad) = 1352px
-    */
-    const BODY_H = 1352;
 
     /* ── Cover card (rendered before chunk loop, excluded from page numbering) ── */
     if (coverTitle) {
@@ -452,39 +926,17 @@ async function generate() {
         ? coverCanvas.toDataURL(fmt.mime, qualityVal)
         : coverCanvas.toDataURL(fmt.mime);
       blobs.push(coverUrl);
+      exportFiles.push({ name: `cover-${fileSlug}.${fmt.ext}`, data: coverUrl });
 
-      const coverWrap = document.createElement('div');
-      coverWrap.className = 'card-wrapper';
-      const coverMeta = document.createElement('div');
-      coverMeta.className = 'card-meta';
-      coverMeta.innerHTML = `<span class="card-meta-label">Cover Card</span>`;
-      const coverChk = document.createElement('input');
-      coverChk.type = 'checkbox';
-      coverChk.className = 'card-select-chk';
-      coverChk.dataset.index = 'cover';
-      coverChk.setAttribute('aria-label', 'Select cover card for re-render');
-      coverMeta.appendChild(coverChk);
-      coverWrap.appendChild(coverMeta);
-      const coverImg = document.createElement('img');
-      coverImg.className = 'card-img';
-      coverImg.src = coverUrl;
-      coverImg.alt = 'Preview of cover card';
-      coverWrap.appendChild(coverImg);
-      const coverDl = document.createElement('a');
-      coverDl.className = 'btn-dl';
-      coverDl.href = coverUrl;
-      coverDl.download = `cover-${fileSlug}.${fmt.ext}`;
-      coverDl.innerHTML = `
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2.2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-        Download Cover (.${fmt.ext.toUpperCase()})`;
-      coverWrap.appendChild(coverDl);
-      output.appendChild(coverWrap);
+      appendPreviewCard(output, {
+        metaLabel: 'Cover Card',
+        checkboxIndex: 'cover',
+        checkboxAria: 'Select cover card for re-render',
+        dataUrl: coverUrl,
+        alt: 'Preview of cover card',
+        downloadName: `cover-${fileSlug}.${fmt.ext}`,
+        downloadLabel: `Download Cover (.${fmt.ext.toUpperCase()})`,
+      });
     }
 
     for (let i = 0; i < chunks.length; i++) {
@@ -548,7 +1000,7 @@ async function generate() {
 
       /* Layout reflow wait (fonts already awaited above via Font Loading API) */
       await new Promise(r => setTimeout(r, 50));
-      fitContent(scaler, BODY_H);
+      fitContent(scaler, CARD_BODY_H);
 
       /* Font normalization: shrink fonts on sparse cards so all slides look consistent.
          TARGET_SCALE is the maximum visual scale we allow — sparse cards get their
@@ -564,7 +1016,7 @@ async function generate() {
         scaler.style.width = '';
         scaler.style.marginBottom = '';
         await new Promise(r => setTimeout(r, 30));
-        fitContent(scaler, BODY_H);
+        fitContent(scaler, CARD_BODY_H);
       }
 
       await new Promise(r => setTimeout(r, 80));
@@ -586,43 +1038,17 @@ async function generate() {
         : canvas.toDataURL(fmt.mime);
 
       blobs.push(dataUrl);
+      exportFiles.push({ name: `card-${fileSlug}-${String(i + 1).padStart(2, '0')}.${fmt.ext}`, data: dataUrl });
 
-      /* Preview */
-      const wrap = document.createElement('div');
-      wrap.className = 'card-wrapper';
-
-      const meta = document.createElement('div');
-      meta.className = 'card-meta';
-      meta.innerHTML = `<span class="card-meta-label">Card ${i + 1} of ${total}</span>`;
-      const chk = document.createElement('input');
-      chk.type = 'checkbox';
-      chk.className = 'card-select-chk';
-      chk.dataset.index = i;
-      chk.setAttribute('aria-label', `Select card ${i + 1} of ${total} for re-render`);
-      meta.appendChild(chk);
-      wrap.appendChild(meta);
-
-      const img = document.createElement('img');
-      img.className = 'card-img';
-      img.src = dataUrl;
-      img.alt = `Preview of card ${i + 1} of ${total}`;
-      wrap.appendChild(img);
-
-      const dlA = document.createElement('a');
-      dlA.className = 'btn-dl';
-      dlA.href      = dataUrl;
-      dlA.download  = `card-${fileSlug}-${String(i + 1).padStart(2, '0')}.${fmt.ext}`;
-      dlA.innerHTML = `
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2.2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-        Download Card ${i + 1} (.${fmt.ext.toUpperCase()})`;
-      wrap.appendChild(dlA);
-      output.appendChild(wrap);
+      appendPreviewCard(output, {
+        metaLabel: `Card ${i + 1} of ${total}`,
+        checkboxIndex: i,
+        checkboxAria: `Select card ${i + 1} of ${total} for re-render`,
+        dataUrl,
+        alt: `Preview of card ${i + 1} of ${total}`,
+        downloadName: `card-${fileSlug}-${String(i + 1).padStart(2, '0')}.${fmt.ext}`,
+        downloadLabel: `Download Card ${i + 1} (.${fmt.ext.toUpperCase()})`,
+      });
     }
 
     if (cancelRequested) {
@@ -650,6 +1076,7 @@ async function generate() {
           });
         });
         output.appendChild(allBtn);
+        appendZipButton(output, exportFiles, fileSlug);
       }
       if (total > 1) {
         const selBtn = document.createElement('button');
@@ -704,11 +1131,10 @@ async function renderSelected() {
 
   const selectedTotal = indices.length;
   const blobs = [];
+  const exportFiles = [];
 
   try {
     setStatus(`Rendering ${selectedTotal} selected card${selectedTotal !== 1 ? 's' : ''}…`);
-    const BODY_H = 1352;
-
     for (let pos = 0; pos < indices.length; pos++) {
       if (cancelRequested) break;
 
@@ -731,30 +1157,14 @@ async function renderSelected() {
           ? cvCanvas.toDataURL(fmt.mime, qualityVal)
           : cvCanvas.toDataURL(fmt.mime);
         blobs.push(cvUrl);
-        const cvWrap = document.createElement('div');
-        cvWrap.className = 'card-wrapper';
-        const cvMeta = document.createElement('div');
-        cvMeta.className = 'card-meta';
-        cvMeta.innerHTML = `<span class="card-meta-label">Cover Card</span>`;
-        cvWrap.appendChild(cvMeta);
-        const cvImg = document.createElement('img');
-        cvImg.className = 'card-img'; cvImg.src = cvUrl;
-        cvImg.alt = 'Preview of cover card';
-        cvWrap.appendChild(cvImg);
-        const cvDl = document.createElement('a');
-        cvDl.className = 'btn-dl'; cvDl.href = cvUrl;
-        cvDl.download = `cover-${fileSlug}.${fmt.ext}`;
-        cvDl.innerHTML = `
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2.2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-          Download Cover (.${fmt.ext.toUpperCase()})`;
-        cvWrap.appendChild(cvDl);
-        output.appendChild(cvWrap);
+        exportFiles.push({ name: `cover-${fileSlug}.${fmt.ext}`, data: cvUrl });
+        appendPreviewCard(output, {
+          metaLabel: 'Cover Card',
+          dataUrl: cvUrl,
+          alt: 'Preview of cover card',
+          downloadName: `cover-${fileSlug}.${fmt.ext}`,
+          downloadLabel: `Download Cover (.${fmt.ext.toUpperCase()})`,
+        });
         continue;
       }
 
@@ -808,7 +1218,7 @@ async function renderSelected() {
 
       stage.appendChild(card);
       await new Promise(r => setTimeout(r, 50));
-      fitContent(scaler, BODY_H);
+      fitContent(scaler, CARD_BODY_H);
 
       /* Font normalization */
       const TARGET_SCALE = 0.82;
@@ -821,7 +1231,7 @@ async function renderSelected() {
         scaler.style.width      = '';
         scaler.style.marginBottom = '';
         await new Promise(r => setTimeout(r, 30));
-        fitContent(scaler, BODY_H);
+        fitContent(scaler, CARD_BODY_H);
       }
 
       await new Promise(r => setTimeout(r, 80));
@@ -840,37 +1250,15 @@ async function renderSelected() {
         ? canvas.toDataURL(fmt.mime, qualityVal)
         : canvas.toDataURL(fmt.mime);
       blobs.push(dataUrl);
+      exportFiles.push({ name: `card-${fileSlug}-${String(displayNum).padStart(2, '0')}.${fmt.ext}`, data: dataUrl });
 
-      /* Preview */
-      const wrap = document.createElement('div');
-      wrap.className = 'card-wrapper';
-
-      const meta = document.createElement('div');
-      meta.className = 'card-meta';
-      meta.innerHTML = `<span class="card-meta-label">Card ${displayNum} of ${selectedTotal} <span class="card-meta-orig">(orig. ${origIdx + 1})</span></span>`;
-      wrap.appendChild(meta);
-
-      const img = document.createElement('img');
-      img.className = 'card-img';
-      img.src = dataUrl;
-      img.alt = `Preview of card ${displayNum} of ${selectedTotal} (original ${parseInt(origIdx) + 1})`;
-      wrap.appendChild(img);
-
-      const dlA = document.createElement('a');
-      dlA.className = 'btn-dl';
-      dlA.href      = dataUrl;
-      dlA.download  = `card-${fileSlug}-${String(displayNum).padStart(2, '0')}.${fmt.ext}`;
-      dlA.innerHTML = `
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2.2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-        Download Card ${displayNum} (.${fmt.ext.toUpperCase()})`;
-      wrap.appendChild(dlA);
-      output.appendChild(wrap);
+      appendPreviewCard(output, {
+        metaLabel: `Card ${displayNum} of ${selectedTotal} <span class="card-meta-orig">(orig. ${parseInt(origIdx) + 1})</span>`,
+        dataUrl,
+        alt: `Preview of card ${displayNum} of ${selectedTotal} (original ${parseInt(origIdx) + 1})`,
+        downloadName: `card-${fileSlug}-${String(displayNum).padStart(2, '0')}.${fmt.ext}`,
+        downloadLabel: `Download Card ${displayNum} (.${fmt.ext.toUpperCase()})`,
+      });
     }
 
     if (!cancelRequested) {
@@ -889,6 +1277,7 @@ async function renderSelected() {
           });
         });
         output.appendChild(allBtn);
+        appendZipButton(output, exportFiles, `${fileSlug}-selected`);
       }
       setStatus(`✦ Done — ${blobs.length} card${blobs.length !== 1 ? 's' : ''} ready.`);
     } else {
@@ -905,3 +1294,96 @@ async function renderSelected() {
     stage.innerHTML    = '';
   }
 }
+
+function plainTextFromMarkdown(text) {
+  return text
+    .replace(/!\[[^\]]*\]\([^)]+\)/g, '')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/[`*_>#~]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function extractTikTokCover(blocks) {
+  const first = blocks.find(block => block && block !== PAGE_BREAK_SENTINEL);
+  if (!first || !/^#\s+/.test(first.trim())) return null;
+
+  const title = plainTextFromMarkdown(first.replace(/^#\s+/, ''));
+  if (!title) return null;
+
+  let subtitle = '';
+  for (let i = 1; i < blocks.length; i++) {
+    const block = blocks[i];
+    if (!block || block === PAGE_BREAK_SENTINEL) break;
+    const trimmed = block.trim();
+    if (!trimmed || isHeading(trimmed) || /^[-*+] |^\d+\. /.test(trimmed) || /^```/.test(trimmed) || /^>/.test(trimmed) || /^\|/.test(trimmed)) {
+      break;
+    }
+    subtitle = plainTextFromMarkdown(trimmed);
+    break;
+  }
+
+  return { title, subtitle };
+}
+
+function createSafeZoneOverlay() {
+  const overlay = document.createElement('div');
+  overlay.className = 'card-safe-zone';
+  overlay.setAttribute('aria-hidden', 'true');
+  overlay.innerHTML = `
+    <div class="card-safe-zone__scrim card-safe-zone__scrim--top"></div>
+    <div class="card-safe-zone__scrim card-safe-zone__scrim--bottom"></div>
+    <div class="card-safe-zone__frame"></div>
+    <div class="card-safe-zone__label">TikTok safe zone</div>`;
+  return overlay;
+}
+
+function appendPreviewCard(output, options) {
+  const wrap = document.createElement('div');
+  wrap.className = 'card-wrapper';
+
+  const meta = document.createElement('div');
+  meta.className = 'card-meta';
+  meta.innerHTML = `<span class="card-meta-label">${options.metaLabel}</span>`;
+
+  if (options.checkboxIndex !== undefined && options.checkboxIndex !== null) {
+    const chk = document.createElement('input');
+    chk.type = 'checkbox';
+    chk.className = 'card-select-chk';
+    chk.dataset.index = options.checkboxIndex;
+    chk.setAttribute('aria-label', options.checkboxAria);
+    meta.appendChild(chk);
+  }
+
+  wrap.appendChild(meta);
+
+  const frame = document.createElement('div');
+  frame.className = 'card-preview-frame';
+  const showSafeZone = options.showSafeZone ?? (controls.safeZone?.checked ?? false);
+  frame.classList.toggle('has-safezone', showSafeZone);
+
+  const img = document.createElement('img');
+  img.className = 'card-img';
+  img.src = options.dataUrl;
+  img.alt = options.alt;
+  frame.appendChild(img);
+  if (showSafeZone) frame.appendChild(createSafeZoneOverlay());
+  wrap.appendChild(frame);
+
+  const dl = document.createElement('a');
+  dl.className = 'btn-dl';
+  dl.href = options.dataUrl;
+  dl.download = options.downloadName;
+  dl.innerHTML = `
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2.2"
+      stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+    ${options.downloadLabel}`;
+  wrap.appendChild(dl);
+  output.appendChild(wrap);
+}
+

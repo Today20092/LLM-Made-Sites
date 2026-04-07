@@ -4,22 +4,27 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0a0a0f" />
-  <title>Markdown to Cards — Blog → TikTok</title>
+  <title>Markdown to TikTok Slides</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link id="ui-fonts-link"
+    href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+    rel="stylesheet"
+  />
   <link id="gfonts-link"
     href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Lato:wght@300;400;700&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap"
     rel="stylesheet"
   />
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="vendor/marked.umd.js"></script>
+  <script src="vendor/html2canvas.min.js"></script>
+  <script src="vendor/jszip.min.js"></script>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
   <div class="app-header">
-    <h1>Blog → TikTok</h1>
-    <p>Markdown to Cards</p>
+    <h1>TikTok Slides</h1>
+    <p>Markdown to TikTok carousels</p>
   </div>
 
   <div class="surface">
@@ -40,11 +45,11 @@
       <div class="file-name" id="file-name"></div>
       <div class="or-divider">or paste below</div>
       <textarea id="md-input"
-        placeholder="# My Post&#10;&#10;Paste your Obsidian markdown here&#8230;"></textarea>
+        placeholder="# Hook&#10;&#10;Paste your TikTok notes here..."></textarea>
     </div>
   </div>
 
-  <div class="surface">
+    <div class="surface">
     <div class="surface-label">Settings</div>
     <div class="options-grid">
 
@@ -52,21 +57,21 @@
       <div class="opt-group">
         <label>Theme</label>
         <select id="theme-select">
-          <option value="quran">☪️ Quran</option>
-          <option value="midnight">✦ Midnight</option>
-          <option value="plum">🫐 Plum</option>
-          <option value="aurora">🌌 Aurora</option>
-          <option value="ember">🔥 Ember</option>
-          <option value="ink">🖋 Ink</option>
-          <option value="slate">🌊 Slate</option>
-          <option value="noir">🎬 Noir</option>
-          <option value="dark">🌙 Dark</option>
-          <option value="contrast">◑ Contrast</option>
-          <option value="cream">☀️ Cream</option>
-          <option value="parchment">📜 Parchment</option>
-          <option value="sand">🪨 Sand</option>
-          <option value="forest">🌿 Forest</option>
-          <option value="rose">🌸 Rose</option>
+          <option value="quran">Quran</option>
+          <option value="midnight">Midnight</option>
+          <option value="plum">Plum</option>
+          <option value="aurora">Aurora</option>
+          <option value="ember">Ember</option>
+          <option value="ink">Ink</option>
+          <option value="slate">Slate</option>
+          <option value="noir">Noir</option>
+          <option value="dark">Dark</option>
+          <option value="contrast">Contrast</option>
+          <option value="cream">Cream</option>
+          <option value="parchment">Parchment</option>
+          <option value="sand">Sand</option>
+          <option value="forest">Forest</option>
+          <option value="rose">Rose</option>
         </select>
       </div>
       <div class="opt-group">
@@ -82,13 +87,13 @@
       <div class="opt-group opt-group--full">
         <label>Font Pairing</label>
         <select id="font-select">
-          <option value="scholar">Scholar — Playfair Display + Lato</option>
-          <option value="editorial">Editorial — Cormorant Garamond + Source Sans</option>
-          <option value="minimal">Minimal — DM Sans (weight hierarchy)</option>
-          <option value="spiritual">Spiritual — Amiri (Arabic-primary)</option>
-          <option value="luxury">Luxury — Libre Baskerville + Raleway</option>
-          <option value="humanist">Humanist — Merriweather + Open Sans</option>
-          <option value="atkinson">Accessible — Atkinson Hyperlegible Next</option>
+          <option value="scholar">Scholar - Playfair Display + Lato</option>
+          <option value="editorial">Editorial - Cormorant Garamond + Source Sans</option>
+          <option value="minimal">Minimal - DM Sans (weight hierarchy)</option>
+          <option value="spiritual">Spiritual - Amiri (Arabic-primary)</option>
+          <option value="luxury">Luxury - Libre Baskerville + Raleway</option>
+          <option value="humanist">Humanist - Merriweather + Open Sans</option>
+          <option value="atkinson">Accessible - Atkinson Hyperlegible Next</option>
         </select>
       </div>
 
@@ -104,11 +109,18 @@
         </select>
       </div>
 
+      <div class="opt-group opt-group--full opt-toggle">
+        <label class="opt-toggle-label" for="safezone-toggle">
+          <input type="checkbox" id="safezone-toggle" />
+          <span>Show TikTok Safe Zone</span>
+        </label>
+      </div>
+
       <!-- Row 4: Footer Watermark (full width) -->
       <div class="opt-group opt-group--full">
-        <label>Footer Text <span class="opt-label-hint">(watermark · leave blank for none)</span></label>
+        <label>Footer Text <span class="opt-label-hint">(watermark - leave blank for none)</span></label>
         <input type="text" id="watermark-input"
-          placeholder="@handle  ·  My Book Title"
+          placeholder="@handle - My Book Title"
           maxlength="80"
           autocomplete="off" />
       </div>
@@ -137,10 +149,10 @@
           <option value="png">PNG (Lossless)</option>
           <option value="webp">WebP</option>
         </select>
-        <small class="opt-note">PNG: lossless ~4–8 MB · WebP: Safari falls back to JPEG</small>
+        <small class="opt-note">PNG: lossless ~4-8 MB - WebP: Safari falls back to JPEG</small>
       </div>
       <div class="opt-group" id="quality-group">
-        <label for="quality-range">Quality — <span id="quality-label">95%</span></label>
+        <label for="quality-range">Quality - <span id="quality-label">95%</span></label>
         <input type="range" id="quality-range"
           min="60" max="100" value="95" step="1"
           aria-label="Export quality"
@@ -152,10 +164,10 @@
 
   <div class="btn-row">
     <button class="btn-generate" id="gen-btn">
-      ✦ Generate Cards
+      Generate TikTok Slides
     </button>
     <button class="btn-cancel" id="cancel-btn" disabled>
-      ✕ Cancel
+      Cancel
     </button>
   </div>
 
