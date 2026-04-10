@@ -11,24 +11,18 @@
   const costPerTBEl = $("#costPerTB");
   const availableStorageEl = $("#availableStorage");
   const audioBitrateEl = $("#audioBitrate");
+  const includeAudioToggle = $("#includeAudio");
   const customSpeedEl = $("#customSpeed");
   
   const container = $("#profilesContainer");
   const barChart = $("#barChart");
   const uploadTable = $("#uploadTable");
-  const profileCountEl = $("#profileCount");
   const totalDurationEl = $("#totalDuration");
   const customSpeedHeader = $("#customSpeedHeader");
   
   const reverseModeToggle = $("#reverseMode");
   const targetSizeEl = $("#targetSize");
   const targetSizeUnitEl = $("#targetSizeUnit");
-  
-  const resolutionEl = $("#resolution");
-  const fpsEl = $("#fps");
-  const complexityEl = $("#complexity");
-  const applySuggestionBtn = $("#applySuggestionBtn");
-  const suggestionTextEl = $("#suggestionText");
   
   const themeToggle = $("#themeToggle");
   const shareConfigBtn = $("#shareConfig");
@@ -78,8 +72,8 @@
 
   function getTotalSeconds() {
     const h = Math.max(0, parseInt(hoursEl.value) || 0);
-    const m = Math.max(0, parseInt(minutesEl.value) || 0);
-    const s = Math.max(0, parseInt(secondsEl.value) || 0);
+    const m = Math.min(59, Math.max(0, parseInt(minutesEl.value) || 0));
+    const s = Math.min(59, Math.max(0, parseInt(secondsEl.value) || 0));
     return h * 3600 + m * 60 + s;
   }
 
@@ -123,55 +117,6 @@
     return (sizeGB * 8 * 1e9) / (speedMbps * 1e6);
   }
 
-  // Bitrate Recommendations Logic
-  const recommendationMatrix = {
-    "1080p": { "30": { low: 5, med: 8, high: 12 }, "60": { low: 8, med: 12, high: 18 } },
-    "4K": { "30": { low: 20, med: 35, high: 50 }, "60": { low: 35, med: 50, high: 80 } },
-    "720p": { "30": { low: 3, med: 5, high: 8 }, "60": { low: 5, med: 8, high: 12 } },
-  };
-
-  function getRecommendedBitrate() {
-    const res = resolutionEl.value;
-    const fps = fpsEl.value;
-    const comp = complexityEl.value;
-    if (recommendationMatrix[res] && recommendationMatrix[res][fps]) {
-      return recommendationMatrix[res][fps][comp];
-    }
-    return null;
-  }
-
-  function updateSuggestion() {
-    const rec = getRecommendedBitrate();
-    if (rec) {
-      suggestionTextEl.textContent = `Suggested for ${resolutionEl.value} ${fpsEl.value}fps: ~${rec} Mbps`;
-      applySuggestionBtn.classList.remove("hidden");
-    } else {
-      suggestionTextEl.textContent = "Adjust settings for a recommendation";
-      applySuggestionBtn.classList.add("hidden");
-    }
-  }
-
-  // Listen for changes on all suggestion inputs
-  [resolutionEl, fpsEl, complexityEl].forEach(el => {
-    el.addEventListener("change", (e) => {
-      updateSuggestion();
-    });
-  });
-  
-  // Initial update
-  setTimeout(updateSuggestion, 500); // Give time for MWC hydration
-  
-  applySuggestionBtn.addEventListener("click", () => {
-    const rec = getRecommendedBitrate();
-    if (rec && !reverseModeToggle.selected) {
-      // Deselect all platform presets
-      presetChips.forEach(c => { c.selected = false; });
-      
-      baselineBitrateEl.value = rec;
-      recalc();
-      saveState();
-    }
-  });
 
   // Presets (Chips) - Enforce single-selection
   const presetChips = document.querySelectorAll("md-filter-chip");
@@ -199,55 +144,45 @@
   function createProfileCard(id, bitrate, name) {
     profiles.set(id, { bitrate, name });
 
-    const card = document.createElement("div");
-    card.className = "md3-card profile-card";
-    card.dataset.id = id;
-    card.innerHTML = `
-      <button class="remove-btn" aria-label="Remove profile" title="Remove">
-        <span class="material-symbols-outlined">close</span>
-      </button>
-      <input type="text" class="profile-name-input mb-6" value="${name}" aria-label="Profile name">
-      <div class="space-y-6">
-        <md-outlined-text-field class="profile-bitrate w-full" label="Bitrate (Mbps)" type="number" value="${bitrate}" min="1"></md-outlined-text-field>
-        
-        <div class="bg-[var(--md-sys-color-surface-container-low)] p-4 rounded-2xl">
-          <div class="text-[10px] uppercase opacity-60 tracking-wider font-bold mb-1">Estimated size</div>
-          <div class="text-2xl font-bold profile-size">--</div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div class="p-3 rounded-xl bg-[var(--md-sys-color-surface-container-highest)]">
-             <div class="text-[10px] uppercase opacity-40 font-bold mb-1">vs Baseline</div>
-             <div class="text-sm font-bold profile-diff">--</div>
-          </div>
-          <div class="p-3 rounded-xl bg-[var(--md-sys-color-surface-container-highest)]">
-             <div class="text-[10px] uppercase opacity-40 font-bold mb-1">Storage Cost</div>
-             <div class="text-sm font-bold profile-cost">--</div>
-          </div>
-        </div>
-      </div>
+    const row = document.createElement("tr");
+    row.className = "profile-row";
+    row.dataset.id = id;
+    row.innerHTML = `
+      <td><input type="text" class="profile-name-input" value="${name}" aria-label="Profile name"></td>
+      <td><input type="number" class="profile-bitrate-input" value="${bitrate}" min="1" aria-label="Bitrate"></td>
+      <td class="font-bold profile-size">--</td>
+      <td class="font-bold profile-diff">--</td>
+      <td class="profile-cost">--</td>
+      <td><button class="remove-btn" aria-label="Remove" title="Remove"><span class="material-symbols-outlined">close</span></button></td>
     `;
 
-    card.querySelector(".remove-btn").addEventListener("click", () => {
+    row.querySelector(".remove-btn").addEventListener("click", () => {
       profiles.delete(id);
-      card.remove();
+      row.remove();
       recalc();
       saveState();
     });
 
-    card.querySelector(".profile-bitrate").addEventListener("input", (e) => {
-      profiles.get(id).bitrate = Math.max(1, parseFloat(e.target.value) || 1);
+    const bitrateInput = row.querySelector(".profile-bitrate-input");
+    bitrateInput.addEventListener("change", (e) => {
+      const val = parseFloat(e.target.value);
+      if (val && val >= 1) {
+        profiles.get(id).bitrate = val;
+      } else {
+        profiles.get(id).bitrate = 50; // Reset to default if invalid
+        bitrateInput.value = "50";
+      }
       recalc();
       saveState();
     });
 
-    card.querySelector(".profile-name-input").addEventListener("input", (e) => {
-      profiles.get(id).name = e.target.value || "Profile #" + id;
+    row.querySelector(".profile-name-input").addEventListener("change", (e) => {
+      profiles.get(id).name = e.target.value || "Profile #" + getNextProfileNumber();
       recalc();
       saveState();
     });
 
-    container.appendChild(card);
+    container.appendChild(row);
   }
 
   function addProfile(defaultBitrate, defaultName) {
@@ -264,7 +199,7 @@
     const seconds = getTotalSeconds();
     const baselineBitrate = Math.max(1, parseFloat(baselineBitrateEl.value) || 100);
     const costPerTB = Math.max(0, parseFloat(costPerTBEl.value) || 20);
-    const audioKbps = Math.max(0, parseFloat(audioBitrateEl.value) || 0);
+    const audioKbps = includeAudioToggle.selected ? Math.max(0, parseFloat(audioBitrateEl.value) || 0) : 0;
     const storageGB = Math.max(0, parseFloat(availableStorageEl.value) || 0);
     const customSpeed = Math.max(1, parseFloat(customSpeedEl.value) || 50);
     const isReverse = reverseModeToggle.selected;
@@ -275,7 +210,6 @@
 
     totalDurationEl.textContent = formatDurationShort(seconds);
     customSpeedHeader.textContent = "@ " + customSpeed + " Mbps";
-    profileCountEl.textContent = profiles.size;
 
     // Visibility toggles
     document.querySelector(".bitrate-only").classList.toggle('hidden', isReverse);
@@ -297,8 +231,8 @@
       bitrate: effectiveBaselineBitrate 
     }];
 
-    container.querySelectorAll(".profile-card").forEach((card) => {
-      const id = parseInt(card.dataset.id);
+    container.querySelectorAll(".profile-row").forEach((row) => {
+      const id = parseInt(row.dataset.id);
       const p = profiles.get(id);
       if (!p) return;
 
@@ -308,28 +242,32 @@
       const diffPercent = baselineSize > 0 ? ((size - baselineSize) / baselineSize) * 100 : 0;
       const diffSign = diffPercent >= 0 ? "+" : "";
 
-      card.querySelector(".profile-size").textContent = formatSize(size);
-      card.querySelector(".profile-diff").textContent = diffSign + diffPercent.toFixed(1) + "%";
-      card.querySelector(".profile-diff").style.color = diffPercent <= 0 ? "var(--md-sys-color-primary)" : "var(--md-sys-color-error)";
-      card.querySelector(".profile-cost").textContent = "$" + cost.toFixed(2);
-      
-      const bInput = card.querySelector(".profile-bitrate");
+      row.querySelector(".profile-size").textContent = formatSize(size);
+      row.querySelector(".profile-diff").textContent = diffSign + diffPercent.toFixed(1) + "%";
+      row.querySelector(".profile-diff").style.color = diffPercent <= 0 ? "var(--md-sys-color-primary)" : "var(--md-sys-color-error)";
+      row.querySelector(".profile-cost").textContent = "$" + cost.toFixed(2);
+
+      const bInput = row.querySelector(".profile-bitrate-input");
       bInput.value = profBitrate.toFixed(1);
       bInput.disabled = isReverse;
       bInput.style.opacity = isReverse ? "0.6" : "1";
+      bInput.title = isReverse ? "Bitrate is calculated from target size in reverse mode" : "";
 
       entries.push({ label: p.name + " (" + profBitrate.toFixed(1) + " Mbps)", size, isBaseline: false, bitrate: profBitrate });
     });
 
-    // Bar chart
-    const maxSize = Math.max(...entries.map((e) => e.size), 0.001);
-    barChart.innerHTML = entries
-      .map((e) => {
-        const pct = Math.max(1, (e.size / maxSize) * 100);
+    // Proportional blocks chart
+    const totalSize = entries.reduce((sum, e) => sum + e.size, 0) || 1;
+    barChart.innerHTML = `<div class="blocks-container">` + entries
+      .map((e, idx) => {
+        const flex = Math.max(5, (e.size / totalSize) * 100);
         const cls = e.isBaseline ? "baseline" : "profile";
-        return `<div class="bar-row"><div class="bar-label">${e.label}</div><div class="bar-track"><div class="bar-fill ${cls}" style="width: ${pct}%">${formatSize(e.size)}</div></div></div>`;
+        const profileName = e.label.split(" (")[0]; // Full name for tooltip
+        const displayName = e.isBaseline ? "Baseline" : `P#${idx}`; // Abbreviated for display
+        const bitrate = e.label.match(/\((.*?)\)/)?.[1] || "";
+        return `<div class="block ${cls}" style="flex: ${flex}" title="${profileName}"><div class="block-label">${displayName}</div><div class="block-size">${formatSize(e.size)}</div><div class="block-bitrate">${bitrate}</div></div>`;
       })
-      .join("");
+      .join("") + `</div>`;
 
     // Upload table
     const speeds = [20, 100, 1000, 10000, customSpeed];
@@ -359,6 +297,7 @@
       costPerTB: costPerTBEl.value,
       availableStorage: availableStorageEl.value,
       customSpeed: customSpeedEl.value,
+      includeAudio: includeAudioToggle.selected,
       profiles: Array.from(profiles.entries()).map(([id, p]) => ({ id, bitrate: p.bitrate, name: p.name })),
     };
     localStorage.setItem("vbc-state", JSON.stringify(state));
@@ -367,7 +306,7 @@
 
   function getStateString() {
     const s = saveState();
-    const parts = ["v2", s.hours, s.minutes, s.seconds, s.baselineBitrate, s.costPerTB, s.availableStorage, s.customSpeed];
+    const parts = ["v3", s.hours, s.minutes, s.seconds, s.baselineBitrate, s.costPerTB, s.availableStorage, s.customSpeed, s.includeAudio ? "1" : "0"];
     s.profiles.forEach((p) => {
       const name = encodeURIComponent(p.name).replace(/\|/g, "%7C").replace(/,/g, "%2C");
       parts.push(`${p.id},${p.bitrate},${name}`);
@@ -384,6 +323,7 @@
     costPerTBEl.value = state.costPerTB ?? 20;
     availableStorageEl.value = state.availableStorage ?? 500;
     customSpeedEl.value = state.customSpeed ?? 50;
+    includeAudioToggle.selected = state.includeAudio !== false;
 
     container.innerHTML = "";
     profiles.clear();
@@ -401,11 +341,24 @@
     if (sharedState) {
       try {
         const decoded = decodeURIComponent(escape(atob(sharedState)));
-        if (decoded.startsWith("v2|")) {
+        if (decoded.startsWith("v3|")) {
           const p = decoded.split("|");
           applyState({
             hours: p[1], minutes: p[2], seconds: p[3], baselineBitrate: p[4],
             costPerTB: p[5], availableStorage: p[6], customSpeed: p[7],
+            includeAudio: p[8] === "1",
+            profiles: p.slice(9).map((profStr) => {
+              const [id, bitrate, name] = profStr.split(",");
+              return { id: parseInt(id), bitrate: parseFloat(bitrate), name: decodeURIComponent(name) };
+            }),
+          });
+          return true;
+        } else if (decoded.startsWith("v2|")) {
+          const p = decoded.split("|");
+          applyState({
+            hours: p[1], minutes: p[2], seconds: p[3], baselineBitrate: p[4],
+            costPerTB: p[5], availableStorage: p[6], customSpeed: p[7],
+            includeAudio: true,
             profiles: p.slice(8).map((profStr) => {
               const [id, bitrate, name] = profStr.split(",");
               return { id: parseInt(id), bitrate: parseFloat(bitrate), name: decodeURIComponent(name) };
@@ -428,6 +381,7 @@
   inputs.forEach(el => el.addEventListener("input", () => { recalc(); saveState(); }));
 
   reverseModeToggle.addEventListener("change", () => { recalc(); saveState(); });
+  includeAudioToggle.addEventListener("change", () => { recalc(); saveState(); });
   $("#addProfile").addEventListener("click", () => addProfile());
 
   shareConfigBtn.addEventListener("click", () => {
@@ -457,6 +411,34 @@
     URL.revokeObjectURL(url);
   });
 
+  // ===== Mobile Tab Switching =====
+  const tabInputs = document.getElementById("tabInputs");
+  const tabResults = document.getElementById("tabResults");
+  const inputsPane = document.getElementById("inputsPane");
+  const resultsPane = document.getElementById("resultsPane");
+
+  function switchTab(tab) {
+    const mobile = window.innerWidth < 1280;
+    inputsPane.classList.toggle("hidden", mobile && tab !== "inputs");
+    resultsPane.classList.toggle("hidden", mobile && tab !== "results");
+    tabInputs.classList.toggle("active", tab === "inputs");
+    tabInputs.classList.toggle("opacity-40", tab !== "inputs");
+    tabResults.classList.toggle("active", tab === "results");
+    tabResults.classList.toggle("opacity-40", tab !== "results");
+  }
+
+  if (tabInputs && tabResults) {
+    tabInputs.addEventListener("click", () => switchTab("inputs"));
+    tabResults.addEventListener("click", () => switchTab("results"));
+    window.addEventListener("resize", () => {
+      if (window.innerWidth >= 1280) {
+        inputsPane.classList.remove("hidden");
+        resultsPane.classList.remove("hidden");
+      }
+    });
+    if (window.innerWidth < 1280) resultsPane.classList.add("hidden");
+  }
+
   // ===== Init =====
   const raw = localStorage.getItem("vbc-state");
   if (!loadFromUrl() && raw) {
@@ -464,7 +446,6 @@
   } else if (profiles.size === 0) {
     addProfile(50);
   }
-  
+
   recalc();
-  updateSuggestion();
 })();
