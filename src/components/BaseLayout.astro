@@ -47,23 +47,23 @@ const activeTool = toolRegistry.find((tool) => tool.href === normalizedPath);
   </head>
   <body class="h-full">
     <div class="relative min-h-screen overflow-hidden">
-      <div class="pointer-events-none absolute inset-0 opacity-80">
-        <div class="absolute left-[-10rem] top-[-10rem] h-[30rem] w-[30rem] rounded-full bg-amber-400/10 blur-3xl"></div>
-        <div class="absolute right-[-8rem] top-[8rem] h-[24rem] w-[24rem] rounded-full bg-emerald-400/10 blur-3xl"></div>
-        <div class="absolute bottom-[-10rem] left-[25%] h-[26rem] w-[26rem] rounded-full bg-rose-400/10 blur-3xl"></div>
+      <div class="pointer-events-none absolute inset-0 opacity-90">
+        <div class="absolute left-[-14rem] top-[-12rem] h-[34rem] w-[34rem] rounded-full bg-white/5 blur-3xl"></div>
+        <div class="absolute right-[-10rem] top-[6rem] h-[28rem] w-[28rem] rounded-full bg-amber-300/8 blur-3xl"></div>
+        <div class="absolute bottom-[-12rem] left-[18%] h-[30rem] w-[30rem] rounded-full bg-white/[0.035] blur-3xl"></div>
       </div>
 
-      <header class="sticky top-0 z-40 border-b border-white/10 bg-slate-950/70 backdrop-blur-2xl">
+      <header class="sticky top-0 z-40 border-b border-white/10 bg-slate-950/72 backdrop-blur-2xl">
         <div class="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <a href={import.meta.env.BASE_URL} class="group flex items-center gap-3">
-            <span class="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-sm font-black tracking-wider text-amber-200 shadow-lg shadow-black/20">
+            <span class="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-sm font-black tracking-wider text-white shadow-lg shadow-black/20">
               LMS
             </span>
             <div class="min-w-0">
-              <div class="font-display text-lg font-bold tracking-tight text-white">LLM Made Sites</div>
-              <div class="hidden text-xs uppercase tracking-[0.24em] text-white/[0.45] sm:block">Astro-native tool suite</div>
+              <div class="font-display text-lg font-bold tracking-tight text-white sm:text-[1.05rem]">LLM Made Sites</div>
+              <div class="hidden text-[10px] uppercase tracking-[0.28em] text-white/[0.42] sm:block">Astro-native tool suite</div>
               {activeTool && (
-                <div class="mt-1 inline-flex max-w-full rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/65 sm:hidden">
+                <div class="mt-1 inline-flex max-w-full rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/55 sm:hidden">
                   <span class="truncate">{activeTool.title}</span>
                 </div>
               )}
@@ -75,10 +75,10 @@ const activeTool = toolRegistry.find((tool) => tool.href === normalizedPath);
                 href={withBase(item.href)}
                 aria-current={normalizedPath === item.href ? 'page' : undefined}
                 class:list={[
-                  'rounded-full px-4 py-2 text-sm font-semibold transition',
+                  'rounded-full border px-4 py-2 text-sm font-semibold transition duration-200',
                   normalizedPath === item.href
-                    ? 'bg-white text-slate-950 shadow-lg shadow-black/20'
-                    : 'text-white/70 hover:bg-white/[0.08] hover:text-white',
+                    ? 'border-white/10 bg-white/[0.08] text-white shadow-[0_10px_30px_rgba(0,0,0,0.24)]'
+                    : 'border-transparent text-white/62 hover:border-white/10 hover:bg-white/[0.04] hover:text-white',
                 ]}
               >
                 {item.label}
@@ -88,12 +88,12 @@ const activeTool = toolRegistry.find((tool) => tool.href === normalizedPath);
         </div>
       </header>
 
-      <main class="relative mx-auto w-full max-w-7xl px-4 pb-28 pt-6 sm:px-6 sm:pb-8 lg:px-8">
+      <main class="relative mx-auto w-full max-w-7xl px-4 pb-28 pt-8 sm:px-6 sm:pb-10 lg:px-8">
         <slot />
       </main>
 
       <nav class="fixed inset-x-3 bottom-3 z-50 md:hidden" aria-label="Primary">
-        <div class="panel border border-white/10 bg-slate-950/92 p-2 shadow-2xl shadow-black/40 backdrop-blur-2xl">
+        <div class="dock-surface p-2 shadow-2xl shadow-black/40">
           <div class="grid grid-cols-4 gap-1">
             {nav.map((item) => (
               <a
@@ -101,16 +101,16 @@ const activeTool = toolRegistry.find((tool) => tool.href === normalizedPath);
                 aria-current={normalizedPath === item.href ? 'page' : undefined}
                 aria-label={item.label}
                 class:list={[
-                  'flex min-w-0 flex-col items-center justify-center gap-1 rounded-2xl px-1.5 py-2 text-[10px] font-semibold transition',
+                  'flex min-w-0 flex-col items-center justify-center gap-1 rounded-2xl border px-1.5 py-2 text-[10px] font-semibold transition duration-200',
                   normalizedPath === item.href
-                    ? 'bg-white text-slate-950 shadow-lg shadow-black/20'
-                    : 'text-white/60 hover:bg-white/[0.06] hover:text-white',
+                    ? 'border-white/10 bg-white/[0.08] text-white shadow-[0_10px_24px_rgba(0,0,0,0.2)]'
+                    : 'border-transparent text-white/58 hover:border-white/10 hover:bg-white/[0.04] hover:text-white',
                 ]}
               >
-                <span class="flex h-9 w-9 items-center justify-center rounded-2xl text-base leading-none">
+                <span class="flex h-9 w-9 items-center justify-center rounded-2xl bg-white/[0.03] text-base leading-none">
                   <Icon name={item.iconName} class="h-5 w-5" />
                 </span>
-                <span class="sr-only">{item.label}</span>
+                <span class="truncate">{item.label}</span>
               </a>
             ))}
           </div>

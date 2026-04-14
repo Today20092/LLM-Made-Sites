@@ -27,11 +27,11 @@ import { toolById } from '../data/tools';
             </div>
           </InputGroup>
 
-          <div class="rounded-3xl border border-white/10 bg-white/[0.04] p-4">
+          <div class="surface-card p-4">
             <div class="flex items-center justify-between gap-3">
               <div>
                 <div class="field-label">Primary mode</div>
-                <div class="mt-1 text-sm text-white/65">Switch to reverse size calculations when needed.</div>
+                <div class="mt-1 text-sm text-white/58">Switch to reverse size calculations when needed.</div>
               </div>
               <input id="reverseMode" type="checkbox" class="h-5 w-5 accent-amber-300" />
             </div>
@@ -56,9 +56,9 @@ import { toolById } from '../data/tools';
             </InputGroup>
           </div>
 
-          <div class="rounded-3xl border border-white/10 bg-white/[0.04] p-4">
+          <div class="surface-card p-4">
             <div class="field-label">Calculated bitrate</div>
-            <div id="calculatedReverseBitrate" class="mt-2 text-3xl font-black text-white">--</div>
+            <div id="calculatedReverseBitrate" class="mt-2 text-3xl font-semibold text-white">--</div>
           </div>
 
           <div class="grid gap-3 sm:grid-cols-2">
@@ -106,14 +106,14 @@ import { toolById } from '../data/tools';
 
     <div class="space-y-6">
       <div class="grid gap-3 sm:grid-cols-2">
-        <article class="rounded-3xl border border-white/10 bg-white/[0.04] p-4 shadow-glow">
+        <article class="surface-card p-4">
           <div class="field-label">Total duration</div>
-          <div id="totalDuration" class="mt-2 text-2xl font-black tracking-tight text-white sm:text-3xl">0s</div>
+          <div id="totalDuration" class="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">0s</div>
           <p class="mt-2 text-sm leading-6 text-white/60">Updates live as inputs change</p>
         </article>
-        <article class="rounded-3xl border border-white/10 bg-white/[0.04] p-4 shadow-glow">
+        <article class="surface-card p-4">
           <div class="field-label">Profiles</div>
-          <div id="profileCount" class="mt-2 text-2xl font-black tracking-tight text-white sm:text-3xl">0</div>
+          <div id="profileCount" class="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">0</div>
           <p class="mt-2 text-sm leading-6 text-white/60">Saved comparisons are capped</p>
         </article>
       </div>
@@ -138,7 +138,7 @@ import { toolById } from '../data/tools';
         <Panel title="Upload Estimates" eyebrow="Table" description="Quick reference table for upload planning.">
           <div class="overflow-x-auto">
             <table class="w-full text-left text-sm">
-              <thead class="bg-white/[0.04] text-white/70">
+              <thead class="bg-white/[0.03] text-white/66">
                 <tr>
                   <th class="px-4 py-3">Metric</th>
                   <th class="px-4 py-3">Value</th>

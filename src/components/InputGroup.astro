@@ -2,7 +2,7 @@
 const { label, hint, for: htmlFor, class: className = '' } = Astro.props;
 ---
 
-<label class={`grid gap-2 ${className}`} for={htmlFor}>
+<label class={`grid gap-1.5 ${className}`} for={htmlFor}>
   <span class="field-label flex items-center justify-between gap-3">
     <span>{label}</span>
     {hint && <span class="normal-case tracking-normal text-white/40">{hint}</span>}

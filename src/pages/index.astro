@@ -19,16 +19,15 @@ const withBase = (path) => {
 >
   <div class="space-y-8">
     <section class="panel overflow-hidden">
-      <div class="bg-gradient-to-br from-white/[0.05] via-white/[0.03] to-transparent px-5 py-6 sm:px-6 sm:py-8">
-        <div class="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
-          <div class="space-y-4">
+      <div class="bg-[linear-gradient(180deg,rgba(255,255,255,0.03),transparent_35%)] px-5 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+        <div class="grid gap-8 lg:grid-cols-[1.08fr_0.92fr] lg:items-end">
+          <div class="space-y-5">
             <div class="chip w-fit">Unified tool suite</div>
-            <h1 class="max-w-3xl text-4xl font-black leading-[0.92] tracking-tight text-white sm:text-5xl lg:text-6xl">
-              One app shell for the full collection.
+            <h1 class="max-w-3xl text-4xl font-semibold leading-[0.94] tracking-tight text-white sm:text-5xl lg:text-6xl">
+              One shell, three tools, one visual language.
             </h1>
-            <p class="max-w-2xl text-sm leading-6 text-white/70 sm:text-base">
-              The hub, prompt launcher, bitrate calculator, and markdown exporter now share the
-              same header, nav model, spacing, and card language on mobile first.
+            <p class="max-w-2xl text-sm leading-6 text-white/62 sm:text-base">
+              The hub, prompt launcher, bitrate calculator, and markdown exporter now share the same hierarchy, card language, and mobile chrome.
             </p>
             <div class="flex flex-wrap gap-3">
               <ActionButton href={withBase('/prompt-launcher')} variant="primary">Launch Prompt Launcher</ActionButton>
@@ -39,7 +38,7 @@ const withBase = (path) => {
           <div class="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
             <MetricCard label="Tools" value="3" hint="Shared routes, one registry" />
             <MetricCard label="Layout" value="1" hint="Same shell everywhere" />
-            <MetricCard label="Primary" value="Mobile" hint="Designed for 375px to 430px widths" />
+            <MetricCard label="Primary" value="Mobile" hint="Built for narrow widths first" />
           </div>
         </div>
       </div>

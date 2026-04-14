@@ -11,7 +11,7 @@ const botLaunchers = botIconList;
 ---
 
 <ToolPageShell tool={toolById['prompt-launcher']}>
-  <div class="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+  <div class="grid gap-6 lg:grid-cols-[1.02fr_0.98fr]">
     <div class="space-y-6">
       <Panel title="Prompt Draft" eyebrow="Editor" description="Write once, fill variables, and keep the prompt state local to this route.">
         <div class="space-y-5">
@@ -67,7 +67,7 @@ const botLaunchers = botIconList;
 
       <Panel id="varsSection" title="Variables" eyebrow="Dynamic fields" description="Detected placeholders appear here automatically.">
         <div class="flex flex-wrap items-center justify-between gap-3">
-          <p id="missingVarsHint" class="text-sm text-white/60">No placeholders detected yet.</p>
+          <p id="missingVarsHint" class="text-sm text-white/58">No placeholders detected yet.</p>
           <button id="resetVarsBtn" class="action-btn" type="button">Reset values</button>
         </div>
         <div id="varsList" class="mt-5 grid gap-4"></div>
@@ -84,7 +84,7 @@ const botLaunchers = botIconList;
           <div id="filledPreviewWrapper" class="space-y-4">
             <pre
               id="filledPreview"
-              class="input-shell max-h-[280px] whitespace-pre-wrap break-words text-sm leading-6 text-white/80"
+              class="surface-card max-h-[280px] whitespace-pre-wrap break-words p-4 text-sm leading-6 text-white/80"
             >Nothing to preview yet.</pre>
             <div class="flex flex-wrap gap-3">
               <button id="copyFilledBtn" class="action-btn" type="button">Copy filled prompt</button>
@@ -99,19 +99,19 @@ const botLaunchers = botIconList;
           {botLaunchers.map((bot) => (
             <button
               data-bot={bot.name}
-              class="group flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4 text-left transition hover:border-white/20 hover:bg-white/[0.08]"
+              class="group flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-4 text-left transition duration-200 hover:border-white/20 hover:bg-white/[0.055]"
               type="button"
             >
               <span class="flex items-center gap-3">
-                <span class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-slate-950/60 text-lg text-white">
+                <span class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] text-lg text-white">
                   <Icon name={bot.iconName} class="h-6 w-6 text-white" />
                 </span>
                 <span>
                   <span class="block text-sm font-bold text-white">{bot.name}</span>
-                  <span class="block text-xs text-white/[0.5]">prefilled</span>
+                  <span class="block text-xs text-white/[0.45]">prefilled</span>
                 </span>
               </span>
-              <span class="text-white/[0.35] transition group-hover:text-white">↗</span>
+              <span class="text-white/[0.3] transition duration-200 group-hover:text-white">↗</span>
             </button>
           ))}
         </div>
@@ -126,12 +126,12 @@ const botLaunchers = botIconList;
 
   <div
     id="shareModal"
-    class="hidden fixed inset-0 z-50 items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm"
+    class="hidden fixed inset-0 z-50 items-center justify-center bg-slate-950/78 p-4 backdrop-blur-sm"
   >
     <div class="panel w-full max-w-3xl">
       <div class="border-b border-white/10 px-5 py-4 sm:px-6">
         <div class="flex items-center justify-between gap-3">
-          <h2 id="shareTitle" class="text-xl font-bold text-white">Share prompt</h2>
+          <h2 id="shareTitle" class="text-xl font-semibold text-white">Share prompt</h2>
           <button id="closeShareModal" class="action-btn" type="button">Close</button>
         </div>
       </div>
@@ -142,15 +142,15 @@ const botLaunchers = botIconList;
             <input id="shareLinkInput" class="input-shell" type="text" readonly />
           </label>
           <div class="grid gap-3">
-            <label class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white/75">
+            <label class="surface-card flex items-center gap-3 px-4 py-3 text-sm text-white/75">
               <input id="includeVarsInLink" type="checkbox" checked />
               Include variables
             </label>
-            <label class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white/75">
+            <label class="surface-card flex items-center gap-3 px-4 py-3 text-sm text-white/75">
               <input id="includeMetaInLink" type="checkbox" checked />
               Include metadata
             </label>
-            <label class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white/75">
+            <label class="surface-card flex items-center gap-3 px-4 py-3 text-sm text-white/75">
               <input id="canonicalizeInLink" type="checkbox" />
               Canonical link
             </label>
@@ -162,17 +162,17 @@ const botLaunchers = botIconList;
           <span id="nativeShareWrapper" class="self-center text-sm text-white/45"></span>
         </div>
         <div class="grid gap-4 md:grid-cols-3">
-          <div class="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+          <div class="surface-card p-4">
             <div class="field-label mb-2">Filled</div>
             <pre id="shareFilledPreview" class="whitespace-pre-wrap break-words text-sm text-white/75"></pre>
             <button id="copyFilledFromModalBtn" class="action-btn mt-4" type="button">Copy filled</button>
           </div>
-          <div class="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+          <div class="surface-card p-4">
             <div class="field-label mb-2">Template</div>
             <pre id="shareTemplatePreview" class="whitespace-pre-wrap break-words text-sm text-white/75"></pre>
             <button id="copyTemplateBtn" class="action-btn mt-4" type="button">Copy template</button>
           </div>
-          <div class="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+          <div class="surface-card p-4">
             <div class="field-label mb-2">Message</div>
             <pre id="shareMessagePreview" class="whitespace-pre-wrap break-words text-sm text-white/75"></pre>
             <button id="copyMessageBtn" class="action-btn mt-4" type="button">Copy message</button>
@@ -184,10 +184,10 @@ const botLaunchers = botIconList;
 
   <div
     id="clearConfirmModal"
-    class="hidden fixed inset-0 z-50 items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm"
+    class="hidden fixed inset-0 z-50 items-center justify-center bg-slate-950/78 p-4 backdrop-blur-sm"
   >
     <div class="panel w-full max-w-lg p-6">
-      <h2 class="text-xl font-bold text-white">Clear draft?</h2>
+      <h2 class="text-xl font-semibold text-white">Clear draft?</h2>
       <p class="mt-2 text-sm text-white/65">This removes the current prompt, metadata, and variable values.</p>
       <div class="mt-6 flex flex-wrap gap-3">
         <button id="confirmClearBtn" class="action-btn-primary" type="button">Clear</button>
@@ -199,12 +199,12 @@ const botLaunchers = botIconList;
 
   <div
     id="customChatbotModal"
-    class="hidden fixed inset-0 z-50 items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm"
+    class="hidden fixed inset-0 z-50 items-center justify-center bg-slate-950/78 p-4 backdrop-blur-sm"
   >
     <div class="panel w-full max-w-2xl">
       <div class="border-b border-white/10 px-5 py-4 sm:px-6">
         <div class="flex items-center justify-between gap-3">
-          <h2 class="text-xl font-bold text-white">Custom bot</h2>
+          <h2 class="text-xl font-semibold text-white">Custom bot</h2>
           <button id="closeCustomChatbotModal" class="action-btn" type="button">Close</button>
         </div>
       </div>
@@ -218,7 +218,7 @@ const botLaunchers = botIconList;
         <InputGroup label="URL" for="customBotUrl" class="sm:col-span-2">
           <input id="customBotUrl" class="input-shell" type="url" />
         </InputGroup>
-        <label class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white/75 sm:col-span-2">
+        <label class="surface-card flex items-center gap-3 px-4 py-3 text-sm text-white/75 sm:col-span-2">
           <input id="customBotSupportsQuery" type="checkbox" checked />
           Supports prefilled query parameters
         </label>
@@ -229,12 +229,12 @@ const botLaunchers = botIconList;
 
   <div
     id="templateLibraryModal"
-    class="hidden fixed inset-0 z-50 items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm"
+    class="hidden fixed inset-0 z-50 items-center justify-center bg-slate-950/78 p-4 backdrop-blur-sm"
   >
     <div class="panel w-full max-w-4xl">
       <div class="border-b border-white/10 px-5 py-4 sm:px-6">
         <div class="flex items-center justify-between gap-3">
-          <h2 class="text-xl font-bold text-white">Template library</h2>
+          <h2 class="text-xl font-semibold text-white">Template library</h2>
           <button id="closeTemplateLibrary" class="action-btn" type="button">Close</button>
         </div>
       </div>

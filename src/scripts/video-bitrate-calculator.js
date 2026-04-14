@@ -199,15 +199,15 @@ function renderProfiles(recommended, estimatedSize) {
       const durationHours = getTotalSeconds() / 3600;
       const sizeGb = durationHours > 0 ? ((bitrate + state.audioBitrate / 1000) * durationHours * 3600) / 8 / 1024 ** 3 * 1024 ** 3 : 0;
       return `
-        <article class="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+        <article class="surface-card p-4">
           <div class="flex items-start justify-between gap-3">
             <div>
-              <h3 class="text-base font-bold text-white">${escapeHtml(profile.name)}</h3>
+              <h3 class="text-base font-semibold text-white">${escapeHtml(profile.name)}</h3>
               <p class="mt-1 text-sm text-white/[0.55]">${escapeHtml(profile.resolution || state.resolution)} @ ${profile.fps || state.fps} fps</p>
             </div>
-            <span class="rounded-full border border-white/10 bg-slate-950/60 px-3 py-1 text-xs font-semibold text-amber-200">${bitrate.toFixed(1)} Mbps</span>
+            <span class="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-semibold text-white">${bitrate.toFixed(1)} Mbps</span>
           </div>
-          <p class="mt-3 text-sm text-white/70">Estimated size: ${formatSize(sizeGb)}</p>
+          <p class="mt-3 text-sm text-white/68">Estimated size: ${formatSize(sizeGb)}</p>
         </article>
       `;
     })
@@ -219,13 +219,13 @@ function renderCapacityCards(estimatedSize) {
   const count = estimatedSize > 0 ? storageBytes / estimatedSize : 0;
   const cost = (state.availableStorage / 1024) * state.costPerTB;
   return `
-    <div class="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+    <div class="surface-card p-4">
       <div class="field-label">Fits in storage</div>
-      <div class="mt-2 text-3xl font-black text-white">${Number.isFinite(count) ? count.toFixed(1) : '0'}</div>
+      <div class="mt-2 text-3xl font-semibold text-white">${Number.isFinite(count) ? count.toFixed(1) : '0'}</div>
     </div>
-    <div class="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+    <div class="surface-card p-4">
       <div class="field-label">Storage cost</div>
-      <div class="mt-2 text-3xl font-black text-white">$${cost.toFixed(2)}</div>
+      <div class="mt-2 text-3xl font-semibold text-white">$${cost.toFixed(2)}</div>
     </div>
   `;
 }
@@ -240,7 +240,7 @@ function renderUploadTable(duration, recommended) {
   ];
   return `
     <table class="w-full text-left text-sm">
-      <thead class="bg-white/[0.04] text-white/70">
+      <thead class="bg-white/[0.03] text-white/66">
         <tr><th class="px-4 py-3">Metric</th><th class="px-4 py-3">Value</th></tr>
       </thead>
       <tbody>
@@ -248,7 +248,7 @@ function renderUploadTable(duration, recommended) {
           .map(
             ([label, value]) => `
               <tr class="border-t border-white/10">
-                <td class="px-4 py-3 text-white/70">${label}</td>
+                <td class="px-4 py-3 text-white/68">${label}</td>
                 <td class="px-4 py-3 font-semibold text-white">${value}</td>
               </tr>
             `
@@ -270,11 +270,11 @@ function renderChart(recommended, reverseBitrate, selectedBitrate) {
     .map(
       ([label, value]) => `
         <div>
-          <div class="mb-2 flex items-center justify-between text-sm text-white/70">
+          <div class="mb-2 flex items-center justify-between text-sm text-white/62">
             <span>${label}</span>
             <span class="font-semibold text-white">${value.toFixed(1)} Mbps</span>
           </div>
-          <div class="h-4 rounded-full bg-white/6">
+          <div class="h-4 rounded-full bg-white/[0.05]">
             <div class="h-4 rounded-full bg-gradient-to-r from-amber-300 via-rose-300 to-emerald-300" style="width:${Math.max((value / max) * 100, 8)}%"></div>
           </div>
         </div>

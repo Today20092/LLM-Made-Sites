@@ -4,8 +4,8 @@ const { eyebrow, title, description, class: className = '' } = Astro.props;
 
 <header class={`flex flex-col gap-3 sm:gap-4 ${className}`}>
   {eyebrow && <div class="chip w-fit">{eyebrow}</div>}
-  {title && <h2 class="text-2xl font-black tracking-tight text-white sm:text-3xl">{title}</h2>}
-  {description && <p class="max-w-3xl text-sm leading-6 text-white/68 sm:text-base">{description}</p>}
+  {title && <h2 class="text-2xl font-semibold tracking-tight text-white sm:text-3xl">{title}</h2>}
+  {description && <p class="max-w-3xl text-sm leading-6 text-white/60 sm:text-base">{description}</p>}
   <div class="flex flex-wrap gap-3">
     <slot name="actions" />
   </div>

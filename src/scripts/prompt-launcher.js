@@ -298,17 +298,17 @@ function renderLaunchers() {
   const bots = [...BOT_TEMPLATES, ...state.customBots];
   nodes.chatbotButtons.innerHTML = bots
     .map((bot) => `
-      <button data-bot="${escapeHtml(bot.name)}" class="group flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4 text-left transition hover:border-white/20 hover:bg-white/[0.08]" type="button">
+      <button data-bot="${escapeHtml(bot.name)}" class="group flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-4 text-left transition duration-200 hover:border-white/20 hover:bg-white/[0.055]" type="button">
         <span class="flex items-center gap-3">
-          <span class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-slate-950/60 text-lg text-white">
+          <span class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] text-lg text-white">
             ${bot.iconMarkup || escapeHtml(bot.icon || bot.name.slice(0, 1))}
           </span>
           <span>
             <span class="block text-sm font-bold text-white">${escapeHtml(bot.name)}</span>
-            <span class="block text-xs text-white/[0.5]">${bot.supportsQuery ? 'prefilled' : 'copy/open'}</span>
+            <span class="block text-xs text-white/[0.45]">${bot.supportsQuery ? 'prefilled' : 'copy/open'}</span>
           </span>
         </span>
-        <span class="text-white/[0.35] transition group-hover:text-white">↗</span>
+        <span class="text-white/[0.3] transition duration-200 group-hover:text-white">↗</span>
       </button>
     `)
     .join('');
@@ -331,15 +331,15 @@ function renderTemplates() {
   nodes.templateList.innerHTML = state.templates
     .map(
       (template, index) => `
-        <article class="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+        <article class="surface-card p-4">
           <div class="flex items-start justify-between gap-3">
             <div>
-              <h3 class="text-base font-bold text-white">${escapeHtml(template.title || 'Untitled')}</h3>
-      <p class="mt-1 text-sm text-white/[0.55]">${escapeHtml(template.tags || '')}</p>
+              <h3 class="text-base font-semibold text-white">${escapeHtml(template.title || 'Untitled')}</h3>
+              <p class="mt-1 text-sm text-white/[0.55]">${escapeHtml(template.tags || '')}</p>
             </div>
             <button data-template-remove="${index}" class="action-btn" type="button">Remove</button>
           </div>
-          <p class="mt-3 line-clamp-3 text-sm leading-6 text-white/70">${escapeHtml(template.prompt || '')}</p>
+          <p class="mt-3 line-clamp-3 text-sm leading-6 text-white/68">${escapeHtml(template.prompt || '')}</p>
           <div class="mt-4 flex flex-wrap gap-3">
             <button data-template-load="${index}" class="action-btn" type="button">Load</button>
           </div>

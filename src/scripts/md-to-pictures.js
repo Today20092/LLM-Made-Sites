@@ -195,7 +195,7 @@ async function renderPreview(cards) {
 
 function createPreviewCard(card, index, total, format, theme) {
   const article = document.createElement('article');
-  article.className = 'overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-4';
+  article.className = 'surface-card overflow-hidden p-4';
   article.innerHTML = `
     <div class="mb-3 flex items-center justify-between gap-3 text-xs uppercase tracking-[0.2em] text-white/[0.45]">
       <span>${card.cover ? 'Cover' : `Card ${index + 1}`}</span>
