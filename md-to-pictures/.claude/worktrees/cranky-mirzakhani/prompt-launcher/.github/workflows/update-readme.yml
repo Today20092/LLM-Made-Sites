@@ -1,0 +1,41 @@
+name: Update README with GitHub Pages Links
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Generate README links
+        run: |
+          python3 << 'EOF'
+          import os
+          
+          owner = "Today20092"
+          repo = "LLM-Made-Sites"
+          
+          links = []
+          for folder in sorted(os.listdir('.')):
+              if os.path.isdir(folder) and folder != '.git' and not folder.startswith('.'):
+                  if os.path.exists(os.path.join(folder, 'index.html')):
+                      url = f"https://{owner}.github.io/{repo}/{folder}/"
+                      links.append(f"- [{folder}]({url})")
+          
+          with open('README.md', 'a') as f:
+              f.write("\n\n## Hosted Pages\n\n" + "\n".join(links))
+          EOF
+      
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "docs: update github pages links" || true
+          git push

@@ -1,0 +1,20 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import type { ToolDefinition } from '../data/tools';
+
+type ToolPageProps = {
+  tool: ToolDefinition;
+  title?: string;
+  description?: string;
+  activePath?: string;
+};
+
+const { tool, title = `${tool.title} | LLM Made Sites`, description = tool.summary, activePath = tool.href } =
+  Astro.props as ToolPageProps;
+---
+
+<BaseLayout title={title} description={description} activePath={activePath}>
+  <div class="space-y-6">
+    <slot />
+  </div>
+</BaseLayout>

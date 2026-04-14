@@ -1,0 +1,24 @@
+{
+  "name": "llm-made-sites-astro",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.2",
+    "@astrojs/tailwind": "^6.0.2",
+    "@iconify-json/mdi": "^1.2.3",
+    "@lobehub/icons": "^5.4.0",
+    "@lobehub/icons-static-svg": "^1.86.0",
+    "astro": "^6.1.6",
+    "astro-icon": "^1.1.5",
+    "autoprefixer": "^10.5.0",
+    "html2canvas": "^1.4.1",
+    "marked": "^18.0.0",
+    "postcss": "^8.5.9",
+    "tailwindcss": "^3.4.19"
+  }
+}

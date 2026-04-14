@@ -1,0 +1,261 @@
+---
+import { Icon } from 'astro-icon/components';
+import ActionButton from '../components/ActionButton.astro';
+import InputGroup from '../components/InputGroup.astro';
+import Panel from '../components/Panel.astro';
+import ToolPageShell from '../components/ToolPageShell.astro';
+import { botIconList } from '../data/bot-icons';
+import { toolById } from '../data/tools';
+
+const botLaunchers = botIconList;
+---
+
+<ToolPageShell tool={toolById['prompt-launcher']}>
+  <div class="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+    <div class="space-y-6">
+      <Panel title="Prompt Draft" eyebrow="Editor" description="Write once, fill variables, and keep the prompt state local to this route.">
+        <div class="space-y-5">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <button
+              id="themeToggle"
+              class="action-btn"
+              type="button"
+              aria-label="Toggle theme"
+            >
+              <span id="sunIcon" class="hidden">☀</span>
+              <span id="moonIcon">☾</span>
+              <span>Theme</span>
+            </button>
+            <p class="text-sm text-white/55">Shortcuts: Ctrl+Enter, Ctrl+L, Ctrl+K, Esc</p>
+          </div>
+
+          <div class="grid gap-4 md:grid-cols-2">
+            <InputGroup label="Title" hint="Optional" for="titleInput">
+              <input id="titleInput" class="input-shell" type="text" placeholder="Cold email prompt" autocomplete="off" />
+            </InputGroup>
+            <InputGroup label="Tags" hint="Optional" for="tagsInput">
+              <input id="tagsInput" class="input-shell" type="text" placeholder="email, hiring, tone" autocomplete="off" />
+            </InputGroup>
+          </div>
+
+          <div class="grid gap-3">
+            <button id="toggleNotes" class="action-btn w-fit" type="button" aria-expanded="false">+ Add notes</button>
+            <div id="notesWrap" class="hidden">
+              <InputGroup label="Notes" hint="Optional" for="notesInput">
+                <textarea
+                  id="notesInput"
+                  class="input-shell min-h-[96px]"
+                  placeholder="Audience, constraints, tone, or background"
+                ></textarea>
+              </InputGroup>
+            </div>
+          </div>
+
+          <InputGroup label="Prompt Template" for="promptInput">
+            <div class="flex items-center justify-between gap-3">
+              <span class="field-label">Template body</span>
+              <span id="charCount" class="text-xs text-white/45">0 characters</span>
+            </div>
+            <textarea
+              id="promptInput"
+              class="input-shell min-h-[220px]"
+              placeholder="Write your prompt here..."
+            ></textarea>
+          </InputGroup>
+        </div>
+      </Panel>
+
+      <Panel id="varsSection" title="Variables" eyebrow="Dynamic fields" description="Detected placeholders appear here automatically.">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <p id="missingVarsHint" class="text-sm text-white/60">No placeholders detected yet.</p>
+          <button id="resetVarsBtn" class="action-btn" type="button">Reset values</button>
+        </div>
+        <div id="varsList" class="mt-5 grid gap-4"></div>
+      </Panel>
+    </div>
+
+    <div class="space-y-6">
+      <Panel title="Preview" eyebrow="Output" description="Inspect the filled prompt before launching or sharing.">
+        <div class="space-y-4">
+          <button id="toggleFilledPreview" class="action-btn w-full justify-between" type="button">
+            <span>Filled preview</span>
+            <span id="previewChevron">▾</span>
+          </button>
+          <div id="filledPreviewWrapper" class="space-y-4">
+            <pre
+              id="filledPreview"
+              class="input-shell max-h-[280px] whitespace-pre-wrap break-words text-sm leading-6 text-white/80"
+            >Nothing to preview yet.</pre>
+            <div class="flex flex-wrap gap-3">
+              <button id="copyFilledBtn" class="action-btn" type="button">Copy filled prompt</button>
+              <button id="shareBtn" class="action-btn" type="button">Share</button>
+            </div>
+          </div>
+        </div>
+      </Panel>
+
+      <Panel title="Launchers" eyebrow="Bots" description="Common destinations use the same card language and open state.">
+        <div id="chatbotButtons" class="grid gap-3">
+          {botLaunchers.map((bot) => (
+            <button
+              data-bot={bot.name}
+              class="group flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4 text-left transition hover:border-white/20 hover:bg-white/[0.08]"
+              type="button"
+            >
+              <span class="flex items-center gap-3">
+                <span class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-slate-950/60 text-lg text-white">
+                  <Icon name={bot.iconName} class="h-6 w-6 text-white" />
+                </span>
+                <span>
+                  <span class="block text-sm font-bold text-white">{bot.name}</span>
+                  <span class="block text-xs text-white/[0.5]">prefilled</span>
+                </span>
+              </span>
+              <span class="text-white/[0.35] transition group-hover:text-white">↗</span>
+            </button>
+          ))}
+        </div>
+        <div class="mt-5 flex flex-wrap gap-3">
+          <button id="fabButton" class="action-btn-primary" type="button">Add custom bot</button>
+          <button id="templateLibraryBtn" class="action-btn" type="button">Template library</button>
+          <button id="clearBtn" class="action-btn" type="button">Clear draft</button>
+        </div>
+      </Panel>
+    </div>
+  </div>
+
+  <div
+    id="shareModal"
+    class="hidden fixed inset-0 z-50 items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm"
+  >
+    <div class="panel w-full max-w-3xl">
+      <div class="border-b border-white/10 px-5 py-4 sm:px-6">
+        <div class="flex items-center justify-between gap-3">
+          <h2 id="shareTitle" class="text-xl font-bold text-white">Share prompt</h2>
+          <button id="closeShareModal" class="action-btn" type="button">Close</button>
+        </div>
+      </div>
+      <div class="space-y-5 px-5 py-5 sm:px-6">
+        <div class="grid gap-3 sm:grid-cols-2">
+          <label class="grid gap-2">
+            <span class="field-label">Share link</span>
+            <input id="shareLinkInput" class="input-shell" type="text" readonly />
+          </label>
+          <div class="grid gap-3">
+            <label class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white/75">
+              <input id="includeVarsInLink" type="checkbox" checked />
+              Include variables
+            </label>
+            <label class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white/75">
+              <input id="includeMetaInLink" type="checkbox" checked />
+              Include metadata
+            </label>
+            <label class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white/75">
+              <input id="canonicalizeInLink" type="checkbox" />
+              Canonical link
+            </label>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <button id="copyLinkBtn" class="action-btn-primary" type="button">Copy link</button>
+          <button id="nativeShareBtn" class="action-btn" type="button">Native share</button>
+          <span id="nativeShareWrapper" class="self-center text-sm text-white/45"></span>
+        </div>
+        <div class="grid gap-4 md:grid-cols-3">
+          <div class="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+            <div class="field-label mb-2">Filled</div>
+            <pre id="shareFilledPreview" class="whitespace-pre-wrap break-words text-sm text-white/75"></pre>
+            <button id="copyFilledFromModalBtn" class="action-btn mt-4" type="button">Copy filled</button>
+          </div>
+          <div class="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+            <div class="field-label mb-2">Template</div>
+            <pre id="shareTemplatePreview" class="whitespace-pre-wrap break-words text-sm text-white/75"></pre>
+            <button id="copyTemplateBtn" class="action-btn mt-4" type="button">Copy template</button>
+          </div>
+          <div class="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+            <div class="field-label mb-2">Message</div>
+            <pre id="shareMessagePreview" class="whitespace-pre-wrap break-words text-sm text-white/75"></pre>
+            <button id="copyMessageBtn" class="action-btn mt-4" type="button">Copy message</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div
+    id="clearConfirmModal"
+    class="hidden fixed inset-0 z-50 items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm"
+  >
+    <div class="panel w-full max-w-lg p-6">
+      <h2 class="text-xl font-bold text-white">Clear draft?</h2>
+      <p class="mt-2 text-sm text-white/65">This removes the current prompt, metadata, and variable values.</p>
+      <div class="mt-6 flex flex-wrap gap-3">
+        <button id="confirmClearBtn" class="action-btn-primary" type="button">Clear</button>
+        <button id="cancelClearBtn" class="action-btn" type="button">Cancel</button>
+        <button id="closeClearConfirmModal" class="sr-only" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div
+    id="customChatbotModal"
+    class="hidden fixed inset-0 z-50 items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm"
+  >
+    <div class="panel w-full max-w-2xl">
+      <div class="border-b border-white/10 px-5 py-4 sm:px-6">
+        <div class="flex items-center justify-between gap-3">
+          <h2 class="text-xl font-bold text-white">Custom bot</h2>
+          <button id="closeCustomChatbotModal" class="action-btn" type="button">Close</button>
+        </div>
+      </div>
+      <div class="grid gap-4 px-5 py-5 sm:px-6 sm:grid-cols-2">
+        <InputGroup label="Name" for="customBotName">
+          <input id="customBotName" class="input-shell" type="text" />
+        </InputGroup>
+        <InputGroup label="Icon" for="customBotIcon">
+          <input id="customBotIcon" class="input-shell" type="text" maxlength="2" />
+        </InputGroup>
+        <InputGroup label="URL" for="customBotUrl" class="sm:col-span-2">
+          <input id="customBotUrl" class="input-shell" type="url" />
+        </InputGroup>
+        <label class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white/75 sm:col-span-2">
+          <input id="customBotSupportsQuery" type="checkbox" checked />
+          Supports prefilled query parameters
+        </label>
+        <button id="saveCustomChatbotBtn" class="action-btn-primary sm:col-span-2" type="button">Save bot</button>
+      </div>
+    </div>
+  </div>
+
+  <div
+    id="templateLibraryModal"
+    class="hidden fixed inset-0 z-50 items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm"
+  >
+    <div class="panel w-full max-w-4xl">
+      <div class="border-b border-white/10 px-5 py-4 sm:px-6">
+        <div class="flex items-center justify-between gap-3">
+          <h2 class="text-xl font-bold text-white">Template library</h2>
+          <button id="closeTemplateLibrary" class="action-btn" type="button">Close</button>
+        </div>
+      </div>
+      <div class="grid gap-4 px-5 py-5 sm:px-6 lg:grid-cols-[1fr_0.55fr]">
+        <div id="templateList" class="grid gap-3"></div>
+        <div class="space-y-3">
+          <button id="saveToLibraryBtn" class="action-btn-primary w-full" type="button">Save current draft</button>
+          <button id="exportTemplatesBtn" class="action-btn w-full" type="button">Export templates</button>
+          <button id="importTemplatesBtn" class="action-btn w-full" type="button">Import templates</button>
+          <input id="importTemplatesInput" class="hidden" type="file" accept="application/json" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="fixed bottom-24 left-1/2 z-[60] hidden -translate-x-1/2 rounded-full border border-white/10 bg-slate-950/90 px-4 py-3 text-sm text-white shadow-2xl backdrop-blur-xl">
+    <span id="toastText">Copied to clipboard</span>
+    <span id="toastAction" class="ml-3 text-white/45"></span>
+  </div>
+
+  <script type="module">
+    import '../scripts/prompt-launcher.js';
+  </script>
+</ToolPageShell>

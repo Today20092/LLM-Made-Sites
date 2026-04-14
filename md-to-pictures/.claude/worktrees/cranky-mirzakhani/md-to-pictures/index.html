@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <title>Markdown to Cards — Blog → TikTok</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link id="gfonts-link"
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Lato:wght@300;400;700&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+    rel="stylesheet"
+  />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="app-header">
+    <h1>Blog → TikTok</h1>
+    <p>Markdown to Cards</p>
+  </div>
+
+  <div class="surface">
+    <div class="surface-label">Markdown File or Text</div>
+    <div class="file-input-wrap">
+      <label class="file-btn" for="file-input">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        Choose .md or .txt file
+      </label>
+      <input type="file" id="file-input"
+        accept=".md,.txt,text/plain,text/markdown" />
+      <div class="file-name" id="file-name"></div>
+      <div class="or-divider">or paste below</div>
+      <textarea id="md-input"
+        placeholder="# My Post&#10;&#10;Paste your Obsidian markdown here&#8230;"></textarea>
+    </div>
+  </div>
+
+  <div class="surface">
+    <div class="surface-label">Settings</div>
+    <div class="options-grid">
+
+      <!-- Row 1: Theme + Density -->
+      <div class="opt-group">
+        <label>Theme</label>
+        <select id="theme-select">
+          <option value="quran">☪️ Quran</option>
+          <option value="midnight">✦ Midnight</option>
+          <option value="plum">🫐 Plum</option>
+          <option value="aurora">🌌 Aurora</option>
+          <option value="ember">🔥 Ember</option>
+          <option value="ink">🖋 Ink</option>
+          <option value="slate">🌊 Slate</option>
+          <option value="noir">🎬 Noir</option>
+          <option value="dark">🌙 Dark</option>
+          <option value="contrast">◑ Contrast</option>
+          <option value="cream">☀️ Cream</option>
+          <option value="parchment">📜 Parchment</option>
+          <option value="sand">🪨 Sand</option>
+          <option value="forest">🌿 Forest</option>
+          <option value="rose">🌸 Rose</option>
+        </select>
+      </div>
+      <div class="opt-group">
+        <label>Density</label>
+        <select id="density-select">
+          <option value="9">Spacious</option>
+          <option value="14" selected>Balanced</option>
+          <option value="19">Dense</option>
+        </select>
+      </div>
+
+      <!-- Row 2: Font Pairing (full width) -->
+      <div class="opt-group opt-group--full">
+        <label>Font Pairing</label>
+        <select id="font-select">
+          <option value="scholar">Scholar — Playfair Display + Lato</option>
+          <option value="editorial">Editorial — Cormorant Garamond + Source Sans</option>
+          <option value="minimal">Minimal — DM Sans (weight hierarchy)</option>
+          <option value="spiritual">Spiritual — Amiri (Arabic-primary)</option>
+          <option value="luxury">Luxury — Libre Baskerville + Raleway</option>
+          <option value="humanist">Humanist — Merriweather + Open Sans</option>
+          <option value="atkinson">Accessible — Atkinson Hyperlegible Next</option>
+        </select>
+      </div>
+
+      <!-- Row 3: Texture (full width) -->
+      <div class="opt-group opt-group--full">
+        <label>Background Texture</label>
+        <select id="texture-select">
+          <option value="none">None</option>
+          <option value="paper">Paper Grain</option>
+          <option value="linen">Linen Weave</option>
+          <option value="dots">Dot Grid</option>
+          <option value="hatch">Fine Hatching</option>
+        </select>
+      </div>
+
+      <!-- Row 4: Footer Watermark (full width) -->
+      <div class="opt-group opt-group--full">
+        <label>Footer Text <span class="opt-label-hint">(watermark · leave blank for none)</span></label>
+        <input type="text" id="watermark-input"
+          placeholder="@handle  ·  My Book Title"
+          maxlength="80"
+          autocomplete="off" />
+      </div>
+
+      <!-- Row 5: Cover Card (full width) -->
+      <div class="opt-group opt-group--full">
+        <label>Cover Title <span class="opt-label-hint">(leave blank for no cover card)</span></label>
+        <input type="text" id="cover-title-input"
+          placeholder="My Book Title"
+          maxlength="120"
+          autocomplete="off" />
+      </div>
+      <div class="opt-group opt-group--full">
+        <label>Cover Subtitle <span class="opt-label-hint">(optional)</span></label>
+        <input type="text" id="cover-subtitle-input"
+          placeholder="A subtitle or author name"
+          maxlength="160"
+          autocomplete="off" />
+      </div>
+
+      <!-- Row 6: Format + Quality -->
+      <div class="opt-group">
+        <label>Export Format</label>
+        <select id="format-select">
+          <option value="jpeg">JPEG</option>
+          <option value="png">PNG (Lossless)</option>
+          <option value="webp">WebP</option>
+        </select>
+        <small class="opt-note">PNG: lossless ~4–8 MB · WebP: Safari falls back to JPEG</small>
+      </div>
+      <div class="opt-group" id="quality-group">
+        <label for="quality-range">Quality — <span id="quality-label">95%</span></label>
+        <input type="range" id="quality-range"
+          min="60" max="100" value="95" step="1"
+          aria-label="Export quality"
+          aria-valuetext="95 percent" />
+      </div>
+
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-generate" id="gen-btn">
+      ✦ Generate Cards
+    </button>
+    <button class="btn-cancel" id="cancel-btn" disabled>
+      ✕ Cancel
+    </button>
+  </div>
+
+  <div id="status" aria-live="polite" aria-atomic="true"></div>
+  <div id="output"></div>
+  <div id="render-stage"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>

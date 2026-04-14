@@ -1,0 +1,121 @@
+---
+import '../styles/global.css';
+import { Icon } from 'astro-icon/components';
+import { toolRegistry } from '../data/tools';
+
+const {
+  title = 'LLM Made Sites',
+  description = 'Static multi-tool collection rebuilt with Astro and Tailwind.',
+  activePath = Astro.url.pathname,
+} = Astro.props;
+
+const base = import.meta.env.BASE_URL;
+const withBase = (path) => {
+  const clean = path === '/' ? '' : path.replace(/^\//, '');
+  return `${base}${clean}`;
+};
+const normalizedPath = base === '/' ? activePath : activePath.startsWith(base) ? `/${activePath.slice(base.length)}` : activePath;
+const homeItem = {
+  href: '/',
+  label: 'Hub',
+  iconName: 'mdi:home-outline',
+};
+const nav = [
+  homeItem,
+  ...toolRegistry.map((tool) => ({
+    href: tool.href,
+    label: tool.title,
+    iconName:
+      tool.id === 'prompt-launcher'
+        ? 'mdi:chat-outline'
+        : tool.id === 'video-bitrate-calculator'
+          ? 'mdi:calculator-variant-outline'
+          : 'mdi:image-multiple-outline',
+  })),
+];
+const activeTool = toolRegistry.find((tool) => tool.href === normalizedPath);
+---
+
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#060816" />
+    <title>{title}</title>
+  </head>
+  <body class="h-full">
+    <div class="relative min-h-screen overflow-hidden">
+      <div class="pointer-events-none absolute inset-0 opacity-80">
+        <div class="absolute left-[-10rem] top-[-10rem] h-[30rem] w-[30rem] rounded-full bg-amber-400/10 blur-3xl"></div>
+        <div class="absolute right-[-8rem] top-[8rem] h-[24rem] w-[24rem] rounded-full bg-emerald-400/10 blur-3xl"></div>
+        <div class="absolute bottom-[-10rem] left-[25%] h-[26rem] w-[26rem] rounded-full bg-rose-400/10 blur-3xl"></div>
+      </div>
+
+      <header class="sticky top-0 z-40 border-b border-white/10 bg-slate-950/70 backdrop-blur-2xl">
+        <div class="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+          <a href={import.meta.env.BASE_URL} class="group flex items-center gap-3">
+            <span class="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-sm font-black tracking-wider text-amber-200 shadow-lg shadow-black/20">
+              LMS
+            </span>
+            <div class="min-w-0">
+              <div class="font-display text-lg font-bold tracking-tight text-white">LLM Made Sites</div>
+              <div class="hidden text-xs uppercase tracking-[0.24em] text-white/[0.45] sm:block">Astro-native tool suite</div>
+              {activeTool && (
+                <div class="mt-1 inline-flex max-w-full rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/65 sm:hidden">
+                  <span class="truncate">{activeTool.title}</span>
+                </div>
+              )}
+            </div>
+          </a>
+          <nav class="hidden items-center gap-2 md:flex">
+            {nav.map((item) => (
+              <a
+                href={withBase(item.href)}
+                aria-current={normalizedPath === item.href ? 'page' : undefined}
+                class:list={[
+                  'rounded-full px-4 py-2 text-sm font-semibold transition',
+                  normalizedPath === item.href
+                    ? 'bg-white text-slate-950 shadow-lg shadow-black/20'
+                    : 'text-white/70 hover:bg-white/[0.08] hover:text-white',
+                ]}
+              >
+                {item.label}
+              </a>
+            ))}
+          </nav>
+        </div>
+      </header>
+
+      <main class="relative mx-auto w-full max-w-7xl px-4 pb-28 pt-6 sm:px-6 sm:pb-8 lg:px-8">
+        <slot />
+      </main>
+
+      <nav class="fixed inset-x-3 bottom-3 z-50 md:hidden" aria-label="Primary">
+        <div class="panel border border-white/10 bg-slate-950/92 p-2 shadow-2xl shadow-black/40 backdrop-blur-2xl">
+          <div class="grid grid-cols-4 gap-1">
+            {nav.map((item) => (
+              <a
+                href={withBase(item.href)}
+                aria-current={normalizedPath === item.href ? 'page' : undefined}
+                aria-label={item.label}
+                class:list={[
+                  'flex min-w-0 flex-col items-center justify-center gap-1 rounded-2xl px-1.5 py-2 text-[10px] font-semibold transition',
+                  normalizedPath === item.href
+                    ? 'bg-white text-slate-950 shadow-lg shadow-black/20'
+                    : 'text-white/60 hover:bg-white/[0.06] hover:text-white',
+                ]}
+              >
+                <span class="flex h-9 w-9 items-center justify-center rounded-2xl text-base leading-none">
+                  <Icon name={item.iconName} class="h-5 w-5" />
+                </span>
+                <span class="sr-only">{item.label}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      </nav>
+    </div>
+  </body>
+</html>

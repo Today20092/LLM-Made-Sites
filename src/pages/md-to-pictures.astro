@@ -1,0 +1,108 @@
+---
+import InputGroup from '../components/InputGroup.astro';
+import Panel from '../components/Panel.astro';
+import ToolPageShell from '../components/ToolPageShell.astro';
+import { toolById } from '../data/tools';
+---
+
+<ToolPageShell tool={toolById['md-to-pictures']} title="MD to Pictures | LLM Made Sites">
+  <div class="space-y-6">
+    <Panel title="Source" eyebrow="Markdown" description="Choose a file or paste markdown directly into the editor.">
+      <div class="grid gap-4">
+        <div class="flex flex-wrap items-center gap-3">
+          <label for="file-input" class="action-btn cursor-pointer">Choose file</label>
+          <input id="file-input" class="hidden" type="file" accept=".md,.txt,text/plain,text/markdown" />
+          <input id="file-name" class="input-shell min-w-0 flex-1" type="text" placeholder="No file loaded" readonly />
+        </div>
+        <InputGroup label="Markdown" for="md-input">
+          <textarea id="md-input" class="input-shell min-h-[220px]" placeholder="# My post"></textarea>
+        </InputGroup>
+      </div>
+    </Panel>
+
+    <Panel title="Settings" eyebrow="Render" description="Tune the card look, export format, and typography before rendering.">
+      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <InputGroup label="Theme" for="theme-select">
+          <select id="theme-select" class="input-shell">
+            <option value="Cream">Cream</option>
+            <option value="Dark">Dark</option>
+            <option value="Ink">Ink</option>
+            <option value="Slate">Slate</option>
+            <option value="Forest">Forest</option>
+            <option value="Rose">Rose</option>
+          </select>
+        </InputGroup>
+        <InputGroup label="Density" for="density-select">
+          <select id="density-select" class="input-shell">
+            <option value="Spacious">Spacious</option>
+            <option value="Balanced" selected>Balanced</option>
+            <option value="Dense">Dense</option>
+          </select>
+        </InputGroup>
+        <InputGroup label="Font pairing" for="font-select" class="md:col-span-2 xl:col-span-1">
+          <select id="font-select" class="input-shell">
+            <option value="Scholar">Scholar</option>
+            <option value="Editorial">Editorial</option>
+            <option value="Mono">Mono</option>
+            <option value="Hyperlegible">Accessible</option>
+          </select>
+        </InputGroup>
+        <InputGroup label="Texture" for="texture-select">
+          <select id="texture-select" class="input-shell">
+            <option value="None">None</option>
+            <option value="Grid">Grid</option>
+            <option value="Noise">Noise</option>
+          </select>
+        </InputGroup>
+        <InputGroup label="Watermark" for="watermark-input">
+          <input id="watermark-input" class="input-shell" type="text" maxlength="80" placeholder="@handle" />
+        </InputGroup>
+        <InputGroup label="Cover title" for="cover-title-input">
+          <input id="cover-title-input" class="input-shell" type="text" maxlength="120" placeholder="My book title" />
+        </InputGroup>
+        <InputGroup label="Cover subtitle" for="cover-subtitle-input">
+          <input id="cover-subtitle-input" class="input-shell" type="text" maxlength="160" placeholder="Optional subtitle" />
+        </InputGroup>
+        <InputGroup label="Canvas size" for="format-select">
+          <select id="format-select" class="input-shell">
+            <option value="story">Story</option>
+            <option value="portrait">Portrait</option>
+            <option value="square">Square</option>
+          </select>
+        </InputGroup>
+        <div id="quality-group" class="grid gap-2">
+          <span class="field-label flex items-center justify-between gap-3">
+            <span>Quality</span>
+            <span id="quality-label" class="normal-case tracking-normal text-white/40">95%</span>
+          </span>
+          <input
+            id="quality-range"
+            class="w-full accent-amber-300"
+            type="range"
+            min="60"
+            max="100"
+            step="1"
+            value="95"
+          />
+        </div>
+      </div>
+    </Panel>
+
+    <div class="flex flex-wrap gap-3">
+      <button id="gen-btn" class="action-btn-primary" type="button">Generate cards</button>
+      <button id="cancel-btn" class="action-btn" type="button" disabled>Cancel</button>
+    </div>
+
+    <div id="status" aria-live="polite" aria-atomic="true" class="text-sm text-white/60"></div>
+
+    <Panel title="Preview" eyebrow="Output" description="Rendered cards appear here before export.">
+      <div id="output" class="grid gap-4 md:grid-cols-2 xl:grid-cols-3"></div>
+    </Panel>
+  </div>
+
+  <div id="render-stage" class="fixed left-[-99999px] top-0 h-0 w-0 overflow-hidden"></div>
+
+  <script type="module">
+    import '../scripts/md-to-pictures.js';
+  </script>
+</ToolPageShell>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="T3 Chat">
+  <path
+    d="M32 10l5.3 12.7L50 28l-12.7 5.3L32 46l-5.3-12.7L14 28l12.7-5.3L32 10Z"
+    stroke="currentColor"
+    stroke-width="4"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M32 26v12M26 32h12"
+    stroke="currentColor"
+    stroke-width="4"
+    stroke-linecap="round"
+  />
+</svg>

@@ -1,0 +1,59 @@
+---
+import BaseLayout from '../components/BaseLayout.astro';
+import ActionButton from '../components/ActionButton.astro';
+import MetricCard from '../components/MetricCard.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import ToolCard from '../components/ToolCard.astro';
+import { toolRegistry } from '../data/tools';
+
+const base = import.meta.env.BASE_URL;
+const withBase = (path) => {
+  const clean = path === '/' ? '' : path.replace(/^\//, '');
+  return `${base}${clean}`;
+};
+---
+
+<BaseLayout
+  title="LLM Made Sites"
+  description="Three focused tools, one shared shell, and a mobile-first visual system."
+>
+  <div class="space-y-8">
+    <section class="panel overflow-hidden">
+      <div class="bg-gradient-to-br from-white/[0.05] via-white/[0.03] to-transparent px-5 py-6 sm:px-6 sm:py-8">
+        <div class="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
+          <div class="space-y-4">
+            <div class="chip w-fit">Unified tool suite</div>
+            <h1 class="max-w-3xl text-4xl font-black leading-[0.92] tracking-tight text-white sm:text-5xl lg:text-6xl">
+              One app shell for the full collection.
+            </h1>
+            <p class="max-w-2xl text-sm leading-6 text-white/70 sm:text-base">
+              The hub, prompt launcher, bitrate calculator, and markdown exporter now share the
+              same header, nav model, spacing, and card language on mobile first.
+            </p>
+            <div class="flex flex-wrap gap-3">
+              <ActionButton href={withBase('/prompt-launcher')} variant="primary">Launch Prompt Launcher</ActionButton>
+              <ActionButton href={withBase('/video-bitrate-calculator')}>Open Bitrate Calculator</ActionButton>
+            </div>
+          </div>
+
+          <div class="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+            <MetricCard label="Tools" value="3" hint="Shared routes, one registry" />
+            <MetricCard label="Layout" value="1" hint="Same shell everywhere" />
+            <MetricCard label="Primary" value="Mobile" hint="Designed for 375px to 430px widths" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="space-y-4">
+      <SectionHeader
+        eyebrow="Launch a tool"
+        title="The suite"
+        description="Each page lives in the same system now, so the product reads as one experience instead of three embeds."
+      />
+      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {toolRegistry.map((tool) => <ToolCard tool={tool} />)}
+      </div>
+    </section>
+  </div>
+</BaseLayout>

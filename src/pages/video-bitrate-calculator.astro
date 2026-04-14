@@ -1,0 +1,174 @@
+---
+import InputGroup from '../components/InputGroup.astro';
+import Panel from '../components/Panel.astro';
+import ToolPageShell from '../components/ToolPageShell.astro';
+import { toolById } from '../data/tools';
+---
+
+<ToolPageShell tool={toolById['video-bitrate-calculator']} title="Video Bitrate Calculator | LLM Made Sites">
+  <div class="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+    <div class="space-y-6">
+      <Panel title="Inputs" eyebrow="Calculator" description="Toggle between bitrate and reverse-size calculations.">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <button id="themeToggle" class="action-btn" type="button" aria-label="Toggle theme">
+            <span id="iconSun">☀</span>
+            <span id="iconMoon" class="hidden">☾</span>
+            <span>Theme</span>
+          </button>
+          <button id="shareConfig" class="action-btn" type="button">Share config</button>
+        </div>
+
+        <div class="mt-5 space-y-4">
+          <InputGroup label="Video duration" for="hours">
+            <div class="grid grid-cols-3 gap-3">
+              <input id="hours" class="input-shell" type="number" min="0" value="0" />
+              <input id="minutes" class="input-shell" type="number" min="0" value="10" />
+              <input id="seconds" class="input-shell" type="number" min="0" value="0" />
+            </div>
+          </InputGroup>
+
+          <div class="rounded-3xl border border-white/10 bg-white/[0.04] p-4">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <div class="field-label">Primary mode</div>
+                <div class="mt-1 text-sm text-white/65">Switch to reverse size calculations when needed.</div>
+              </div>
+              <input id="reverseMode" type="checkbox" class="h-5 w-5 accent-amber-300" />
+            </div>
+          </div>
+
+          <InputGroup label="Baseline bitrate" for="baselineBitrate">
+            <input id="baselineBitrate" class="input-shell" type="number" min="1" value="100" />
+            <p id="suggestionText" class="text-sm text-white/60">Adjust settings for a recommendation</p>
+            <button id="applySuggestionBtn" class="action-btn" type="button">Apply suggested bitrate</button>
+          </InputGroup>
+
+          <div class="grid gap-3 sm:grid-cols-2">
+            <InputGroup label="Target size" for="targetSize">
+              <input id="targetSize" class="input-shell" type="number" value="5" />
+            </InputGroup>
+            <InputGroup label="Unit" for="targetSizeUnit">
+              <select id="targetSizeUnit" class="input-shell">
+                <option value="GB">GB</option>
+                <option value="MB">MB</option>
+                <option value="TB">TB</option>
+              </select>
+            </InputGroup>
+          </div>
+
+          <div class="rounded-3xl border border-white/10 bg-white/[0.04] p-4">
+            <div class="field-label">Calculated bitrate</div>
+            <div id="calculatedReverseBitrate" class="mt-2 text-3xl font-black text-white">--</div>
+          </div>
+
+          <div class="grid gap-3 sm:grid-cols-2">
+            <InputGroup label="Audio bitrate" for="audioBitrate">
+              <input id="audioBitrate" class="input-shell" type="number" value="192" />
+            </InputGroup>
+            <InputGroup label="Available storage" for="availableStorage">
+              <input id="availableStorage" class="input-shell" type="number" value="500" />
+            </InputGroup>
+          </div>
+
+          <InputGroup label="Cost per TB" for="costPerTB">
+            <input id="costPerTB" class="input-shell" type="number" value="20" />
+          </InputGroup>
+        </div>
+      </Panel>
+
+      <Panel title="Recommendation" eyebrow="Quality" description="Tune bitrate targets by resolution, frame rate, and complexity.">
+        <div class="grid gap-4 sm:grid-cols-2">
+          <InputGroup label="Resolution" for="resolution">
+            <select id="resolution" class="input-shell">
+              <option value="720p">720p</option>
+              <option value="1080p" selected>1080p</option>
+              <option value="4k">4K</option>
+            </select>
+          </InputGroup>
+          <InputGroup label="FPS" for="fps">
+            <select id="fps" class="input-shell">
+              <option value="30" selected>30 fps</option>
+              <option value="60">60 fps</option>
+            </select>
+          </InputGroup>
+        </div>
+        <div class="mt-4">
+          <InputGroup label="Bitrate quality" for="complexity">
+            <select id="complexity" class="input-shell">
+              <option value="low">Efficiency (Low)</option>
+              <option value="balanced" selected>Standard (Balanced)</option>
+              <option value="high">High Quality</option>
+            </select>
+          </InputGroup>
+        </div>
+      </Panel>
+    </div>
+
+    <div class="space-y-6">
+      <div class="grid gap-3 sm:grid-cols-2">
+        <article class="rounded-3xl border border-white/10 bg-white/[0.04] p-4 shadow-glow">
+          <div class="field-label">Total duration</div>
+          <div id="totalDuration" class="mt-2 text-2xl font-black tracking-tight text-white sm:text-3xl">0s</div>
+          <p class="mt-2 text-sm leading-6 text-white/60">Updates live as inputs change</p>
+        </article>
+        <article class="rounded-3xl border border-white/10 bg-white/[0.04] p-4 shadow-glow">
+          <div class="field-label">Profiles</div>
+          <div id="profileCount" class="mt-2 text-2xl font-black tracking-tight text-white sm:text-3xl">0</div>
+          <p class="mt-2 text-sm leading-6 text-white/60">Saved comparisons are capped</p>
+        </article>
+      </div>
+
+      <Panel title="Comparison Profiles" eyebrow="Snapshots" description="Track several bitrate targets at once.">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <button id="addProfile" class="action-btn-primary" type="button">Add comparison</button>
+          <span class="text-sm text-white/55"><span class="profile-count-display">0</span> active profiles</span>
+        </div>
+        <div id="profilesContainer" class="mt-5 grid gap-4 md:grid-cols-2"></div>
+      </Panel>
+
+      <Panel title="Storage Comparison" eyebrow="Output" description="Use the selected bitrate against recommended and reverse targets.">
+        <div class="flex items-center justify-between gap-3">
+          <p class="text-sm text-white/60">Projected storage, upload cost, and bitrate bars.</p>
+          <button id="exportBtn" class="action-btn" type="button">Export data</button>
+        </div>
+        <div id="barChart" class="mt-5 space-y-4"></div>
+      </Panel>
+
+      <div class="grid gap-6 lg:grid-cols-2">
+        <Panel title="Upload Estimates" eyebrow="Table" description="Quick reference table for upload planning.">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-white/[0.04] text-white/70">
+                <tr>
+                  <th class="px-4 py-3">Metric</th>
+                  <th class="px-4 py-3">Value</th>
+                </tr>
+              </thead>
+              <tbody id="uploadTable"></tbody>
+            </table>
+          </div>
+          <div class="mt-5">
+            <InputGroup label="Custom speed" for="customSpeed" hint="Mbps">
+              <input id="customSpeed" class="input-shell" type="number" value="50" />
+            </InputGroup>
+            <div id="customSpeedHeader" class="mt-2 text-sm text-white/55">Custom speed factor (1.00x)</div>
+          </div>
+        </Panel>
+
+        <Panel title="Storage Yield" eyebrow="Capacity" description="How many projects fit inside the available budget.">
+          <div id="capacityResults" class="grid gap-4"></div>
+        </Panel>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="fixed bottom-24 left-1/2 z-[60] hidden -translate-x-1/2 rounded-full border border-white/10 bg-slate-950/90 px-4 py-3 text-sm text-white shadow-2xl backdrop-blur-xl">
+    <span>Copied to clipboard</span>
+  </div>
+
+  <h2 id="promptTitle" class="sr-only">Video Bitrate Calculator</h2>
+
+  <script type="module">
+    import '../scripts/video-bitrate-calculator.js';
+  </script>
+</ToolPageShell>

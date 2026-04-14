@@ -1,0 +1,29 @@
+---
+import type { ToolDefinition } from '../data/tools';
+
+type ToolCardProps = {
+  tool: ToolDefinition;
+};
+
+const { tool } = Astro.props as ToolCardProps;
+const base = import.meta.env.BASE_URL;
+const withBase = (path: string) => {
+  const clean = path === '/' ? '' : path.replace(/^\//, '');
+  return `${base}${clean}`;
+};
+---
+
+<a href={withBase(tool.href)} class={`group panel block overflow-hidden p-6 transition hover:-translate-y-1 hover:border-white/20 ${tool.accent}`}>
+  <div class="mb-4 flex items-center justify-between gap-3">
+    <span class="chip">{tool.badge}</span>
+    <span class="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-xl text-white transition group-hover:scale-105">
+      {tool.icon}
+    </span>
+  </div>
+  <h3 class="mb-2 text-2xl font-bold tracking-tight text-white">{tool.title}</h3>
+  <p class="max-w-xl text-sm leading-6 text-white/[0.68]">{tool.summary}</p>
+  <div class="mt-5 flex items-center justify-between gap-3 border-t border-white/10 pt-4 text-xs uppercase tracking-[0.22em] text-white/45">
+    <span>{tool.status}</span>
+    <span class="transition group-hover:text-white">Open</span>
+  </div>
+</a>
